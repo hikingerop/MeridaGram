@@ -6075,7 +6075,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (!ApplicationLoader.isStandaloneBuild() && !ApplicationLoader.isBetaBuild()) {
             return;
         }
-        if (!force && !BuildVars.CHECK_UPDATES) {
+        if (!BuildVars.CHECK_UPDATES) {
             return;
         }
         if (ApplicationLoader.applicationLoaderInstance.isCustomUpdate()) {

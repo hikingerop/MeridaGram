@@ -86,7 +86,7 @@ android {
             debuggable false
             jniDebuggable false
             signingConfig signingConfigs.release
-            applicationIdSuffix ".web"
+            // applicationIdSuffix ".web"
             minifyEnabled true
             shrinkResources true
             multiDexEnabled true
@@ -107,7 +107,7 @@ android {
     productFlavors {
         afat {
             ndk {
-                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                abiFilters "arm64-v8a" // MeridaGram: arm64 only, to keep CI builds fast
             }
             ext {
                 abiVersionCode = 9
