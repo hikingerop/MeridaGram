@@ -70,6 +70,7 @@ import org.telegram.ui.Stories.recorder.StoryEntry;
 import org.telegram.ui.Stories.recorder.StoryPrivacyBottomSheet;
 import org.telegram.ui.Stories.recorder.StoryRecorder;
 import org.telegram.ui.Stories.recorder.StoryUploadingService;
+import org.telegram.utils.settings.MeridaSettings;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -280,6 +281,9 @@ public class StoriesController {
     }
 
     public boolean hasStories() {
+        if (MeridaSettings.hideStories.get()) {
+            return false;
+        }
         return (dialogListStories != null && dialogListStories.size() > 0) || hasSelfStories();
     }
 

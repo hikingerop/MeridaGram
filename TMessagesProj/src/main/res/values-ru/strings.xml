@@ -263,4 +263,13 @@
     <string name="RemindTodayAt">\'Отправить сегодня в\' HH:mm</string>
     <string name="RemindDayAt">\'Отправить\' d MMM \'в\' HH:mm</string>
     <string name="RemindDayYearAt">\'Напомнить\' d MMM yyyy \'в\' HH:mm</string>
+    <!-- MeridaGram -->
+    <string name="MeridaSettings">Настройки MeridaGram</string>
+    <string name="MeridaSettingsInfo">Функции MeridaGram</string>
+    <string name="MeridaSettingsGeneral">Основные</string>
+    <string name="MeridaSettingsGeneralInfo">Секунды у сообщений появятся после повторного открытия чата.</string>
+    <string name="MeridaHideStories">Скрыть истории</string>
+    <string name="MeridaShowId">Показывать ID в профилях</string>
+    <string name="MeridaTimeWithSeconds">Время с секундами</string>
+    <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
 </resources>

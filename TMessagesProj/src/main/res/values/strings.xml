@@ -11630,4 +11630,13 @@
     <string name="NoPaidMessagesTokenUsed">un1 used your QR code and can message you for free</string>
     <string name="NoPaidMessagesTokenUsedOut">You used the QR code of un1 and can message them for free</string>
     <string name="NoPaidMessagesTokenImported">You can now message **%1$s** for free.</string>
+    <!-- MeridaGram -->
+    <string name="MeridaSettings">MeridaGram Settings</string>
+    <string name="MeridaSettingsInfo">Features of MeridaGram</string>
+    <string name="MeridaSettingsGeneral">General</string>
+    <string name="MeridaSettingsGeneralInfo">Seconds appear on messages after the chat is reopened.</string>
+    <string name="MeridaHideStories">Hide stories</string>
+    <string name="MeridaShowId">Show ID in profiles</string>
+    <string name="MeridaTimeWithSeconds">Show time with seconds</string>
+    <string name="MeridaIdCopied">ID copied to clipboard.</string>
 </resources>

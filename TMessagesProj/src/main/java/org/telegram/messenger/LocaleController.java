@@ -45,6 +45,7 @@ import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.RestrictedLanguagesSelectActivity;
+import org.telegram.utils.settings.MeridaSettings;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.io.BufferedWriter;
@@ -78,6 +79,9 @@ public class LocaleController {
 
     private volatile FastDateFormat formatterDay;
     public FastDateFormat getFormatterDay() {
+        if (MeridaSettings.timeWithSeconds.get()) {
+            return getFormatterDayWithSeconds();
+        }
         if (formatterDay == null) {
             synchronized (this) {
                 if (formatterDay == null) {

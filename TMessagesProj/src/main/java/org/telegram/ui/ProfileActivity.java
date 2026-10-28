@@ -321,6 +321,7 @@ import org.telegram.ui.bots.ChannelAffiliateProgramsFragment;
 import org.telegram.ui.bots.SetupEmojiStatusSheet;
 import org.telegram.ui.community.CommunitySheet;
 import org.telegram.ui.QrShare.QrShareActivity;
+import org.telegram.utils.settings.MeridaSettings;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -663,6 +664,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int userInfoRow;
     private int channelInfoRow;
     private int usernameRow;
+    private int meridaIdRow;
     private int notificationsDividerRow;
     private int notificationsRow;
     private int bizHoursRow;
@@ -7327,6 +7329,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private boolean processOnClickOrPress(final int position, final View view, final float x, final float y) {
+        if (position == meridaIdRow) {
+            AndroidUtilities.addToClipboard(String.valueOf(userId != 0 ? userId : chatId));
+            BulletinFactory.of(this).createCopyBulletin(getString(R.string.MeridaIdCopied)).show();
+            return true;
+        }
         if (position == usernameRow || position == setUsernameRow) {
             final String username;
             final TLRPC.TL_username usernameObj;
@@ -10568,6 +10575,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         locationRow = -1;
         channelInfoRow = -1;
         usernameRow = -1;
+        meridaIdRow = -1;
         settingsTimerRow = -1;
         settingsKeyRow = -1;
         notificationsDividerRow = -1;
@@ -10762,6 +10770,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (user != null && username != null) {
                     usernameRow = rowCount++;
                 }
+                if (user != null && MeridaSettings.showId.get()) {
+                    meridaIdRow = rowCount++;
+                }
                 if (userInfo != null) {
                     if (userInfo.birthday != null) {
                         birthdayRow = rowCount++;
@@ -10897,7 +10908,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 sharedMediaRow = rowCount++;
             }
         } else if (chatId != 0) {
-            if (chatInfo != null && (!TextUtils.isEmpty(chatInfo.about) || chatInfo.location instanceof TLRPC.TL_channelLocation) || ChatObject.isPublic(currentChat)) {
+            if (chatInfo != null && (!TextUtils.isEmpty(chatInfo.about) || chatInfo.location instanceof TLRPC.TL_channelLocation) || ChatObject.isPublic(currentChat) || MeridaSettings.showId.get()) {
                 if (emptyRow < 0 && emptyRow2 < 0) {
                     if (hasMusic || hasBalance || peerColor != null || actionsView == null) {
                         emptyRow2 = rowCount++;
@@ -10919,6 +10930,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
                 if (ChatObject.isPublic(currentChat)) {
                     usernameRow = rowCount++;
+                }
+                if (MeridaSettings.showId.get()) {
+                    meridaIdRow = rowCount++;
                 }
             }
             if (emptyRow < 0 && emptyRow2 < 0) {
@@ -13541,6 +13555,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                             containsGift = !myProfile && today && !getMessagesController().premiumPurchaseBlocked();
                         }
+                    } else if (position == meridaIdRow) {
+                        detailCell.setTextAndValue(String.valueOf(userId != 0 ? userId : chatId), "ID", false);
                     } else if (position == phoneRow) {
                         String text;
                         TLRPC.User user = getMessagesController().getUser(userId);
@@ -14372,7 +14388,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (position == infoHeaderRow || position == membersHeaderRow || position == settingsSectionRow2 ||
                     position == numberSectionRow || position == helpHeaderRow || position == debugHeaderRow || position == botPermissionsHeader) {
                 return VIEW_TYPE_HEADER;
-            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow) {
+            } else if (position == phoneRow || position == locationRow || position == numberRow || position == birthdayRow || position == meridaIdRow) {
                 return VIEW_TYPE_TEXT_DETAIL;
             } else if (position == usernameRow || position == setUsernameRow) {
                 return VIEW_TYPE_TEXT_DETAIL_MULTILINE;
@@ -15776,6 +15792,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             put(++pointer, userInfoRow, sparseIntArray);
             put(++pointer, channelInfoRow, sparseIntArray);
             put(++pointer, usernameRow, sparseIntArray);
+            put(++pointer, meridaIdRow, sparseIntArray);
             put(++pointer, notificationsDividerRow, sparseIntArray);
             put(++pointer, reportDividerRow, sparseIntArray);
             put(++pointer, notificationsRow, sparseIntArray);
