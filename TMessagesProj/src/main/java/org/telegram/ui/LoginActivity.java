@@ -126,6 +126,7 @@ import org.telegram.messenger.AuthTokensHelper;
 import org.telegram.messenger.BillingController;
 import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.BuildVars;
+import org.telegram.messenger.merida.MeridaVpn;
 import org.telegram.messenger.CallReceiver;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.Emoji;
@@ -1753,6 +1754,29 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         fillNextCodeParams(params, res, true);
     }
 
+    /** MeridaGram: connection, built-in VPN and API ID state, shown when login hangs. */
+    private String meridaDiagnostics() {
+        String connection;
+        switch (ConnectionsManager.getInstance(currentAccount).getConnectionState()) {
+            case ConnectionsManager.ConnectionStateWaitingForNetwork: connection = getString(R.string.MeridaDiagNoNetwork); break;
+            case ConnectionsManager.ConnectionStateConnected: connection = getString(R.string.MeridaDiagConnected); break;
+            case ConnectionsManager.ConnectionStateConnectingToProxy: connection = getString(R.string.MeridaDiagProxy); break;
+            default: connection = getString(R.string.MeridaDiagConnecting); break;
+        }
+        String vpn;
+        if (!MeridaVpn.isEnabled()) {
+            vpn = getString(R.string.MeridaDiagVpnOff);
+        } else switch (MeridaVpn.getState()) {
+            case MeridaVpn.STATE_CONNECTED: vpn = getString(R.string.MeridaDiagVpnOn); break;
+            case MeridaVpn.STATE_CONNECTING: vpn = getString(R.string.MeridaDiagVpnConnecting); break;
+            case MeridaVpn.STATE_FAILED: vpn = getString(R.string.MeridaDiagVpnFailed) + (MeridaVpn.getError() != null ? " " + MeridaVpn.getError() : ""); break;
+            default: vpn = getString(R.string.MeridaDiagVpnOff); break;
+        }
+        return getString(R.string.MeridaDiagConnection) + " " + connection + "\n"
+            + "Merida VPN: " + vpn + "\n"
+            + "API ID: " + BuildVars.APP_ID + (isRequestingFirebaseSms ? "\nGoogle Play Integrity" : "");
+    }
+
     private boolean isRequestingFirebaseSms;
     private void fillNextCodeParams(Bundle params, TLRPC.auth_SentCode res, boolean animate) {
         if (res instanceof TLRPC.TL_auth_sentCodePaymentRequired) {
@@ -1773,6 +1797,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 needShowProgress(0);
                 isRequestingFirebaseSms = true;
                 final String phone = params.getString("phoneFormated");
+                // MeridaGram: Google's check may never answer for an app outside Google Play; ask for a usual code instead
+                AndroidUtilities.runOnUIThread(() -> resendCodeFromSafetyNet(params, res, "INTEGRITY_TIMEOUT"), 20000);
                 if (r.play_integrity_nonce != null) {
                     IntegrityManager integrityManager = IntegrityManagerFactory.create(getContext());
                     final String nonce = new String(Base64.encode(r.play_integrity_nonce, Base64.URL_SAFE));
@@ -1780,6 +1806,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     Task<IntegrityTokenResponse> integrityTokenResponse = integrityManager.requestIntegrityToken(IntegrityTokenRequest.builder().setNonce(nonce).setCloudProjectNumber(r.play_integrity_project_id).build());
                     integrityTokenResponse
                         .addOnSuccessListener(result -> {
+                            if (!isRequestingFirebaseSms) {
+                                return; // already fell back after the timeout
+                            }
                             final String token = result.token();
 
                             if (token == null) {
@@ -1814,6 +1843,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 } else {
                     SafetyNet.getClient(ApplicationLoader.applicationContext).attest(res.type.nonce, BuildVars.SAFETYNET_KEY)
                     .addOnSuccessListener(attestationResponse -> {
+                        if (!isRequestingFirebaseSms) {
+                            return; // already fell back after the timeout
+                        }
                         String jws = attestationResponse.getJwsResult();
 
                         if (jws != null) {
@@ -3246,6 +3278,12 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 }
             }), ConnectionsManager.RequestFlagFailOnServerErrors | ConnectionsManager.RequestFlagWithoutLogin | ConnectionsManager.RequestFlagTryDifferentDc | ConnectionsManager.RequestFlagEnableUnauthorized);
             needShowProgress(reqId);
+            // MeridaGram: if Telegram stays silent, say why instead of spinning forever
+            AndroidUtilities.runOnUIThread(() -> {
+                if (nextPressed && progressRequestId == reqId && getParentActivity() != null) {
+                    needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString(R.string.MeridaLoginStuck) + "\n\n" + meridaDiagnostics());
+                }
+            }, 25000);
         }
 
         private boolean numberFilled;

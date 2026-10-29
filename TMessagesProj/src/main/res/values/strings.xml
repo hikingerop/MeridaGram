@@ -11640,6 +11640,16 @@
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>
     <string name="MeridaLoginNoConnection">Could not reach Telegram. Check your connection and try again. Error:</string>
+    <string name="MeridaLoginStuck">Telegram has not answered for 25 seconds. Current state:</string>
+    <string name="MeridaDiagConnection">Connection to Telegram:</string>
+    <string name="MeridaDiagNoNetwork">no internet</string>
+    <string name="MeridaDiagConnected">connected, but the server is silent</string>
+    <string name="MeridaDiagProxy">connecting through proxy</string>
+    <string name="MeridaDiagConnecting">connecting</string>
+    <string name="MeridaDiagVpnOff">off</string>
+    <string name="MeridaDiagVpnOn">on</string>
+    <string name="MeridaDiagVpnConnecting">connecting</string>
+    <string name="MeridaDiagVpnFailed">error</string>
     <string name="MeridaVpnHeader">Merida VPN</string>
     <string name="MeridaVpnEnabled">Telegram through Merida VPN</string>
     <string name="MeridaVpnConnection">Connection</string>

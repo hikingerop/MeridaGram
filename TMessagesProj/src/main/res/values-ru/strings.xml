@@ -273,6 +273,16 @@
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
     <string name="MeridaLoginNoConnection">Не удалось связаться с Telegram. Проверьте интернет и попробуйте ещё раз. Ошибка:</string>
+    <string name="MeridaLoginStuck">Telegram не отвечает уже 25 секунд. Что видно сейчас:</string>
+    <string name="MeridaDiagConnection">Связь с Telegram:</string>
+    <string name="MeridaDiagNoNetwork">нет интернета</string>
+    <string name="MeridaDiagConnected">есть, но сервер молчит</string>
+    <string name="MeridaDiagProxy">подключается через прокси</string>
+    <string name="MeridaDiagConnecting">подключается</string>
+    <string name="MeridaDiagVpnOff">выключен</string>
+    <string name="MeridaDiagVpnOn">работает</string>
+    <string name="MeridaDiagVpnConnecting">подключается</string>
+    <string name="MeridaDiagVpnFailed">ошибка</string>
     <string name="MeridaVpnHeader">Merida VPN</string>
     <string name="MeridaVpnEnabled">Telegram через Merida VPN</string>
     <string name="MeridaVpnConnection">Подключение</string>
