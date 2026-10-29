@@ -272,6 +272,7 @@
     <string name="MeridaShowId">Показывать ID в профилях</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
+    <string name="MeridaLoginNoConnection">Не удалось связаться с Telegram. Проверьте интернет и попробуйте ещё раз. Ошибка:</string>
     <string name="MeridaVpnHeader">Merida VPN</string>
     <string name="MeridaVpnEnabled">Telegram через Merida VPN</string>
     <string name="MeridaVpnConnection">Подключение</string>

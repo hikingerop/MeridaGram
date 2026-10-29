@@ -11639,6 +11639,7 @@
     <string name="MeridaShowId">Show ID in profiles</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>
+    <string name="MeridaLoginNoConnection">Could not reach Telegram. Check your connection and try again. Error:</string>
     <string name="MeridaVpnHeader">Merida VPN</string>
     <string name="MeridaVpnEnabled">Telegram through Merida VPN</string>
     <string name="MeridaVpnConnection">Connection</string>

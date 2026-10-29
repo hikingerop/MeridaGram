@@ -3233,7 +3233,12 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                             needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString("FloodWait", R.string.FloodWait));
                         } else if (error.code != -1000) {
                             AlertsCreator.processError(currentAccount, error, LoginActivity.this, req, phoneInputData.phoneNumber);
+                        } else {
+                            // MeridaGram: say so instead of silently dropping the request
+                            needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString(R.string.MeridaLoginNoConnection) + "\n\n" + error.code + " " + error.text);
                         }
+                    } else {
+                        needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString(R.string.MeridaLoginNoConnection) + "\n\n" + error.code);
                     }
                 }
                 if (!isRequestingFirebaseSms) {
