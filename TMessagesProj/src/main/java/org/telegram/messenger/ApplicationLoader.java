@@ -45,6 +45,7 @@ import org.telegram.ui.Components.ForegroundDetector;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.IUpdateLayout;
 import org.telegram.ui.LauncherIconController;
+import org.telegram.messenger.merida.MeridaVpn;
 
 import java.io.File;
 import java.util.Locale;
@@ -194,6 +195,7 @@ public class ApplicationLoader extends Application {
         }
         applicationInited = true;
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
+        MeridaVpn.init();
 
         try {
             LocaleController.getInstance(); //TODO improve

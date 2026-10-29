@@ -11639,4 +11639,18 @@
     <string name="MeridaShowId">Show ID in profiles</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>
+    <string name="MeridaVpnHeader">Merida VPN</string>
+    <string name="MeridaVpnEnabled">Telegram through Merida VPN</string>
+    <string name="MeridaVpnConnection">Connection</string>
+    <string name="MeridaVpnConnected">Working</string>
+    <string name="MeridaVpnConnectedFallback">Backup connection</string>
+    <string name="MeridaVpnConnecting">Connecting…</string>
+    <string name="MeridaVpnFailed">No connection</string>
+    <string name="MeridaVpnOff">Off</string>
+    <string name="MeridaVpnSubscription">Subscription</string>
+    <string name="MeridaVpnTrialUntil">Trial until %1$s</string>
+    <string name="MeridaVpnPaidUntil">Until %1$s</string>
+    <string name="MeridaVpnExpired">Expired</string>
+    <string name="MeridaVpnRenew">Renew subscription</string>
+    <string name="MeridaVpnInfo">Only Telegram goes through the Merida VPN server, other apps on the phone are not affected. Messages stay encrypted between you and Telegram. A proxy added in Data and Storage takes priority.</string>
 </resources>

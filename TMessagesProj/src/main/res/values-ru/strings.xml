@@ -272,4 +272,18 @@
     <string name="MeridaShowId">Показывать ID в профилях</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
+    <string name="MeridaVpnHeader">Merida VPN</string>
+    <string name="MeridaVpnEnabled">Telegram через Merida VPN</string>
+    <string name="MeridaVpnConnection">Подключение</string>
+    <string name="MeridaVpnConnected">Работает</string>
+    <string name="MeridaVpnConnectedFallback">Запасное подключение</string>
+    <string name="MeridaVpnConnecting">Подключение…</string>
+    <string name="MeridaVpnFailed">Нет связи</string>
+    <string name="MeridaVpnOff">Выключено</string>
+    <string name="MeridaVpnSubscription">Подписка</string>
+    <string name="MeridaVpnTrialUntil">Пробная до %1$s</string>
+    <string name="MeridaVpnPaidUntil">До %1$s</string>
+    <string name="MeridaVpnExpired">Закончилась</string>
+    <string name="MeridaVpnRenew">Продлить подписку</string>
+    <string name="MeridaVpnInfo">Через сервер Merida VPN идёт только Telegram, остальные приложения на телефоне работают как обычно. Сообщения остаются зашифрованными между вами и Telegram. Прокси, добавленный в «Данные и память», важнее.</string>
 </resources>

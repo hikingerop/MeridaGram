@@ -12,6 +12,9 @@ public final class MeridaSettings {
     public static final BooleanSetting timeWithSeconds =
         BooleanSetting.of("merida_time_with_seconds", false);
 
+    public static final BooleanSetting vpnEnabled =
+        BooleanSetting.of("merida_vpn_enabled", true);
+
     private MeridaSettings() {
     }
 }

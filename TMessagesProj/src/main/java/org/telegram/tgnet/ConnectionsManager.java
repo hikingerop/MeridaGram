@@ -50,6 +50,7 @@ import org.telegram.utils.proxy.WebProxyTransport;
 import org.telegram.utils.proxy.ProxySettings;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.LoginActivity;
+import org.telegram.messenger.merida.MeridaVpn;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -657,6 +658,8 @@ public class ConnectionsManager extends BaseController {
                 native_setProxySettings(currentAccount, proxySettings.getAddress(), proxySettings.getPort(),
                         proxySettings.getUser(), proxySettings.getPassword(), proxySettings.getSecret());
             }
+        } else if (MeridaVpn.isEnabled()) {
+            native_setProxySettings(currentAccount, "127.0.0.1", MeridaVpn.getPort(), MeridaVpn.getUser(), MeridaVpn.getPassword(), "");
         }
         String installer = "";
         try {
@@ -988,6 +991,9 @@ public class ConnectionsManager extends BaseController {
         for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
             if (enabled && settings != null && settings.isValid()) {
                 native_setProxySettings(a, address, port, username, password, secret);
+            } else if (MeridaVpn.isEnabled()) {
+                // no proxy of the user's own: Telegram goes through the built-in Merida VPN
+                native_setProxySettings(a, "127.0.0.1", MeridaVpn.getPort(), MeridaVpn.getUser(), MeridaVpn.getPassword(), "");
             } else {
                 native_setProxySettings(a, "", 1080, "", "", "");
             }

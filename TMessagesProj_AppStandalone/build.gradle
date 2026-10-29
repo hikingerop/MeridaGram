@@ -21,6 +21,7 @@ dependencies {
     implementation 'androidx.core:core:1.16.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     implementation files('../TMessagesProj/libs/libgsaverification-client.aar')
+    implementation files('../TMessagesProj/libs/libv2ray.aar') // MeridaGram: Xray core (Tools/fetch-xray.sh)
 }
 
 android {
@@ -135,7 +136,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 24 // MeridaGram: the Xray core needs Android 7.0+
         targetSdkVersion 36
         versionName APP_VERSION_NAME
         ndkVersion "27.2.12479018"
