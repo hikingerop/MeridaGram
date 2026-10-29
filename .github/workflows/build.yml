@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write # publish the APK as a release
+
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -38,6 +41,24 @@ jobs:
       - name: Download Xray core
         run: sh Tools/fetch-xray.sh
 
+      # Own Telegram API ID from my.telegram.org, kept in repository secrets TG_API_ID and TG_API_HASH.
+      # Without them the build keeps the official Telegram ID, which Telegram may refuse to log in with.
+      - name: Use own Telegram API ID
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+        run: |
+          if [ -z "$TG_API_ID" ] || [ -z "$TG_API_HASH" ]; then
+            echo "::warning::TG_API_ID / TG_API_HASH secrets are not set, building with the official Telegram API ID"
+            exit 0
+          fi
+          echo "$TG_API_ID" | grep -qE '^[0-9]+$' || { echo "::error::TG_API_ID must be a number"; exit 1; }
+          echo "$TG_API_HASH" | grep -qE '^[0-9a-f]{32}$' || { echo "::error::TG_API_HASH must be 32 hex characters"; exit 1; }
+          F=TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java
+          sed -i -E "s/(public static int APP_ID = )[0-9]+;/\1$TG_API_ID;/; s/(public static String APP_HASH = )\"[0-9a-f]+\";/\1\"$TG_API_HASH\";/" "$F"
+          grep -q "APP_ID = $TG_API_ID;" "$F" || { echo "::error::could not set APP_ID"; exit 1; }
+          echo "Using own Telegram API ID"
+
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build
@@ -47,8 +68,22 @@ jobs:
             -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g" \
             :TMessagesProj_AppStandalone:assembleAfatStandalone
 
+      # Releases do not count toward the Actions storage quota, so this is the main download place
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ github.event.head_commit.message || 'Manual build' }}
+        run: |
+          gh release create "build-${{ github.run_number }}" \
+            TMessagesProj_AppStandalone/build/outputs/apk/afat/standalone/*.apk \
+            -R "${{ github.repository }}" --target "${{ github.sha }}" \
+            --title "MeridaGram ${{ github.run_number }}" --notes "$NOTES"
+
+      # Spare copy in the Actions tab: kept 3 days and skipped when storage is full
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: MeridaGram-${{ github.run_number }}
           path: TMessagesProj_AppStandalone/build/outputs/apk/afat/standalone/*.apk
           if-no-files-found: error
+          retention-days: 3
