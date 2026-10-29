@@ -331,7 +331,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
     private Dialog permissionsShowDialog;
     private ArrayList<String> permissionsItems = new ArrayList<>();
     private ArrayList<String> permissionsShowItems = new ArrayList<>();
-    private boolean checkPermissions = true;
+    // MeridaGram: never ask for phone permissions on login, there is no call or SMS login and an empty answer hangs the screen
+    private boolean checkPermissions = false;
     private boolean checkShowPermissions = true;
     private boolean newAccount;
     private boolean syncContacts = true;
@@ -1348,6 +1349,10 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
     private void onDoneButtonPressed() {
         if (!doneButtonVisible[currentDoneType]) {
+            // MeridaGram: the arrow is on screen but marked hidden; say so instead of ignoring the tap
+            if (currentViewNum == VIEW_PHONE_INPUT) {
+                needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), "Done button: type " + currentDoneType + "\n\n" + meridaDiagnostics());
+            }
             return;
         }
         if (radialProgressView.getTag() != null) {
@@ -1522,7 +1527,6 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
         if (needFloatingButton) {
             if (page == VIEW_PHONE_INPUT) {
-                checkPermissions = true;
                 checkShowPermissions = true;
             }
             currentDoneType = DONE_TYPE_ACTION;
@@ -2903,7 +2907,12 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
         @Override
         public void onNextPressed(String code) {
-            if (getParentActivity() == null || nextPressed || isRequestingFirebaseSms) {
+            if (getParentActivity() == null) {
+                return;
+            }
+            if (nextPressed || isRequestingFirebaseSms) {
+                // MeridaGram: an earlier request is still waiting; say so instead of ignoring the tap
+                needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString(R.string.MeridaLoginStillWaiting) + "\n\n" + meridaDiagnostics());
                 return;
             }
 
