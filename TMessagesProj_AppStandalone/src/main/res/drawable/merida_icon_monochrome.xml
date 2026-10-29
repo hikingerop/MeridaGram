@@ -12,6 +12,6 @@
         android:translateY="18">
         <path
             android:fillColor="#FFFFFFFF"
-            android:pathData="M80,30L24,52L52,60L48,73L60,86Z" />
+            android:pathData="M80,28L22,54L42,56L66,42L50,62L64,84Z" />
     </group>
 </vector>
