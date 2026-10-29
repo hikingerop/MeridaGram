@@ -964,16 +964,19 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
     @Override
     public void onRequestPermissionsResultFragment(int requestCode, String[] permissions, int[] grantResults) {
-        if (permissions.length == 0 || grantResults.length == 0) return;
-
-        boolean granted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
         if (requestCode == 6) {
+            // MeridaGram: go on with the login whatever the phone answered, even an empty result
             checkPermissions = false;
             if (currentViewNum == VIEW_PHONE_INPUT) {
                 ((PhoneView)views[currentViewNum]).confirmedNumber = true;
                 views[currentViewNum].onNextPressed(null);
             }
-        } else if (requestCode == BasePermissionsActivity.REQUEST_CODE_CALLS) {
+            return;
+        }
+        if (permissions.length == 0 || grantResults.length == 0) return;
+
+        boolean granted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+        if (requestCode == BasePermissionsActivity.REQUEST_CODE_CALLS) {
             checkShowPermissions = false;
             if (currentViewNum == VIEW_PHONE_INPUT) {
                 ((PhoneView) views[currentViewNum]).fillNumber();
@@ -1478,13 +1481,23 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
         progressRequestId = requestId;
         showEditDoneProgress(true, animated);
+        // MeridaGram: if the progress is still spinning after 25 seconds, say why instead of spinning forever
+        final int token = ++meridaProgressToken;
+        AndroidUtilities.runOnUIThread(() -> {
+            if (token == meridaProgressToken && getParentActivity() != null && !getParentActivity().isFinishing()) {
+                needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString(R.string.MeridaLoginStuck) + "\n\n" + meridaDiagnostics());
+            }
+        }, 25000);
     }
+
+    private int meridaProgressToken;
 
     private void needHideProgress(boolean cancel) {
         needHideProgress(cancel, true);
     }
 
     private void needHideProgress(boolean cancel, boolean animated) {
+        meridaProgressToken++;
         if (progressRequestId != 0) {
             if (cancel) {
                 ConnectionsManager.getInstance(currentAccount).cancelRequest(progressRequestId, true);
@@ -1774,7 +1787,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         }
         return getString(R.string.MeridaDiagConnection) + " " + connection + "\n"
             + "Merida VPN: " + vpn + "\n"
-            + "API ID: " + BuildVars.APP_ID + (isRequestingFirebaseSms ? "\nGoogle Play Integrity" : "");
+            + "API ID: " + BuildVars.APP_ID + "\n"
+            + "Step: " + currentViewNum + (progressRequestId != 0 ? " / request " + progressRequestId : " / no request") + (isRequestingFirebaseSms ? " / Google Play Integrity" : "");
     }
 
     private boolean isRequestingFirebaseSms;
@@ -2951,9 +2965,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                                 if (!allowCall) {
                                     permissionsItems.add(Manifest.permission.READ_PHONE_STATE);
                                 }
-                                if (!allowCancelCall) {
-                                    permissionsItems.add(Manifest.permission.CALL_PHONE);
-                                }
+                                // MeridaGram declares no CALL_PHONE: asking for it gets an empty answer and the login hangs
                                 // MeridaGram has no call log access: asking for it leaves the login screen waiting forever
                                 if (!allowReadPhoneNumbers && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     permissionsItems.add(Manifest.permission.READ_PHONE_NUMBERS);
@@ -3278,12 +3290,6 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 }
             }), ConnectionsManager.RequestFlagFailOnServerErrors | ConnectionsManager.RequestFlagWithoutLogin | ConnectionsManager.RequestFlagTryDifferentDc | ConnectionsManager.RequestFlagEnableUnauthorized);
             needShowProgress(reqId);
-            // MeridaGram: if Telegram stays silent, say why instead of spinning forever
-            AndroidUtilities.runOnUIThread(() -> {
-                if (nextPressed && progressRequestId == reqId && getParentActivity() != null) {
-                    needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString(R.string.MeridaLoginStuck) + "\n\n" + meridaDiagnostics());
-                }
-            }, 25000);
         }
 
         private boolean numberFilled;
