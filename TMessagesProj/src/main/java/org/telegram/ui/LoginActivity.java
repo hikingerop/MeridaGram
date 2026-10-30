@@ -2956,98 +2956,20 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     return;
                 }
 
-                phoneNumberConfirmView = new PhoneNumberConfirmView(fragmentView.getContext(), (ViewGroup) fragmentView, floatingButton, phoneNumber, new PhoneNumberConfirmView.IConfirmDialogCallback() {
-                    @Override
-                    public void onFabPressed(PhoneNumberConfirmView confirmView, TransformableLoginButtonView fab) {
-                        onConfirm(confirmView);
-                    }
-
-                    @Override
-                    public void onEditPressed(PhoneNumberConfirmView confirmView, TextView editTextView) {
-                        confirmView.dismiss();
-                    }
-
-                    @Override
-                    public void onConfirmPressed(PhoneNumberConfirmView confirmView, TextView confirmTextView) {
-                        onConfirm(confirmView);
-                    }
-
-                    @Override
-                    public void onDismiss(PhoneNumberConfirmView confirmView) {
-                        phoneNumberConfirmView = null;
-                    }
-
-                    private void onConfirm(PhoneNumberConfirmView confirmView) {
-                        meridaTrace("5 number confirmed");
-                        confirmedNumber = true;
-                        currentDoneType = DONE_TYPE_FLOATING;
-                        needShowProgress(0, false);
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && AndroidUtilities.isSimAvailable()) {
-                            boolean allowCall = getParentActivity().checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
-                            boolean allowCancelCall = getParentActivity().checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
-                            boolean allowReadCallLog = Build.VERSION.SDK_INT < Build.VERSION_CODES.P || getParentActivity().checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED;
-                            boolean allowReadPhoneNumbers = Build.VERSION.SDK_INT < Build.VERSION_CODES.O || getParentActivity().checkSelfPermission(Manifest.permission.READ_PHONE_NUMBERS) == PackageManager.PERMISSION_GRANTED;;
-                            if (codeField != null && "888".equals(codeField.getText())) {
-                                allowCall = true;
-                                allowCancelCall = true;
-                                allowReadCallLog = true;
-                                allowReadPhoneNumbers = true;
-                            }
-                            if (checkPermissions) {
-                                permissionsItems.clear();
-                                if (!allowCall) {
-                                    permissionsItems.add(Manifest.permission.READ_PHONE_STATE);
-                                }
-                                // MeridaGram declares no CALL_PHONE: asking for it gets an empty answer and the login hangs
-                                // MeridaGram has no call log access: asking for it leaves the login screen waiting forever
-                                if (!allowReadPhoneNumbers && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    permissionsItems.add(Manifest.permission.READ_PHONE_NUMBERS);
-                                }
-                                if (!permissionsItems.isEmpty()) {
-                                    SharedPreferences preferences = MessagesController.getGlobalMainSettings();
-                                    if (preferences.getBoolean("firstlogin", true) || getParentActivity().shouldShowRequestPermissionRationale(Manifest.permission.READ_PHONE_STATE) || getParentActivity().shouldShowRequestPermissionRationale(Manifest.permission.READ_CALL_LOG)) {
-                                        preferences.edit().putBoolean("firstlogin", false).commit();
-                                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-
-                                        builder.setPositiveButton(getString("Continue", R.string.Continue), null);
-                                        int resId;
-                                        if (!allowCall && (!allowCancelCall || !allowReadCallLog)) {
-                                            builder.setMessage(getString("AllowReadCallAndLog", R.string.AllowReadCallAndLog));
-                                            resId = R.raw.calls_log;
-                                        } else if (!allowCancelCall || !allowReadCallLog) {
-                                            builder.setMessage(getString("AllowReadCallLog", R.string.AllowReadCallLog));
-                                            resId = R.raw.calls_log;
-                                        } else {
-                                            builder.setMessage(getString("AllowReadCall", R.string.AllowReadCall));
-                                            resId = R.raw.incoming_calls;
-                                        }
-                                        builder.setTopAnimation(resId, 46, false, Theme.getColor(Theme.key_dialogTopBackground));
-                                        permissionsDialog = showDialog(builder.create());
-                                        confirmedNumber = true;
-                                    } else {
-                                        try {
-                                            getParentActivity().requestPermissions(permissionsItems.toArray(new String[0]), 6);
-                                        } catch (Exception e) {
-                                            FileLog.e(e);
-                                        }
-                                    }
-                                    return;
-                                }
-                            }
-                        }
-
-                        confirmView.animateProgress(()->{
-                            confirmView.dismiss();
-                            AndroidUtilities.runOnUIThread(()-> {
-                                onNextPressed(code);
-                                floatingButton.progressView.sync(confirmView.fabButton.progressView);
-                            }, 150);
-                        });
-                    }
+                // MeridaGram: the animated confirmation overlay stays invisible on some phones and waits forever
+                // for its own animation, so ask with a plain dialog instead
+                meridaTrace("4 asking «is this your number?»");
+                AlertDialog.Builder confirmBuilder = new AlertDialog.Builder(getParentActivity());
+                confirmBuilder.setTitle(phoneNumber);
+                confirmBuilder.setMessage(getString(R.string.ConfirmCorrectNumber));
+                confirmBuilder.setPositiveButton(getString(R.string.CheckPhoneNumberYes), (dialog, which) -> {
+                    meridaTrace("5 number confirmed");
+                    confirmedNumber = true;
+                    currentDoneType = DONE_TYPE_FLOATING;
+                    onNextPressed(code);
                 });
-                meridaTrace("4 showing «is this your number?»");
-                phoneNumberConfirmView.show();
+                confirmBuilder.setNegativeButton(getString(R.string.Edit), null);
+                showDialog(confirmBuilder.create());
                 return;
             } else confirmedNumber = false;
 
