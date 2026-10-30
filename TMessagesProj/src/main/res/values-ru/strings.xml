@@ -274,6 +274,7 @@
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
     <string name="MeridaLoginNoConnection">Не удалось связаться с Telegram. Проверьте интернет и попробуйте ещё раз. Ошибка:</string>
     <string name="MeridaLoginStuck">Telegram не отвечает уже 25 секунд. Что видно сейчас:</string>
+    <string name="MeridaLoginWithoutVpn">Без встроенного VPN</string>
     <string name="MeridaLoginStillWaiting">Предыдущий запрос к Telegram ещё не получил ответа. Что видно сейчас:</string>
     <string name="MeridaDiagConnection">Связь с Telegram:</string>
     <string name="MeridaDiagNoNetwork">нет интернета</string>

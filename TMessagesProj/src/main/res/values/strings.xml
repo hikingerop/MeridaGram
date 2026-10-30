@@ -11641,6 +11641,7 @@
     <string name="MeridaIdCopied">ID copied to clipboard.</string>
     <string name="MeridaLoginNoConnection">Could not reach Telegram. Check your connection and try again. Error:</string>
     <string name="MeridaLoginStuck">Telegram has not answered for 25 seconds. Current state:</string>
+    <string name="MeridaLoginWithoutVpn">Without built-in VPN</string>
     <string name="MeridaLoginStillWaiting">The previous request to Telegram has not been answered yet. Current state:</string>
     <string name="MeridaDiagConnection">Connection to Telegram:</string>
     <string name="MeridaDiagNoNetwork">no internet</string>

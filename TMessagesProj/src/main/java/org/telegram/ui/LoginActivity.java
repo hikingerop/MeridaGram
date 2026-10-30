@@ -1500,7 +1500,18 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         final int token = ++meridaProgressToken;
         AndroidUtilities.runOnUIThread(() -> {
             if (token == meridaProgressToken && getParentActivity() != null && !getParentActivity().isFinishing()) {
-                needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString(R.string.MeridaLoginStuck) + "\n\n" + meridaDiagnostics());
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+                builder.setTitle(getString(R.string.RestorePasswordNoEmailTitle));
+                builder.setMessage(getString(R.string.MeridaLoginStuck) + "\n\n" + meridaDiagnostics());
+                builder.setPositiveButton(getString(R.string.OK), null);
+                if (MeridaVpn.isEnabled()) {
+                    // Telegram may fail to get through the built-in tunnel; let it connect directly instead
+                    builder.setNeutralButton(getString(R.string.MeridaLoginWithoutVpn), (dialog, which) -> {
+                        meridaTrace("built-in VPN off, connecting directly");
+                        MeridaVpn.setEnabled(false);
+                    });
+                }
+                showDialog(builder.create());
             }
         }, 25000);
     }
