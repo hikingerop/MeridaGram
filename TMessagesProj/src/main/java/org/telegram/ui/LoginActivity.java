@@ -731,7 +731,10 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         floatingButton.setButtonVisible(doneButtonVisible[DONE_TYPE_FLOATING], false);
         floatingAutoAnimator = VerticalPositionAutoAnimator.attach(floatingButton);
         sizeNotifierFrameLayout.addView(floatingButton, FragmentFloatingButton.createDefaultLayoutParamsBig());
-        floatingButton.setOnClickListener(view -> onDoneButtonPressed());
+        floatingButton.setOnClickListener(view -> {
+            meridaTrace("1 arrow tap");
+            onDoneButtonPressed();
+        });
         floatingAutoAnimator.addUpdateListener((animation, value, velocity) -> {
             if (phoneNumberConfirmView != null) {
                 phoneNumberConfirmView.updateFabPosition();
@@ -1356,6 +1359,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             return;
         }
         if (radialProgressView.getTag() != null) {
+            meridaTrace("2 still loading");
             if (getParentActivity() == null) {
                 return;
             }
@@ -1369,7 +1373,13 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             });
             showDialog(builder.create());
         } else {
-            views[currentViewNum].onNextPressed(null);
+            meridaTrace("2 next, page " + currentViewNum);
+            try {
+                views[currentViewNum].onNextPressed(null);
+            } catch (Throwable e) {
+                FileLog.e(e);
+                needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), "Login crashed:\n" + e);
+            }
         }
     }
 
@@ -1769,6 +1779,16 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         params.putString("ephone", "+" + phone);
         params.putString("phoneFormated", phone);
         fillNextCodeParams(params, res, true);
+    }
+
+    /** MeridaGram debug: a short toast for each login step, to see where a tap gets lost. Remove once login works. */
+    static void meridaTrace(String step) {
+        AndroidUtilities.runOnUIThread(() -> {
+            try {
+                Toast.makeText(ApplicationLoader.applicationContext, "MG: " + step, Toast.LENGTH_SHORT).show();
+            } catch (Throwable ignore) {
+            }
+        });
     }
 
     /** MeridaGram: connection, built-in VPN and API ID state, shown when login hangs. */
@@ -2907,7 +2927,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
         @Override
         public void onNextPressed(String code) {
+            meridaTrace("3 phone step, confirmed " + confirmedNumber);
             if (getParentActivity() == null) {
+                meridaTrace("3 no activity");
                 return;
             }
             if (nextPressed || isRequestingFirebaseSms) {
@@ -2921,12 +2943,14 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 FileLog.d("sim status = " + tm.getSimState());
             }
             if (codeField.length() == 0 || phoneField.length() == 0) {
+                meridaTrace("3 empty number");
                 onFieldError(phoneOutlineView, false);
                 return;
             }
             String phoneNumber = "+" + codeField.getText() + " " + phoneField.getText();
             if (!confirmedNumber) {
                 if (AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y && !isCustomKeyboardVisible() && sizeNotifierFrameLayout.measureKeyboardHeight() > AndroidUtilities.dp(20)) {
+                    meridaTrace("3 hiding keyboard first");
                     keyboardHideCallback = () -> postDelayed(()-> onNextPressed(code), 200);
                     AndroidUtilities.hideKeyboard(fragmentView);
                     return;
@@ -2954,6 +2978,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     }
 
                     private void onConfirm(PhoneNumberConfirmView confirmView) {
+                        meridaTrace("5 number confirmed");
                         confirmedNumber = true;
                         currentDoneType = DONE_TYPE_FLOATING;
                         needShowProgress(0, false);
@@ -3021,6 +3046,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                         });
                     }
                 });
+                meridaTrace("4 showing «is this your number?»");
                 phoneNumberConfirmView.show();
                 return;
             } else confirmedNumber = false;
@@ -3087,6 +3113,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 }
             }
 
+            meridaTrace("6 checking country " + countryState);
             if (countryState == COUNTRY_STATE_EMPTY) {
                 needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString("ChooseCountry", R.string.ChooseCountry));
                 needHideProgress(false);
@@ -3228,8 +3255,10 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             phoneInputData.phoneNumber = "+" + codeField.getText() + " " + phoneField.getText();
             phoneInputData.country = currentCountry;
             phoneInputData.patterns = phoneFormatMap.get(codeField.getText().toString());
+            meridaTrace("7 asking Telegram for a code, API ID " + BuildVars.APP_ID);
             int reqId = ConnectionsManager.getInstance(currentAccount).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
                 nextPressed = false;
+                meridaTrace("8 Telegram answered: " + (error != null ? error.code + " " + error.text : String.valueOf(response)));
                 if (error == null) {
                     if (response instanceof TLRPC.TL_auth_sentCodeSuccess) {
                         final TLRPC.auth_Authorization auth = ((TLRPC.TL_auth_sentCodeSuccess) response).authorization;
