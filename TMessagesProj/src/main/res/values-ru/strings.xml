@@ -271,6 +271,9 @@
     <string name="MeridaHideStories">Скрыть истории</string>
     <string name="MeridaGhostHeader">Призрак</string>
     <string name="MeridaGhostMode">Режим призрака</string>
+    <string name="MeridaLookHeader">Оформление</string>
+    <string name="MeridaSnow">Снег</string>
+    <string name="MeridaSnowInfo">Новогодний снег в шапке и на фоне чатов в любое время года. Появится после перезапуска MeridaGram. Если включён режим экономии энергии, на фоне чатов снег не показывается.</string>
     <string name="MeridaSpyHeader">Шпион</string>
     <string name="MeridaSpySaveDeleted">Сохранять удалённые сообщения</string>
     <string name="MeridaDeletedMark">🗑 удалено</string>

@@ -4454,7 +4454,8 @@ public class Theme {
     }
 
     public static boolean canStartHolidayAnimation() {
-        return canStartHolidayAnimation;
+        // MeridaGram: snow on request, not only at New Year
+        return canStartHolidayAnimation || org.telegram.utils.settings.MeridaSettings.snow.get();
     }
 
     public static int getEventType() {

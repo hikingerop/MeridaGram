@@ -40,6 +40,10 @@ public final class MeridaSettings {
     public static final BooleanSetting spySaveDeleted =
         BooleanSetting.of("merida_spy_save_deleted", false);
 
+    /** Telegram's New Year snow on the top bar and chat backgrounds, any time of the year. */
+    public static final BooleanSetting snow =
+        BooleanSetting.of("merida_snow", false);
+
     public static final BooleanSetting vpnEnabled =
         BooleanSetting.of("merida_vpn_enabled", true);
 

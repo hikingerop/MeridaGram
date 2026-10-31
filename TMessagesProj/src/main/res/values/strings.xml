@@ -11638,6 +11638,9 @@
     <string name="MeridaHideStories">Hide stories</string>
     <string name="MeridaGhostHeader">Ghost</string>
     <string name="MeridaGhostMode">Ghost mode</string>
+    <string name="MeridaLookHeader">Appearance</string>
+    <string name="MeridaSnow">Snow</string>
+    <string name="MeridaSnowInfo">New Year snow on the top bar and chat backgrounds any time of the year. Appears after MeridaGram restarts. In power saving mode there is no snow on chat backgrounds.</string>
     <string name="MeridaSpyHeader">Spy</string>
     <string name="MeridaSpySaveDeleted">Keep deleted messages</string>
     <string name="MeridaDeletedMark">🗑 deleted</string>
