@@ -47,7 +47,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_SHOW_ID = 8;
     private static final int ROW_TIME_WITH_SECONDS = 9;
     private static final int ROW_GENERAL_INFO = 10;
-    private static final int ROW_COUNT = 11;
+    private static final int ROW_GHOST_HEADER = 11;
+    private static final int ROW_GHOST = 12;
+    private static final int ROW_GHOST_INFO = 13;
+    private static final int ROW_COUNT = 14;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -146,6 +149,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.showId;
             case ROW_TIME_WITH_SECONDS:
                 return MeridaSettings.timeWithSeconds;
+            case ROW_GHOST:
+                return MeridaSettings.ghostMode;
             default:
                 return null;
         }
@@ -159,6 +164,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaHideStories;
             case ROW_SHOW_ID:
                 return R.string.MeridaShowId;
+            case ROW_GHOST:
+                return R.string.MeridaGhostMode;
             default:
                 return R.string.MeridaTimeWithSeconds;
         }
@@ -231,7 +238,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             switch (holder.getItemViewType()) {
                 case TYPE_HEADER:
                     ((HeaderCell) holder.itemView).setText(LocaleController.getString(
-                            position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : R.string.MeridaSettingsGeneral
+                            position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : R.string.MeridaSettingsGeneral
                     ));
                     break;
                 case TYPE_CHECK: {
@@ -239,7 +246,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     cell.setTextAndCheck(
                             LocaleController.getString(titleForRow(position)),
                             settingForRow(position).get(),
-                            position != ROW_TIME_WITH_SECONDS
+                            position != ROW_TIME_WITH_SECONDS && position != ROW_GHOST
                     );
                     break;
                 }
@@ -265,6 +272,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         if (error != null && !error.isEmpty() && MeridaSettings.vpnEnabled.get()) {
                             text = error + "\n\n" + text;
                         }
+                    } else if (position == ROW_GHOST_INFO) {
+                        text = LocaleController.getString(R.string.MeridaGhostInfo);
                     } else {
                         text = LocaleController.getString(R.string.MeridaSettingsGeneralInfo);
                     }
@@ -279,6 +288,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             switch (position) {
                 case ROW_VPN_HEADER:
                 case ROW_GENERAL_HEADER:
+                case ROW_GHOST_HEADER:
                     return TYPE_HEADER;
                 case ROW_VPN_CONNECTION:
                 case ROW_VPN_SUBSCRIPTION:
@@ -286,6 +296,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     return TYPE_VALUE;
                 case ROW_VPN_INFO:
                 case ROW_GENERAL_INFO:
+                case ROW_GHOST_INFO:
                     return TYPE_INFO;
                 default:
                     return TYPE_CHECK;

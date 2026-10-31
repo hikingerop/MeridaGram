@@ -269,6 +269,9 @@
     <string name="MeridaSettingsGeneral">Основные</string>
     <string name="MeridaSettingsGeneralInfo">Секунды у сообщений появятся после повторного открытия чата.</string>
     <string name="MeridaHideStories">Скрыть истории</string>
+    <string name="MeridaGhostHeader">Призрак</string>
+    <string name="MeridaGhostMode">Режим призрака</string>
+    <string name="MeridaGhostInfo">Собеседники не видят, что вы прочитали сообщения, что вы печатаете и что вы в сети. Истории можно смотреть незаметно. Когда вы сами отправите сообщение в чат, Telegram отметит этот чат прочитанным.</string>
     <string name="MeridaShowId">Показывать ID в профилях</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
