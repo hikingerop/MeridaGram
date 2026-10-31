@@ -11638,7 +11638,7 @@
     <string name="MeridaHideStories">Hide stories</string>
     <string name="MeridaGhostHeader">Ghost</string>
     <string name="MeridaGhostMode">Ghost mode</string>
-    <string name="MeridaGhostInfo">Others don't see that you read their messages, that you are typing or that you are online. Stories are viewed unnoticed. When you send a message to a chat yourself, Telegram marks that chat as read.</string>
+    <string name="MeridaGhostInfo">Others don\'t see that you read their messages, that you are typing or that you are online. Stories are viewed unnoticed. When you send a message to a chat yourself, Telegram marks that chat as read.</string>
     <string name="MeridaShowId">Show ID in profiles</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>
