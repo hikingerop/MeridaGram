@@ -377,6 +377,10 @@ public final class MeridaVpn {
                 reasons.append("; ");
             }
             reasons.append(keyLabel(candidate)).append(" — ").append(reason).append(" [").append(probe(candidate)).append("]");
+            final String coreSays = coreLogTail();
+            if (!coreSays.isEmpty()) {
+                reasons.append(" {core: ").append(coreSays).append("}");
+            }
         }
         // neither key answered: say why, let Telegram connect on its own for now and try again later (1, 2, 4… up to 15 min)
         error = LocaleController.formatString(R.string.MeridaVpnTunnelFailed, reasons.toString());
@@ -435,6 +439,42 @@ public final class MeridaVpn {
         }
     }
 
+    private static java.io.File coreLog() {
+        return new java.io.File(ApplicationLoader.applicationContext.getFilesDir(), "merida-xray.log");
+    }
+
+    /** The last few distinct problems the Xray core logged (outbound failures, rejected handshakes), without the time stamps. */
+    private static String coreLogTail() {
+        try {
+            final java.io.File file = coreLog();
+            if (!file.exists()) {
+                return "";
+            }
+            final java.util.List<String> lines = new java.util.ArrayList<>();
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(file), StandardCharsets.UTF_8))) {
+                String read;
+                while ((read = reader.readLine()) != null) {
+                    lines.add(read);
+                }
+            }
+            final java.util.LinkedHashSet<String> found = new java.util.LinkedHashSet<>();
+            for (int i = lines.size() - 1; i >= 0 && found.size() < 3; i--) {
+                String line = lines.get(i);
+                final String lower = line.toLowerCase(java.util.Locale.ROOT);
+                if (!(lower.contains("fail") || lower.contains("error") || lower.contains("reject") || lower.contains("eof") || lower.contains("reset") || lower.contains("timeout"))) {
+                    continue;
+                }
+                line = line.replaceFirst("^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d+)? ", "");
+                // the local SOCKS login is not secret outside the phone, but keep it out of screenshots anyway
+                line = line.replace(getUser(), "***").replace(getPassword(), "***");
+                found.add(line.length() > 220 ? line.substring(0, 220) + "…" : line);
+            }
+            return android.text.TextUtils.join(" | ", found);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     /** Short name of a key for the failure reason: its transport and server, without the secret part. */
     private static String keyLabel(String key) {
         try {
@@ -462,6 +502,8 @@ public final class MeridaVpn {
             coreEnvReady = true;
         }
         ensureSocksAccount(false);
+        //noinspection ResultOfMethodCallIgnored
+        coreLog().delete(); // a fresh log for every attempt
         controller = Libv2ray.newCoreController(new CoreCallbackHandler() {
             @Override
             public long onEmitStatus(long code, String message) {
@@ -479,11 +521,11 @@ public final class MeridaVpn {
             }
         });
         try {
-            controller.startLoop(XrayConfig.build(key, getPort(), getUser(), getPassword()), 0);
+            controller.startLoop(XrayConfig.build(key, getPort(), getUser(), getPassword(), coreLog().getAbsolutePath()), 0);
         } catch (Exception e) {
             // most likely the port was taken by another app: take a new one and try once more
             ensureSocksAccount(true);
-            controller.startLoop(XrayConfig.build(key, getPort(), getUser(), getPassword()), 0);
+            controller.startLoop(XrayConfig.build(key, getPort(), getUser(), getPassword(), coreLog().getAbsolutePath()), 0);
         }
         running = controller.getIsRunning();
         if (!running) {

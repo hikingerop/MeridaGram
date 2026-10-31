@@ -17,6 +17,11 @@ final class XrayConfig {
     }
 
     static String build(String key, int socksPort, String socksUser, String socksPassword) throws JSONException {
+        return build(key, socksPort, socksUser, socksPassword, null);
+    }
+
+    /** {@code errorLog}: a file the core writes its warnings to, so a failed connection can say why; null — no file. */
+    static String build(String key, int socksPort, String socksUser, String socksPassword, String errorLog) throws JSONException {
         final Uri uri = Uri.parse(key.trim());
         if (!"vless".equalsIgnoreCase(uri.getScheme()) || TextUtils.isEmpty(uri.getUserInfo()) || TextUtils.isEmpty(uri.getHost()) || uri.getPort() <= 0) {
             throw new IllegalArgumentException("Not a vless key");
@@ -92,7 +97,8 @@ final class XrayConfig {
                 .put("streamSettings", stream);
 
         return new JSONObject()
-                .put("log", new JSONObject().put("loglevel", "warning"))
+                .put("log", errorLog == null ? new JSONObject().put("loglevel", "warning")
+                        : new JSONObject().put("loglevel", "info").put("error", errorLog).put("access", "none"))
                 .put("inbounds", new JSONArray().put(socks))
                 .put("outbounds", new JSONArray().put(proxy))
                 .toString();
