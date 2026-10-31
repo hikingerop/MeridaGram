@@ -124,6 +124,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
 
     private boolean supportsHolidayImage;
     private SnowflakesEffect snowflakesEffect;
+    private SnowflakesEffect meridaSnow;
     private FireworksEffect fireworksEffect;
     private Paint.FontMetricsInt fontMetricsInt;
     private boolean manualStart;
@@ -2295,6 +2296,17 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         }
 
         super.dispatchDraw(canvas);
+
+        // MeridaGram: with «Snow» on, snow falls over the chat list header all year round
+        // (Telegram itself shows it there only around New Year, together with the holiday hat)
+        if (supportsHolidayImage && snowflakesEffect == null && org.telegram.utils.settings.MeridaSettings.snow.get()) {
+            if (meridaSnow == null) {
+                meridaSnow = new SnowflakesEffect(0);
+            }
+            meridaSnow.onDraw(this, canvas);
+        } else {
+            meridaSnow = null;
+        }
     }
 
     public void setForceSkipTouches(boolean forceSkipTouches) {

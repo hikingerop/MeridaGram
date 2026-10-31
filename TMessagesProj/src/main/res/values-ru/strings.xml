@@ -274,7 +274,7 @@
     <string name="MeridaLookHeader">Оформление</string>
     <string name="MeridaSectionsInfo">Нажмите на раздел, чтобы открыть его настройки. Призрак и шпион работают только на этом телефоне.</string>
     <string name="MeridaSnow">Снег</string>
-    <string name="MeridaSnowInfo">Новогодний снег в шапке и на фоне чатов в любое время года. Появится после перезапуска MeridaGram. Если включён режим экономии энергии, на фоне чатов снег не показывается.</string>
+    <string name="MeridaSnowInfo">Наверху — как будет выглядеть снег. Он падает в шапке списка чатов и на фоне чатов в любое время года. Появится после перезапуска MeridaGram. Если включён режим экономии энергии, на фоне чатов снег не показывается.</string>
     <string name="MeridaSpyHeader">Шпион</string>
     <string name="MeridaSpySaveDeleted">Сохранять удалённые сообщения</string>
     <string name="MeridaDeletedMark">🗑 удалено</string>

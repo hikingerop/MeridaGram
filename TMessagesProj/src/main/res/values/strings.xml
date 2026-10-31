@@ -11641,7 +11641,7 @@
     <string name="MeridaLookHeader">Appearance</string>
     <string name="MeridaSectionsInfo">Tap a section to open its settings. Ghost mode and spy work only on this phone.</string>
     <string name="MeridaSnow">Snow</string>
-    <string name="MeridaSnowInfo">New Year snow on the top bar and chat backgrounds any time of the year. Appears after MeridaGram restarts. In power saving mode there is no snow on chat backgrounds.</string>
+    <string name="MeridaSnowInfo">Above is how the snow looks. It falls on the chat list\'s top bar and on chat backgrounds any time of the year. Appears after MeridaGram restarts. In power saving mode there is no snow on chat backgrounds.</string>
     <string name="MeridaSpyHeader">Spy</string>
     <string name="MeridaSpySaveDeleted">Keep deleted messages</string>
     <string name="MeridaDeletedMark">🗑 deleted</string>
