@@ -1,6 +1,7 @@
 package org.telegram.ui;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -19,6 +20,7 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
@@ -29,12 +31,23 @@ import org.telegram.utils.settings.MeridaSettings;
 
 import java.util.Date;
 
-/** MeridaGram's own settings screen. */
+/**
+ * MeridaGram's own settings. The first screen is a list of sections (Merida VPN, ghost mode, spy,
+ * appearance, general); tapping a section opens the same screen again with only that section's switches.
+ */
 public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Listener {
+    public static final int PAGE_MAIN = 0;
+    public static final int PAGE_VPN = 1;
+    public static final int PAGE_GHOST = 2;
+    public static final int PAGE_SPY = 3;
+    public static final int PAGE_LOOK = 4;
+    public static final int PAGE_GENERAL = 5;
+
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_CHECK = 1;
     private static final int TYPE_INFO = 2;
     private static final int TYPE_VALUE = 3;
+    private static final int TYPE_SECTION = 4;
 
     private static final int ROW_VPN_HEADER = 0;
     private static final int ROW_VPN_ENABLED = 1;
@@ -62,22 +75,89 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_LOOK_HEADER = 23;
     private static final int ROW_SNOW = 24;
     private static final int ROW_LOOK_INFO = 25;
-    private static final int ROW_COUNT = 26;
+    private static final int ROW_SECTION_VPN = 26;
+    private static final int ROW_SECTION_GHOST = 27;
+    private static final int ROW_SECTION_SPY = 28;
+    private static final int ROW_SECTION_LOOK = 29;
+    private static final int ROW_SECTION_GENERAL = 30;
+    private static final int ROW_SECTIONS_INFO = 31;
 
+    private final int page;
+    private final int[] rows;
     private RecyclerListView listView;
     private ListAdapter adapter;
 
+    public MeridaSettingsActivity() {
+        this(PAGE_MAIN);
+    }
+
+    public MeridaSettingsActivity(int page) {
+        super(pageArgs(page));
+        this.page = page;
+        this.rows = rowsFor(page);
+    }
+
+    private static Bundle pageArgs(int page) {
+        final Bundle args = new Bundle();
+        args.putInt("page", page);
+        return args;
+    }
+
+    /** Which rows each screen shows, top to bottom. */
+    private static int[] rowsFor(int page) {
+        switch (page) {
+            case PAGE_VPN:
+                return new int[]{ROW_VPN_HEADER, ROW_VPN_ENABLED, ROW_VPN_CONNECTION, ROW_VPN_SUBSCRIPTION, ROW_VPN_RENEW, ROW_VPN_INFO};
+            case PAGE_GHOST:
+                return new int[]{ROW_GHOST_HEADER, ROW_GHOST, ROW_GHOST_NO_READ, ROW_GHOST_NO_STORIES, ROW_GHOST_NO_ONLINE, ROW_GHOST_NO_TYPING, ROW_GHOST_AUTO_OFFLINE, ROW_SEND_SILENT, ROW_GHOST_INFO};
+            case PAGE_SPY:
+                return new int[]{ROW_SPY_HEADER, ROW_SPY_DELETED, ROW_SPY_INFO};
+            case PAGE_LOOK:
+                return new int[]{ROW_LOOK_HEADER, ROW_SNOW, ROW_LOOK_INFO};
+            case PAGE_GENERAL:
+                return new int[]{ROW_GENERAL_HEADER, ROW_HIDE_STORIES, ROW_SHOW_ID, ROW_TIME_WITH_SECONDS, ROW_GENERAL_INFO};
+            default:
+                return new int[]{ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_LOOK, ROW_SECTION_GENERAL, ROW_SECTIONS_INFO};
+        }
+    }
+
+    private int positionOf(int row) {
+        for (int i = 0; i < rows.length; i++) {
+            if (rows[i] == row) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean showsVpn() {
+        return page == PAGE_MAIN || page == PAGE_VPN;
+    }
+
     @Override
     public boolean onFragmentCreate() {
-        MeridaVpn.addListener(this);
-        MeridaVpn.refresh();
+        if (showsVpn()) {
+            MeridaVpn.addListener(this);
+            MeridaVpn.refresh();
+        }
         return super.onFragmentCreate();
     }
 
     @Override
     public void onFragmentDestroy() {
-        MeridaVpn.removeListener(this);
+        if (showsVpn()) {
+            MeridaVpn.removeListener(this);
+        }
         super.onFragmentDestroy();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // the section list shows «on / off» next to each section; refresh it after coming back from one
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -91,7 +171,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString(R.string.MeridaSettings));
+        actionBar.setTitle(LocaleController.getString(titleForPage(page)));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -111,7 +191,11 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         listView.setLayoutManager(new LinearLayoutManager(context));
         listView.setVerticalScrollBarEnabled(false);
         listView.setAdapter(adapter = new ListAdapter(context));
-        listView.setOnItemClickListener((view, position) -> onRowClicked(view, position));
+        listView.setOnItemClickListener((view, position) -> {
+            if (position >= 0 && position < rows.length) {
+                onRowClicked(view, rows[position]);
+            }
+        });
         frameLayout.addView(listView, LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT,
                 LayoutHelper.MATCH_PARENT
@@ -119,7 +203,46 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         return fragmentView;
     }
 
+    private static int titleForPage(int page) {
+        switch (page) {
+            case PAGE_VPN:
+                return R.string.MeridaVpnHeader;
+            case PAGE_GHOST:
+                return R.string.MeridaGhostMode;
+            case PAGE_SPY:
+                return R.string.MeridaSpyHeader;
+            case PAGE_LOOK:
+                return R.string.MeridaLookHeader;
+            case PAGE_GENERAL:
+                return R.string.MeridaSettingsGeneral;
+            default:
+                return R.string.MeridaSettings;
+        }
+    }
+
+    private static int pageForSection(int row) {
+        switch (row) {
+            case ROW_SECTION_VPN:
+                return PAGE_VPN;
+            case ROW_SECTION_GHOST:
+                return PAGE_GHOST;
+            case ROW_SECTION_SPY:
+                return PAGE_SPY;
+            case ROW_SECTION_LOOK:
+                return PAGE_LOOK;
+            case ROW_SECTION_GENERAL:
+                return PAGE_GENERAL;
+            default:
+                return -1;
+        }
+    }
+
     private void onRowClicked(View view, int position) {
+        final int section = pageForSection(position);
+        if (section >= 0) {
+            presentFragment(new MeridaSettingsActivity(section));
+            return;
+        }
         if (position == ROW_VPN_ENABLED) {
             final boolean enabled = !MeridaSettings.vpnEnabled.get();
             MeridaVpn.setEnabled(enabled);
@@ -144,7 +267,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         }
         if (position == ROW_GHOST) {
             // the parts below follow the master switch
-            adapter.notifyItemRangeChanged(ROW_GHOST_NO_READ, ROW_GHOST_AUTO_OFFLINE - ROW_GHOST_NO_READ + 1);
+            final int first = positionOf(ROW_GHOST_NO_READ);
+            if (first >= 0) {
+                adapter.notifyItemRangeChanged(first, ROW_GHOST_AUTO_OFFLINE - ROW_GHOST_NO_READ + 1);
+            }
         }
         if (position == ROW_HIDE_STORIES) {
             for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
@@ -237,6 +363,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         }
     }
 
+    private static String onOff(boolean on) {
+        return LocaleController.getString(on ? R.string.NotificationsOn : R.string.NotificationsOff);
+    }
+
     private static String subscriptionText() {
         if (!MeridaVpn.hasAccount()) {
             return "—";
@@ -257,12 +387,15 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
 
         @Override
         public int getItemCount() {
-            return ROW_COUNT;
+            return rows.length;
         }
 
         @Override
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
-            return holder.getItemViewType() == TYPE_CHECK || holder.getAdapterPosition() == ROW_VPN_RENEW;
+            final int type = holder.getItemViewType();
+            final int position = holder.getAdapterPosition();
+            return type == TYPE_CHECK || type == TYPE_SECTION
+                    || (position >= 0 && position < rows.length && rows[position] == ROW_VPN_RENEW);
         }
 
         @NonNull
@@ -275,6 +408,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 view = new TextCheckCell(context);
             } else if (viewType == TYPE_VALUE) {
                 view = new TextSettingsCell(context);
+            } else if (viewType == TYPE_SECTION) {
+                view = new TextCell(context);
             } else {
                 view = new TextInfoPrivacyCell(context);
             }
@@ -286,8 +421,25 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         }
 
         @Override
-        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int index) {
+            final int position = rows[index];
             switch (holder.getItemViewType()) {
+                case TYPE_SECTION: {
+                    TextCell cell = (TextCell) holder.itemView;
+                    final boolean divider = position != ROW_SECTION_GENERAL;
+                    if (position == ROW_SECTION_VPN) {
+                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaVpnHeader), connectionText(), R.drawable.msg_policy, divider);
+                    } else if (position == ROW_SECTION_GHOST) {
+                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaGhostMode), onOff(MeridaSettings.ghostMode.get()), R.drawable.msg_mask, divider);
+                    } else if (position == ROW_SECTION_SPY) {
+                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaSpyHeader), onOff(MeridaSettings.spySaveDeleted.get()), R.drawable.msg_views, divider);
+                    } else if (position == ROW_SECTION_LOOK) {
+                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaLookHeader), "", R.drawable.msg_palette, divider);
+                    } else {
+                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaSettingsGeneral), "", R.drawable.msg_settings, divider);
+                    }
+                    break;
+                }
                 case TYPE_HEADER:
                     ((HeaderCell) holder.itemView).setText(LocaleController.getString(
                             position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : position == ROW_SPY_HEADER ? R.string.MeridaSpyHeader : position == ROW_LOOK_HEADER ? R.string.MeridaLookHeader : R.string.MeridaSettingsGeneral
@@ -332,6 +484,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         text = LocaleController.getString(R.string.MeridaSpyInfo);
                     } else if (position == ROW_LOOK_INFO) {
                         text = LocaleController.getString(R.string.MeridaSnowInfo);
+                    } else if (position == ROW_SECTIONS_INFO) {
+                        text = LocaleController.getString(R.string.MeridaSectionsInfo);
                     } else {
                         text = LocaleController.getString(R.string.MeridaSettingsGeneralInfo);
                     }
@@ -342,8 +496,14 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         }
 
         @Override
-        public int getItemViewType(int position) {
-            switch (position) {
+        public int getItemViewType(int index) {
+            switch (rows[index]) {
+                case ROW_SECTION_VPN:
+                case ROW_SECTION_GHOST:
+                case ROW_SECTION_SPY:
+                case ROW_SECTION_LOOK:
+                case ROW_SECTION_GENERAL:
+                    return TYPE_SECTION;
                 case ROW_VPN_HEADER:
                 case ROW_GENERAL_HEADER:
                 case ROW_GHOST_HEADER:
@@ -359,6 +519,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_GHOST_INFO:
                 case ROW_SPY_INFO:
                 case ROW_LOOK_INFO:
+                case ROW_SECTIONS_INFO:
                     return TYPE_INFO;
                 default:
                     return TYPE_CHECK;
