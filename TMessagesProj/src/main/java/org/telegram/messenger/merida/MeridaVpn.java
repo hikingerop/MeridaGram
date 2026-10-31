@@ -376,7 +376,7 @@ public final class MeridaVpn {
             if (reasons.length() > 0) {
                 reasons.append("; ");
             }
-            reasons.append(keyLabel(candidate)).append(" — ").append(reason);
+            reasons.append(keyLabel(candidate)).append(" — ").append(reason).append(" [").append(probe(candidate)).append("]");
         }
         // neither key answered: say why, let Telegram connect on its own for now and try again later (1, 2, 4… up to 15 min)
         error = LocaleController.formatString(R.string.MeridaVpnTunnelFailed, reasons.toString());
@@ -386,6 +386,53 @@ public final class MeridaVpn {
         notifyChanged();
         retryDelaySeconds = retryDelaySeconds == 0 ? 60 : Math.min(retryDelaySeconds * 2, 15 * 60);
         executor.schedule(MeridaVpn::connectIfIdle, retryDelaySeconds, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Checks the road to the key's server without the Xray core: can the phone open a TCP connection
+     * and finish a TLS handshake there? Tells «the network blocks the server» apart from «the server
+     * does not accept the key».
+     */
+    private static String probe(String key) {
+        try {
+            final android.net.Uri uri = android.net.Uri.parse(key.trim());
+            final String host = uri.getHost();
+            final int port = uri.getPort();
+            final long start = System.currentTimeMillis();
+            try (java.net.Socket socket = new java.net.Socket()) {
+                socket.connect(new java.net.InetSocketAddress(host, port), 8000);
+                final long tcp = System.currentTimeMillis() - start;
+                if (!"tls".equals(uri.getQueryParameter("security"))) {
+                    return "TCP ok " + tcp + " ms";
+                }
+                final SSLContext context = SSLContext.getInstance("TLS");
+                context.init(null, new TrustManager[]{new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                    }
+
+                    @Override
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                    }
+
+                    @Override
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new java.security.cert.X509Certificate[0];
+                    }
+                }}, null);
+                try (javax.net.ssl.SSLSocket ssl = (javax.net.ssl.SSLSocket) context.getSocketFactory().createSocket(socket, host, port, false)) {
+                    ssl.setSoTimeout(8000);
+                    ssl.startHandshake();
+                    final java.security.cert.Certificate[] chain = ssl.getSession().getPeerCertificates();
+                    final String pin = chain.length > 0 ? sha256Hex(chain[0].getEncoded()) : "";
+                    final String expected = uri.getQueryParameter("pcs");
+                    final boolean match = expected != null && expected.equalsIgnoreCase(pin);
+                    return "TCP ok " + tcp + " ms, TLS ok, cert " + (match ? "matches" : "DIFFERS");
+                }
+            }
+        } catch (Exception e) {
+            return "network: " + e.getClass().getSimpleName() + (e.getMessage() != null ? " " + e.getMessage() : "");
+        }
     }
 
     /** Short name of a key for the failure reason: its transport and server, without the secret part. */
@@ -486,6 +533,14 @@ public final class MeridaVpn {
         final byte[] bytes = new byte[18];
         new SecureRandom().nextBytes(bytes);
         return Base64.encodeToString(bytes, Base64.NO_WRAP | Base64.URL_SAFE | Base64.NO_PADDING);
+    }
+
+    private static String sha256Hex(byte[] data) throws Exception {
+        final StringBuilder hex = new StringBuilder();
+        for (byte b : MessageDigest.getInstance("SHA-256").digest(data)) {
+            hex.append(String.format("%02x", b));
+        }
+        return hex.toString();
     }
 
     private static String sha256Hex(String text) throws Exception {
