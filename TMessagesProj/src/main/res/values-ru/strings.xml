@@ -271,6 +271,10 @@
     <string name="MeridaHideStories">Скрыть истории</string>
     <string name="MeridaGhostHeader">Призрак</string>
     <string name="MeridaGhostMode">Режим призрака</string>
+    <string name="MeridaSpyHeader">Шпион</string>
+    <string name="MeridaSpySaveDeleted">Сохранять удалённые сообщения</string>
+    <string name="MeridaDeletedMark">🗑 удалено</string>
+    <string name="MeridaSpyInfo">Если собеседник удалит сообщение, у вас оно останется в чате с пометкой «удалено». Хранится только на этом телефоне. Работает для сообщений, удалённых после включения. Пометка появится, когда вы снова откроете чат.</string>
     <string name="MeridaGhostNoRead">Не читать сообщения</string>
     <string name="MeridaGhostNoStories">Не читать истории</string>
     <string name="MeridaGhostNoOnline">Не отправлять «онлайн»</string>

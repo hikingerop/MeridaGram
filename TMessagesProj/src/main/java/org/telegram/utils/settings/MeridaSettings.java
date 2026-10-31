@@ -36,6 +36,10 @@ public final class MeridaSettings {
     public static final BooleanSetting sendSilent =
         BooleanSetting.of("merida_send_silent", false);
 
+    /** Spy mode: keep messages others delete, marked as deleted (stored only on this phone). */
+    public static final BooleanSetting spySaveDeleted =
+        BooleanSetting.of("merida_spy_save_deleted", false);
+
     public static final BooleanSetting vpnEnabled =
         BooleanSetting.of("merida_vpn_enabled", true);
 

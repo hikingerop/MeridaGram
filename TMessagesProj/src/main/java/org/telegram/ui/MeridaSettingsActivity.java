@@ -56,7 +56,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_GHOST_AUTO_OFFLINE = 17;
     private static final int ROW_SEND_SILENT = 18;
     private static final int ROW_GHOST_INFO = 19;
-    private static final int ROW_COUNT = 20;
+    private static final int ROW_SPY_HEADER = 20;
+    private static final int ROW_SPY_DELETED = 21;
+    private static final int ROW_SPY_INFO = 22;
+    private static final int ROW_COUNT = 23;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -173,6 +176,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.ghostAutoOffline;
             case ROW_SEND_SILENT:
                 return MeridaSettings.sendSilent;
+            case ROW_SPY_DELETED:
+                return MeridaSettings.spySaveDeleted;
             default:
                 return null;
         }
@@ -204,6 +209,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaGhostAutoOffline;
             case ROW_SEND_SILENT:
                 return R.string.MeridaSendSilent;
+            case ROW_SPY_DELETED:
+                return R.string.MeridaSpySaveDeleted;
             default:
                 return R.string.MeridaTimeWithSeconds;
         }
@@ -276,7 +283,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             switch (holder.getItemViewType()) {
                 case TYPE_HEADER:
                     ((HeaderCell) holder.itemView).setText(LocaleController.getString(
-                            position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : R.string.MeridaSettingsGeneral
+                            position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : position == ROW_SPY_HEADER ? R.string.MeridaSpyHeader : R.string.MeridaSettingsGeneral
                     ));
                     break;
                 case TYPE_CHECK: {
@@ -284,7 +291,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     cell.setTextAndCheck(
                             LocaleController.getString(titleForRow(position)),
                             settingForRow(position).get(),
-                            position != ROW_TIME_WITH_SECONDS && position != ROW_SEND_SILENT
+                            position != ROW_TIME_WITH_SECONDS && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED
                     );
                     // parts of ghost mode are greyed out while the master switch is off
                     cell.setEnabled(!isGhostPart(position) || MeridaSettings.ghostMode.get(), null);
@@ -314,6 +321,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         }
                     } else if (position == ROW_GHOST_INFO) {
                         text = LocaleController.getString(R.string.MeridaGhostInfo);
+                    } else if (position == ROW_SPY_INFO) {
+                        text = LocaleController.getString(R.string.MeridaSpyInfo);
                     } else {
                         text = LocaleController.getString(R.string.MeridaSettingsGeneralInfo);
                     }
@@ -329,6 +338,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_VPN_HEADER:
                 case ROW_GENERAL_HEADER:
                 case ROW_GHOST_HEADER:
+                case ROW_SPY_HEADER:
                     return TYPE_HEADER;
                 case ROW_VPN_CONNECTION:
                 case ROW_VPN_SUBSCRIPTION:
@@ -337,6 +347,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_VPN_INFO:
                 case ROW_GENERAL_INFO:
                 case ROW_GHOST_INFO:
+                case ROW_SPY_INFO:
                     return TYPE_INFO;
                 default:
                     return TYPE_CHECK;

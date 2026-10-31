@@ -11638,6 +11638,10 @@
     <string name="MeridaHideStories">Hide stories</string>
     <string name="MeridaGhostHeader">Ghost</string>
     <string name="MeridaGhostMode">Ghost mode</string>
+    <string name="MeridaSpyHeader">Spy</string>
+    <string name="MeridaSpySaveDeleted">Keep deleted messages</string>
+    <string name="MeridaDeletedMark">🗑 deleted</string>
+    <string name="MeridaSpyInfo">If someone deletes a message, it stays in your chat marked «deleted». Stored only on this phone. Works for messages deleted after you turn it on. The mark appears when you open the chat again.</string>
     <string name="MeridaGhostNoRead">Don\'t read messages</string>
     <string name="MeridaGhostNoStories">Don\'t read stories</string>
     <string name="MeridaGhostNoOnline">Don\'t send «online»</string>

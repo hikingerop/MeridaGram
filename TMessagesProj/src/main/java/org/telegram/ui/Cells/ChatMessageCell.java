@@ -8,6 +8,7 @@
 
 package org.telegram.ui.Cells;
 
+import org.telegram.messenger.merida.MeridaSpy;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.dpf2;
 import static org.telegram.messenger.AndroidUtilities.find;
@@ -18530,6 +18531,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         } else {
             currentTimeString = timeString;
+        }
+        // MeridaGram spy mode: a message its sender deleted stays in the chat with a mark
+        if (MeridaSpy.isDeleted(currentAccount, currentMessageObject)) {
+            currentTimeString = TextUtils.concat(getString(R.string.MeridaDeletedMark), " ", currentTimeString);
         }
         if (currentMessageObject.isStakedDice()) {
             currentTimeString = TextUtils.concat("💎", StarsIntroActivity.formatTON(currentMessageObject.getStakedDiceAmount()), "  ", currentTimeString);
