@@ -350,31 +350,54 @@ public final class MeridaVpn {
 
         final boolean fallbackFirst = prefs.getBoolean("fallback", false) && !key2.isEmpty();
         final String[] order = fallbackFirst ? new String[]{key2, key} : new String[]{key, key2};
+        final StringBuilder reasons = new StringBuilder();
         for (String candidate : order) {
             if (candidate.isEmpty()) {
                 continue;
             }
+            String reason;
             try {
                 startCore(candidate);
                 applyToTelegram();
-                if (controller.measureDelay(TEST_URL) > 0) {
+                final long delay = controller.measureDelay(TEST_URL);
+                if (delay > 0) {
                     prefs.edit().putBoolean("fallback", candidate.equals(key2)).apply();
                     retryDelaySeconds = 0;
+                    error = null;
                     state = STATE_CONNECTED;
                     notifyChanged();
                     return;
                 }
+                reason = "no answer (" + delay + ")";
             } catch (Exception e) {
                 FileLog.e(e);
+                reason = e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : "");
             }
+            if (reasons.length() > 0) {
+                reasons.append("; ");
+            }
+            reasons.append(keyLabel(candidate)).append(" — ").append(reason);
         }
-        // neither key answered: let Telegram connect on its own for now and try again later (1, 2, 4… up to 15 min)
+        // neither key answered: say why, let Telegram connect on its own for now and try again later (1, 2, 4… up to 15 min)
+        error = LocaleController.formatString(R.string.MeridaVpnTunnelFailed, reasons.toString());
         stopCore();
         applyToTelegram();
         state = STATE_FAILED;
         notifyChanged();
         retryDelaySeconds = retryDelaySeconds == 0 ? 60 : Math.min(retryDelaySeconds * 2, 15 * 60);
         executor.schedule(MeridaVpn::connectIfIdle, retryDelaySeconds, TimeUnit.SECONDS);
+    }
+
+    /** Short name of a key for the failure reason: its transport and server, without the secret part. */
+    private static String keyLabel(String key) {
+        try {
+            final android.net.Uri uri = android.net.Uri.parse(key.trim());
+            final String type = uri.getQueryParameter("type");
+            final String security = uri.getQueryParameter("security");
+            return (TextUtils.isEmpty(type) ? "tcp" : type) + "/" + (TextUtils.isEmpty(security) ? "none" : security) + " " + uri.getHost() + ":" + uri.getPort();
+        } catch (Exception e) {
+            return "key";
+        }
     }
 
     private static void connectIfIdle() {

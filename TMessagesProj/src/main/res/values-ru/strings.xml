@@ -293,6 +293,7 @@
     <string name="MeridaVpnConnecting">Подключение…</string>
     <string name="MeridaVpnFailed">Нет связи</string>
     <string name="MeridaVpnServerUnreachable">Не удалось связаться с сервером Merida VPN, пробую ещё раз. Причина: %1$s</string>
+    <string name="MeridaVpnTunnelFailed">Сервер Merida VPN не пропускает соединение, пробую ещё раз. Подробности: %1$s</string>
     <string name="MeridaVpnOff">Выключено</string>
     <string name="MeridaVpnSubscription">Подписка</string>
     <string name="MeridaVpnTrialUntil">Пробная до %1$s</string>
