@@ -11659,6 +11659,7 @@
     <string name="MeridaVpnConnectedFallback">Backup connection</string>
     <string name="MeridaVpnConnecting">Connecting…</string>
     <string name="MeridaVpnFailed">No connection</string>
+    <string name="MeridaVpnServerUnreachable">Could not reach the Merida VPN server, trying again. Reason: %1$s</string>
     <string name="MeridaVpnOff">Off</string>
     <string name="MeridaVpnSubscription">Subscription</string>
     <string name="MeridaVpnTrialUntil">Trial until %1$s</string>

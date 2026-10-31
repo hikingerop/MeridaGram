@@ -11,6 +11,8 @@ import org.json.JSONObject;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
+import org.telegram.messenger.R;
+import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.utils.settings.MeridaSettings;
@@ -82,6 +84,7 @@ public final class MeridaVpn {
     private static volatile int state = STATE_OFF;
     private static volatile String error;
     private static int retryDelaySeconds;
+    private static int refreshRetrySeconds;
 
     private MeridaVpn() {
     }
@@ -226,13 +229,21 @@ public final class MeridaVpn {
             } else {
                 notifyChanged();
             }
+            refreshRetrySeconds = 0;
         } catch (Exception e) {
             FileLog.e(e);
-            error = e instanceof ApiException ? e.getMessage() : null;
+            // say why, so a failed first request is not just a silent «no connection»
+            error = e instanceof ApiException ? e.getMessage()
+                    : LocaleController.formatString(R.string.MeridaVpnServerUnreachable, e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : ""));
             if (!running) {
                 state = STATE_FAILED;
             }
             notifyChanged();
+            if (prefs().getString("key", "").isEmpty()) {
+                // no key yet (first start, or the network was not up): try again soon — 30 s, 1, 2, 4… up to 15 min — instead of in 6 hours
+                refreshRetrySeconds = refreshRetrySeconds == 0 ? 30 : Math.min(refreshRetrySeconds * 2, 15 * 60);
+                executor.schedule(MeridaVpn::refreshNow, refreshRetrySeconds, TimeUnit.SECONDS);
+            }
         }
     }
 
