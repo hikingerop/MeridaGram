@@ -50,10 +50,8 @@ import org.telegram.utils.proxy.WebProxyTransport;
 import org.telegram.utils.proxy.ProxySettings;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.LoginActivity;
+import org.telegram.messenger.merida.MeridaGhost;
 import org.telegram.messenger.merida.MeridaVpn;
-import org.telegram.tgnet.tl.TL_stories;
-import org.telegram.tgnet.tl.TL_account;
-import org.telegram.utils.settings.MeridaSettings;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -399,27 +397,10 @@ public class ConnectionsManager extends BaseController {
         return requestToken;
     }
 
-    private static boolean isGhostHidden(TLObject object) {
-        return object instanceof TLRPC.TL_messages_readHistory
-                || object instanceof TLRPC.TL_channels_readHistory
-                || object instanceof TLRPC.TL_messages_readMessageContents
-                || object instanceof TLRPC.TL_channels_readMessageContents
-                || object instanceof TLRPC.TL_messages_readDiscussion
-                || object instanceof TLRPC.TL_messages_readEncryptedHistory
-                || object instanceof TLRPC.TL_messages_setTyping
-                || object instanceof TLRPC.TL_messages_setEncryptedTyping
-                || object instanceof TL_stories.TL_stories_readStories
-                || object instanceof TL_stories.TL_stories_incrementStoryViews;
-    }
-
     private void sendRequestInternal(TLObject object, RequestDelegate onComplete, RequestDelegateTimestamp onCompleteTimestamp, QuickAckDelegate onQuickAck, WriteToSocketDelegate onWriteToSocket, int flags, int datacenterId, int connectionType, boolean immediate, int requestToken) {
-        // MeridaGram ghost mode: read marks, «typing» and story views never leave the phone, the status is always «offline»
-        if (MeridaSettings.ghostMode.get()) {
-            if (object instanceof TL_account.updateStatus) {
-                ((TL_account.updateStatus) object).offline = true;
-            } else if (isGhostHidden(object)) {
-                return;
-            }
+        // MeridaGram ghost mode: some requests are changed or held back on the phone (see MeridaGhost)
+        if (MeridaGhost.filter(object, this)) {
+            return;
         }
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("send request " + object + " with token = " + requestToken);

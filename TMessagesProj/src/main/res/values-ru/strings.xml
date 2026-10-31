@@ -271,7 +271,13 @@
     <string name="MeridaHideStories">Скрыть истории</string>
     <string name="MeridaGhostHeader">Призрак</string>
     <string name="MeridaGhostMode">Режим призрака</string>
-    <string name="MeridaGhostInfo">Собеседники не видят, что вы прочитали сообщения, что вы печатаете и что вы в сети. Истории можно смотреть незаметно. Когда вы сами отправите сообщение в чат, Telegram отметит этот чат прочитанным.</string>
+    <string name="MeridaGhostNoRead">Не читать сообщения</string>
+    <string name="MeridaGhostNoStories">Не читать истории</string>
+    <string name="MeridaGhostNoOnline">Не отправлять «онлайн»</string>
+    <string name="MeridaGhostNoTyping">Не отправлять «печатает»</string>
+    <string name="MeridaGhostAutoOffline">Автоматический «офлайн»</string>
+    <string name="MeridaSendSilent">Отправлять без звука</string>
+    <string name="MeridaGhostInfo">Собеседники не видят, что вы прочитали сообщения или истории, что вы печатаете и что вы в сети. «Автоматический офлайн» сразу снова делает вас офлайн после отправки сообщения. Когда вы сами пишете в чат, Telegram отмечает этот чат прочитанным. «Отправлять без звука» работает и без призрака: у получателя сообщение придёт без звука.</string>
     <string name="MeridaShowId">Показывать ID в профилях</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>

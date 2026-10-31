@@ -16,6 +16,26 @@ public final class MeridaSettings {
     public static final BooleanSetting ghostMode =
         BooleanSetting.of("merida_ghost_mode", false);
 
+    /** Parts of ghost mode; each works only while ghostMode is on. */
+    public static final BooleanSetting ghostNoRead =
+        BooleanSetting.of("merida_ghost_no_read", true);
+
+    public static final BooleanSetting ghostNoStories =
+        BooleanSetting.of("merida_ghost_no_stories", true);
+
+    public static final BooleanSetting ghostNoOnline =
+        BooleanSetting.of("merida_ghost_no_online", true);
+
+    public static final BooleanSetting ghostNoTyping =
+        BooleanSetting.of("merida_ghost_no_typing", true);
+
+    public static final BooleanSetting ghostAutoOffline =
+        BooleanSetting.of("merida_ghost_auto_offline", true);
+
+    /** Send every message without sound, independent of ghost mode. */
+    public static final BooleanSetting sendSilent =
+        BooleanSetting.of("merida_send_silent", false);
+
     public static final BooleanSetting vpnEnabled =
         BooleanSetting.of("merida_vpn_enabled", true);
 

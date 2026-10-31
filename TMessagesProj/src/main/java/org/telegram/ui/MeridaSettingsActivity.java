@@ -49,8 +49,14 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_GENERAL_INFO = 10;
     private static final int ROW_GHOST_HEADER = 11;
     private static final int ROW_GHOST = 12;
-    private static final int ROW_GHOST_INFO = 13;
-    private static final int ROW_COUNT = 14;
+    private static final int ROW_GHOST_NO_READ = 13;
+    private static final int ROW_GHOST_NO_STORIES = 14;
+    private static final int ROW_GHOST_NO_ONLINE = 15;
+    private static final int ROW_GHOST_NO_TYPING = 16;
+    private static final int ROW_GHOST_AUTO_OFFLINE = 17;
+    private static final int ROW_SEND_SILENT = 18;
+    private static final int ROW_GHOST_INFO = 19;
+    private static final int ROW_COUNT = 20;
 
     private RecyclerListView listView;
     private ListAdapter adapter;
@@ -123,12 +129,16 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             return;
         }
         final BooleanSetting setting = settingForRow(position);
-        if (setting == null) {
+        if (setting == null || (isGhostPart(position) && !MeridaSettings.ghostMode.get())) {
             return;
         }
         final boolean enabled = setting.toggle();
         if (view instanceof TextCheckCell) {
             ((TextCheckCell) view).setChecked(enabled);
+        }
+        if (position == ROW_GHOST) {
+            // the parts below follow the master switch
+            adapter.notifyItemRangeChanged(ROW_GHOST_NO_READ, ROW_GHOST_AUTO_OFFLINE - ROW_GHOST_NO_READ + 1);
         }
         if (position == ROW_HIDE_STORIES) {
             for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
@@ -151,9 +161,25 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.timeWithSeconds;
             case ROW_GHOST:
                 return MeridaSettings.ghostMode;
+            case ROW_GHOST_NO_READ:
+                return MeridaSettings.ghostNoRead;
+            case ROW_GHOST_NO_STORIES:
+                return MeridaSettings.ghostNoStories;
+            case ROW_GHOST_NO_ONLINE:
+                return MeridaSettings.ghostNoOnline;
+            case ROW_GHOST_NO_TYPING:
+                return MeridaSettings.ghostNoTyping;
+            case ROW_GHOST_AUTO_OFFLINE:
+                return MeridaSettings.ghostAutoOffline;
+            case ROW_SEND_SILENT:
+                return MeridaSettings.sendSilent;
             default:
                 return null;
         }
+    }
+
+    private static boolean isGhostPart(int position) {
+        return position >= ROW_GHOST_NO_READ && position <= ROW_GHOST_AUTO_OFFLINE;
     }
 
     private static int titleForRow(int position) {
@@ -166,6 +192,18 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaShowId;
             case ROW_GHOST:
                 return R.string.MeridaGhostMode;
+            case ROW_GHOST_NO_READ:
+                return R.string.MeridaGhostNoRead;
+            case ROW_GHOST_NO_STORIES:
+                return R.string.MeridaGhostNoStories;
+            case ROW_GHOST_NO_ONLINE:
+                return R.string.MeridaGhostNoOnline;
+            case ROW_GHOST_NO_TYPING:
+                return R.string.MeridaGhostNoTyping;
+            case ROW_GHOST_AUTO_OFFLINE:
+                return R.string.MeridaGhostAutoOffline;
+            case ROW_SEND_SILENT:
+                return R.string.MeridaSendSilent;
             default:
                 return R.string.MeridaTimeWithSeconds;
         }
@@ -246,8 +284,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     cell.setTextAndCheck(
                             LocaleController.getString(titleForRow(position)),
                             settingForRow(position).get(),
-                            position != ROW_TIME_WITH_SECONDS && position != ROW_GHOST
+                            position != ROW_TIME_WITH_SECONDS && position != ROW_SEND_SILENT
                     );
+                    // parts of ghost mode are greyed out while the master switch is off
+                    cell.setEnabled(!isGhostPart(position) || MeridaSettings.ghostMode.get(), null);
                     break;
                 }
                 case TYPE_VALUE: {

@@ -11638,7 +11638,13 @@
     <string name="MeridaHideStories">Hide stories</string>
     <string name="MeridaGhostHeader">Ghost</string>
     <string name="MeridaGhostMode">Ghost mode</string>
-    <string name="MeridaGhostInfo">Others don\'t see that you read their messages, that you are typing or that you are online. Stories are viewed unnoticed. When you send a message to a chat yourself, Telegram marks that chat as read.</string>
+    <string name="MeridaGhostNoRead">Don\'t read messages</string>
+    <string name="MeridaGhostNoStories">Don\'t read stories</string>
+    <string name="MeridaGhostNoOnline">Don\'t send «online»</string>
+    <string name="MeridaGhostNoTyping">Don\'t send «typing»</string>
+    <string name="MeridaGhostAutoOffline">Automatic «offline»</string>
+    <string name="MeridaSendSilent">Send without sound</string>
+    <string name="MeridaGhostInfo">Others don\'t see that you read their messages or stories, that you are typing or that you are online. «Automatic offline» makes you offline again right after you send a message. When you write to a chat yourself, Telegram marks that chat as read. «Send without sound» works without ghost mode too: your messages arrive silently.</string>
     <string name="MeridaShowId">Show ID in profiles</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>
