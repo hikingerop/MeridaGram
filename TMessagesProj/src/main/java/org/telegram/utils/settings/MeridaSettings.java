@@ -80,6 +80,10 @@ public final class MeridaSettings {
     public static final BooleanSetting stripPhotoMetadata =
         BooleanSetting.of("merida_strip_photo_metadata", true);
 
+    /** Mini apps get a generic device name and no third-party cookies. */
+    public static final BooleanSetting webAppPrivacy =
+        BooleanSetting.of("merida_webapp_privacy", true);
+
     public static final BooleanSetting vpnEnabled =
         BooleanSetting.of("merida_vpn_enabled", true);
 

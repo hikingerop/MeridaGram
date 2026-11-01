@@ -101,6 +101,11 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_ALLOW_SCREENSHOTS = 45;
     private static final int ROW_SESSION_GUARD = 46;
     private static final int ROW_STRIP_METADATA = 47;
+    private static final int ROW_WEBAPP_PRIVACY = 48;
+    private static final int ROW_VPN_PING = 49;
+
+    /** Last speed test result in ms; -1 not run yet, -2 running, -3 failed. */
+    private static int pingResult = -1;
     private static final int ROW_PLAYER_HEADER = 34;
     private static final int ROW_PLAYER_ADVANCED = 35;
     private static final int ROW_PLAYER_WHERE = 36;
@@ -147,7 +152,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static int[] rowsFor(int page) {
         switch (page) {
             case PAGE_VPN:
-                return new int[]{ROW_VPN_HEADER, ROW_VPN_ENABLED, ROW_VPN_CONNECTION, ROW_VPN_SUBSCRIPTION, ROW_VPN_RENEW, ROW_VPN_INFO};
+                return new int[]{ROW_VPN_HEADER, ROW_VPN_ENABLED, ROW_VPN_CONNECTION, ROW_VPN_PING, ROW_VPN_SUBSCRIPTION, ROW_VPN_RENEW, ROW_VPN_INFO};
             case PAGE_GHOST:
                 return new int[]{ROW_GHOST_HEADER, ROW_GHOST, ROW_GHOST_NO_READ, ROW_GHOST_NO_STORIES, ROW_GHOST_NO_ONLINE, ROW_GHOST_NO_TYPING, ROW_GHOST_AUTO_OFFLINE, ROW_SEND_SILENT, ROW_GHOST_INFO};
             case PAGE_SPY:
@@ -155,7 +160,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             case PAGE_LOOK:
                 return new int[]{ROW_LOOK_HEADER, ROW_SNOW_PREVIEW, ROW_SNOW, ROW_LOOK_INFO};
             case PAGE_GENERAL:
-                return new int[]{ROW_GENERAL_HEADER, ROW_HIDE_STORIES, ROW_SHOW_ID, ROW_TIME_WITH_SECONDS, ROW_ALLOW_SCREENSHOTS, ROW_SESSION_GUARD, ROW_STRIP_METADATA, ROW_GENERAL_INFO};
+                return new int[]{ROW_GENERAL_HEADER, ROW_HIDE_STORIES, ROW_SHOW_ID, ROW_TIME_WITH_SECONDS, ROW_ALLOW_SCREENSHOTS, ROW_SESSION_GUARD, ROW_STRIP_METADATA, ROW_WEBAPP_PRIVACY, ROW_GENERAL_INFO};
             default:
                 return new int[]{ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_LOOK, ROW_SECTION_GENERAL, ROW_SECTIONS_INFO};
         }
@@ -226,6 +231,33 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         builder.setTitle(LocaleController.getString(title));
         builder.setItems(items, (dialog, which) -> onChosen.accept(which));
         showDialog(builder.create());
+    }
+
+    /** Measures how fast Telegram answers right now (through Merida VPN when it is on): best of 3 tries. */
+    private void runPingTest() {
+        if (pingResult == -2) {
+            return;
+        }
+        pingResult = -2;
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+        final int[] best = {Integer.MAX_VALUE};
+        final int[] left = {3};
+        for (int i = 0; i < 3; i++) {
+            final long start = android.os.SystemClock.elapsedRealtime();
+            org.telegram.tgnet.ConnectionsManager.getInstance(currentAccount).sendRequest(new TLRPC.TL_help_getNearestDc(), (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+                if (response != null && error == null) {
+                    best[0] = Math.min(best[0], (int) (android.os.SystemClock.elapsedRealtime() - start));
+                }
+                if (--left[0] == 0) {
+                    pingResult = best[0] == Integer.MAX_VALUE ? -3 : best[0];
+                    if (adapter != null) {
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            }));
+        }
     }
 
     private int positionOf(int row) {
@@ -387,6 +419,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             }
             return;
         }
+        if (position == ROW_VPN_PING) {
+            runPingTest();
+            return;
+        }
         if (position == ROW_VPN_RENEW) {
             final String code = MeridaVpn.getAccountCode();
             Browser.openUrl(getParentActivity(), "https://t.me/" + MeridaVpn.BOT_USERNAME + (code.isEmpty() ? "" : "?start=" + code.replace("-", "")));
@@ -455,6 +491,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.sessionGuard;
             case ROW_STRIP_METADATA:
                 return MeridaSettings.stripPhotoMetadata;
+            case ROW_WEBAPP_PRIVACY:
+                return MeridaSettings.webAppPrivacy;
             case ROW_PLAYER_BASS:
                 return MeridaSettings.playerBassBoost;
             case ROW_PLAYER_LOUDER:
@@ -504,6 +542,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaSessionGuard;
             case ROW_STRIP_METADATA:
                 return R.string.MeridaStripMetadata;
+            case ROW_WEBAPP_PRIVACY:
+                return R.string.MeridaWebAppPrivacy;
             case ROW_PLAYER_BASS:
                 return R.string.MeridaPlayerBass;
             case ROW_PLAYER_LOUDER:
@@ -561,7 +601,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             final int type = holder.getItemViewType();
             final int position = holder.getAdapterPosition();
             return type == TYPE_CHECK || type == TYPE_SECTION
-                    || (position >= 0 && position < rows.length && (rows[position] == ROW_VPN_RENEW
+                    || (position >= 0 && position < rows.length && (rows[position] == ROW_VPN_RENEW || rows[position] == ROW_VPN_PING
                     || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] >= ROW_PLAYER_CHAT_BASE));
         }
 
@@ -623,7 +663,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     cell.setTextAndCheck(
                             LocaleController.getString(titleForRow(position)),
                             settingForRow(position).get(),
-                            position != ROW_STRIP_METADATA && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED && position != ROW_SNOW && position != ROW_PLAYER_PRELOAD
+                            position != ROW_WEBAPP_PRIVACY && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED && position != ROW_SNOW && position != ROW_PLAYER_PRELOAD
                     );
                     // parts of ghost mode are greyed out while the master switch is off
                     cell.setEnabled(!isGhostPart(position) || MeridaSettings.ghostMode.get(), null);
@@ -643,6 +683,11 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         final int i = position - ROW_PLAYER_CHAT_BASE;
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                         cell.setTextAndValue(i < playerChats.size() ? chatName(playerChats.get(i)) : "", "✕", i < playerChats.size() - 1);
+                    } else if (position == ROW_VPN_PING) {
+                        cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                        final String value = pingResult == -2 ? "…" : pingResult == -3 ? LocaleController.getString(R.string.MeridaVpnPingFailed)
+                                : pingResult >= 0 ? LocaleController.formatString(R.string.MeridaVpnPingMs, pingResult) : LocaleController.getString(R.string.MeridaVpnPingTap);
+                        cell.setTextAndValue(LocaleController.getString(R.string.MeridaVpnPing), value, true);
                     } else if (position == ROW_VPN_CONNECTION) {
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                         cell.setTextAndValue(LocaleController.getString(R.string.MeridaVpnConnection), connectionText(), true);
@@ -712,6 +757,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_VPN_CONNECTION:
                 case ROW_VPN_SUBSCRIPTION:
                 case ROW_VPN_RENEW:
+                case ROW_VPN_PING:
                 case ROW_PLAYER_WHERE:
                 case ROW_PLAYER_EQ:
                     return TYPE_VALUE;

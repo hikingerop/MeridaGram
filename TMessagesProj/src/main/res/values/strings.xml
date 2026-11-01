@@ -11634,7 +11634,7 @@
     <string name="MeridaSettings">MeridaGram Settings</string>
     <string name="MeridaSettingsInfo">Features of MeridaGram</string>
     <string name="MeridaSettingsGeneral">General</string>
-    <string name="MeridaSettingsGeneralInfo">Seconds appear on messages after the chat is reopened. Screenshots are allowed in channels and groups that restrict copying. Secret chats, disappearing and paid media stay protected. «Remove photo location»: photos sent as files lose the shooting place, phone model and time. «Warn about new logins»: when a new device logs in, a window offers to end that login.</string>
+    <string name="MeridaSettingsGeneralInfo">Seconds appear on messages after the chat is reopened. Screenshots are allowed in channels and groups that restrict copying. Secret chats, disappearing and paid media stay protected. «Remove photo location»: photos sent as files lose the shooting place, phone model and time. «Warn about new logins»: when a new device logs in, a window offers to end that login. «Hide phone from mini apps»: bot apps (tappers, shops) do not learn the phone maker and model and cannot set tracking cookies.</string>
     <string name="MeridaHideStories">Hide stories</string>
     <string name="MeridaGhostHeader">Ghost</string>
     <string name="MeridaGhostMode">Ghost mode</string>
@@ -11692,6 +11692,11 @@
     <string name="MeridaSessionsEndAll">Log out everywhere except this phone</string>
     <string name="MeridaSessionsPasswordPending">Has not entered the cloud password yet — end the login now!</string>
     <string name="MeridaStripMetadata">Remove photo location</string>
+    <string name="MeridaWebAppPrivacy">Hide phone from mini apps</string>
+    <string name="MeridaVpnPing">Telegram speed</string>
+    <string name="MeridaVpnPingTap">Check</string>
+    <string name="MeridaVpnPingMs">%1$d ms</string>
+    <string name="MeridaVpnPingFailed">No answer</string>
     <string name="MeridaSnow">Snow</string>
     <string name="MeridaSnowInfo">Above is how the snow looks. It falls on the chat list\'s top bar and on chat backgrounds any time of the year. Appears after MeridaGram restarts. In power saving mode there is no snow on chat backgrounds.</string>
     <string name="MeridaSpyHeader">Spy</string>

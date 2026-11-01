@@ -494,9 +494,18 @@ public abstract class BotWebViewContainer extends FrameLayout implements Notific
                 final PackageInfo packageInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
                 final int perf = SharedConfig.getDevicePerformanceClass();
                 final String perfName = perf == SharedConfig.PERFORMANCE_CLASS_LOW ? "LOW" : perf == SharedConfig.PERFORMANCE_CLASS_AVERAGE ? "AVERAGE" : "HIGH";
-                useragent += " Telegram-Android/" + packageInfo.versionName + " (" + capitalizeFirst(Build.MANUFACTURER) + " " + Build.MODEL + "; Android " + Build.VERSION.RELEASE + "; SDK " + Build.VERSION.SDK_INT + "; " + perfName + ")";
+                if (org.telegram.utils.settings.MeridaSettings.webAppPrivacy.get()) {
+                    // MeridaGram: mini apps do not learn the phone's maker and model
+                    useragent += " Telegram-Android/" + packageInfo.versionName + " (Android Device; Android " + Build.VERSION.RELEASE + "; SDK " + Build.VERSION.SDK_INT + "; AVERAGE)";
+                } else {
+                    useragent += " Telegram-Android/" + packageInfo.versionName + " (" + capitalizeFirst(Build.MANUFACTURER) + " " + Build.MODEL + "; Android " + Build.VERSION.RELEASE + "; SDK " + Build.VERSION.SDK_INT + "; " + perfName + ")";
+                }
             }
             settings.setUserAgentString(useragent);
+            if (org.telegram.utils.settings.MeridaSettings.webAppPrivacy.get()) {
+                // MeridaGram: no third-party tracking cookies inside mini apps
+                android.webkit.CookieManager.getInstance().setAcceptThirdPartyCookies(webView, false);
+            }
         } catch (Exception e) {
             FileLog.e(e);
         }
