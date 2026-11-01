@@ -20,6 +20,10 @@ public final class MeridaSettings {
     public static final BooleanSetting cryptoEnabled =
         BooleanSetting.of("merida_crypto_enabled", false);
 
+    /** Python plugins (MeridaPlugins). Off until turned on in MeridaGram Settings → Plugins. */
+    public static final BooleanSetting pluginsEnabled =
+        BooleanSetting.of("merida_plugins_enabled", false);
+
     /** Folder tabs are not shown above the chat list; only «All chats» stays. */
     public static final BooleanSetting hideFolderTabs =
         BooleanSetting.of("merida_hide_folder_tabs", false);

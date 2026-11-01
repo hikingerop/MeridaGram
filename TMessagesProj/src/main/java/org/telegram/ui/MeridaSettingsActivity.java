@@ -58,6 +58,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     public static final int PAGE_GENERAL = 5;
     public static final int PAGE_PLAYER = 6;
     public static final int PAGE_SECURITY = 8;
+    public static final int PAGE_PLUGINS = 9;
 
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_CHECK = 1;
@@ -130,6 +131,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_SPY_MARK_COLOR = 70;
     private static final int ROW_GHOST_STATUS = 71;
     private static final int ROW_BACKGROUND = 72;
+    private static final int ROW_SECTION_PLUGINS = 73;
+    private static final int ROW_PLUGINS_ENABLED = 74;
+    /** Installed plugins on the plugins page: ROW_PLUGIN_BASE + index in plugins. */
+    private static final int ROW_PLUGIN_BASE = 9000;
     private static final int[] MARK_STYLE_NAMES = {R.string.MeridaMarkIconWord, R.string.MeridaMarkIcon, R.string.MeridaMarkWord};
     private static final int[] MARK_COLOR_NAMES = {R.string.MeridaColorDefault, R.string.MeridaColorRed, R.string.MeridaColorPink, R.string.MeridaColorPurple, R.string.MeridaColorViolet, R.string.MeridaColorBlue, R.string.MeridaColorTeal, R.string.MeridaColorGreen, R.string.MeridaColorOrange};
     /** Rows of chats with encryption on the encryption page: ROW_CRYPTO_CHAT_BASE + index in cryptoChats. */
@@ -159,6 +164,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private int[] rows;
     private final java.util.ArrayList<Long> playerChats = new java.util.ArrayList<>();
     private final java.util.ArrayList<Long> cryptoChats = new java.util.ArrayList<>();
+    private final java.util.ArrayList<org.telegram.messenger.merida.MeridaPlugins.Info> plugins = new java.util.ArrayList<>();
     private RecyclerListView listView;
     private ListAdapter adapter;
 
@@ -174,7 +180,85 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             buildPlayerRows();
         } else if (page == PAGE_SECURITY) {
             buildSecurityRows();
+        } else if (page == PAGE_PLUGINS) {
+            buildPluginRows();
         }
+    }
+
+    private static boolean isPluginRow(int row) {
+        return row >= ROW_PLUGIN_BASE;
+    }
+
+    /** Plugins page: the main switch, then the installed plugins (each can be switched off or removed). */
+    private void buildPluginRows() {
+        plugins.clear();
+        final java.util.ArrayList<Integer> list = new java.util.ArrayList<>();
+        list.add(hdr(R.string.MeridaPluginsHeader));
+        list.add(ROW_PLUGINS_ENABLED);
+        list.add(note(R.string.MeridaInfoPlugins));
+        if (MeridaSettings.pluginsEnabled.get()) {
+            plugins.addAll(org.telegram.messenger.merida.MeridaPlugins.list());
+            list.add(hdr(R.string.MeridaPluginsInstalled));
+            if (plugins.isEmpty()) {
+                list.add(note(R.string.MeridaPluginsEmpty));
+            } else {
+                for (int i = 0; i < plugins.size(); i++) {
+                    list.add(ROW_PLUGIN_BASE + i);
+                }
+                list.add(note(R.string.MeridaPluginsHint));
+            }
+        }
+        rows = new int[list.size()];
+        for (int i = 0; i < rows.length; i++) {
+            rows[i] = list.get(i);
+        }
+    }
+
+    private void refreshPluginsPage() {
+        buildPluginRows();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    private String pluginSubtitle(org.telegram.messenger.merida.MeridaPlugins.Info info) {
+        final String error = org.telegram.messenger.merida.MeridaPlugins.error(info.id);
+        if (error != null && org.telegram.messenger.merida.MeridaPlugins.isEnabled(info.id)) {
+            final String[] lines = error.trim().split("\n");
+            return LocaleController.formatString(R.string.MeridaPluginError, lines[lines.length - 1]);
+        }
+        final StringBuilder sb = new StringBuilder();
+        if (!android.text.TextUtils.isEmpty(info.version)) {
+            sb.append(info.version);
+        }
+        if (!android.text.TextUtils.isEmpty(info.author)) {
+            if (sb.length() > 0) {
+                sb.append(" · ");
+            }
+            sb.append(info.author);
+        }
+        if (!android.text.TextUtils.isEmpty(info.description)) {
+            if (sb.length() > 0) {
+                sb.append("\n");
+            }
+            sb.append(info.description);
+        }
+        return sb.toString();
+    }
+
+    private void askRemovePlugin(org.telegram.messenger.merida.MeridaPlugins.Info info) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString(R.string.MeridaPluginRemove));
+        builder.setMessage(LocaleController.formatString(R.string.MeridaPluginRemoveInfo, info.name));
+        builder.setPositiveButton(LocaleController.getString(R.string.MeridaPluginRemove), (d, w) -> {
+            org.telegram.messenger.merida.MeridaPlugins.remove(info.id);
+            refreshPluginsPage();
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showDialog(builder.create());
     }
 
     private static boolean isPlayerChatRow(int row) {
@@ -240,7 +324,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         hdr(R.string.MeridaHdrNotifications), ROW_BACKGROUND, note(R.string.MeridaInfoBackground)};
             default:
                 return new int[]{ROW_APP_HEADER, ROW_CATEGORIES_HEADER, ROW_SECTION_GENERAL, ROW_SECTION_LOOK, ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_SECURITY,
-                        ROW_SECURITY_GAP, ROW_LINKS_HEADER, ROW_LINK_CHANNEL};
+                        ROW_SECTION_PLUGINS, ROW_SECURITY_GAP, ROW_LINKS_HEADER, ROW_LINK_CHANNEL};
         }
     }
 
@@ -501,6 +585,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
 
     @Override
     public boolean onFragmentCreate() {
+        if (page == PAGE_PLUGINS) {
+            org.telegram.messenger.merida.MeridaPlugins.listener = this::refreshPluginsPage;
+        }
         if (showsVpn()) {
             MeridaVpn.addListener(this);
             MeridaVpn.refresh();
@@ -510,6 +597,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
 
     @Override
     public void onFragmentDestroy() {
+        if (page == PAGE_PLUGINS) {
+            org.telegram.messenger.merida.MeridaPlugins.listener = null;
+        }
         if (showsVpn()) {
             MeridaVpn.removeListener(this);
         }
@@ -522,6 +612,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         // the section list shows «on / off» next to each section; refresh it after coming back from one
         if (page == PAGE_SECURITY) {
             buildSecurityRows();
+        } else if (page == PAGE_PLUGINS) {
+            buildPluginRows();
         }
         if (adapter != null) {
             adapter.notifyDataSetChanged();
@@ -564,6 +656,16 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 onRowClicked(view, rows[position]);
             }
         });
+        listView.setOnItemLongClickListener((view, position) -> {
+            if (position >= 0 && position < rows.length && isPluginRow(rows[position])) {
+                final int i = rows[position] - ROW_PLUGIN_BASE;
+                if (i < plugins.size()) {
+                    askRemovePlugin(plugins.get(i));
+                    return true;
+                }
+            }
+            return false;
+        });
         frameLayout.addView(listView, LayoutHelper.createFrame(
                 LayoutHelper.MATCH_PARENT,
                 LayoutHelper.MATCH_PARENT
@@ -587,6 +689,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaPlayerHeader;
             case PAGE_SECURITY:
                 return R.string.MeridaSecurityHeader;
+            case PAGE_PLUGINS:
+                return R.string.MeridaPluginsHeader;
             default:
                 return R.string.MeridaSettings;
         }
@@ -608,6 +712,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return PAGE_PLAYER;
             case ROW_SECTION_SECURITY:
                 return PAGE_SECURITY;
+            case ROW_SECTION_PLUGINS:
+                return PAGE_PLUGINS;
             default:
                 return -1;
         }
@@ -657,6 +763,25 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         }
         if (position == ROW_SPY_MARK_COLOR) {
             showMarkColorChoice();
+            return;
+        }
+        if (isPluginRow(position)) {
+            final int i = position - ROW_PLUGIN_BASE;
+            if (i < plugins.size()) {
+                final org.telegram.messenger.merida.MeridaPlugins.Info info = plugins.get(i);
+                final boolean on = !org.telegram.messenger.merida.MeridaPlugins.isEnabled(info.id);
+                org.telegram.messenger.merida.MeridaPlugins.setEnabled(info.id, on);
+                if (view instanceof TextCheckCell) {
+                    ((TextCheckCell) view).setChecked(on);
+                }
+            }
+            return;
+        }
+        if (position == ROW_PLUGINS_ENABLED) {
+            final boolean on = !MeridaSettings.pluginsEnabled.get();
+            MeridaSettings.pluginsEnabled.set(on);
+            org.telegram.messenger.merida.MeridaPlugins.reloadAsync();
+            refreshPluginsPage();
             return;
         }
         if (position == ROW_BACKGROUND) {
@@ -743,6 +868,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.hideFolderTabs;
             case ROW_SPY_TRANSLUCENT:
                 return MeridaSettings.spyTranslucent;
+            case ROW_PLUGINS_ENABLED:
+                return MeridaSettings.pluginsEnabled;
             case ROW_GHOST_STATUS:
                 return MeridaSettings.ghostStatus;
             case ROW_TIME_WITH_SECONDS:
@@ -826,6 +953,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaHideFolderTabs;
             case ROW_SPY_TRANSLUCENT:
                 return R.string.MeridaSpyTranslucent;
+            case ROW_PLUGINS_ENABLED:
+                return R.string.MeridaPluginsEnable;
             case ROW_GHOST_STATUS:
                 return R.string.MeridaGhostStatus;
             case ROW_BACKGROUND:
@@ -981,6 +1110,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     } else if (position == ROW_SECTION_SECURITY) {
                         title = R.string.MeridaSecurityHeader;
                         icon = R.drawable.msg_permissions;
+                    } else if (position == ROW_SECTION_PLUGINS) {
+                        title = R.string.MeridaPluginsHeader;
+                        icon = R.drawable.msg_bots;
                     } else if (position == ROW_SECTION_PLAYER) {
                         title = R.string.MeridaPlayerHeader;
                         icon = R.drawable.msg_tone_on;
@@ -1005,6 +1137,22 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     break;
                 case TYPE_CHECK: {
                     TextCheckCell cell = (TextCheckCell) holder.itemView;
+                    if (isPluginRow(position)) {
+                        final int i = position - ROW_PLUGIN_BASE;
+                        if (i < plugins.size()) {
+                            final org.telegram.messenger.merida.MeridaPlugins.Info info = plugins.get(i);
+                            final String sub = pluginSubtitle(info);
+                            final boolean on = org.telegram.messenger.merida.MeridaPlugins.isEnabled(info.id);
+                            final boolean line = i < plugins.size() - 1;
+                            if (sub.isEmpty()) {
+                                cell.setTextAndCheck(info.name, on, line);
+                            } else {
+                                cell.setTextAndValueAndCheck(info.name, sub, on, true, line);
+                            }
+                            cell.setEnabled(true, null);
+                        }
+                        break;
+                    }
                     final boolean checked = position == ROW_CRYPTO_ENABLED ? MeridaCrypto.isFeatureOn() : position == ROW_BACKGROUND ? backgroundOn() : settingForRow(position).get();
                     // a line under the switch only when another switch or value follows
                     final boolean divider = index + 1 < rows.length && (getItemViewType(index + 1) == TYPE_CHECK || getItemViewType(index + 1) == TYPE_VALUE);
@@ -1107,6 +1255,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
 
         @Override
         public int getItemViewType(int index) {
+            if (rows[index] >= ROW_PLUGIN_BASE) {
+                return TYPE_CHECK;
+            }
             if (rows[index] >= ROW_NOTE_BASE) {
                 return TYPE_INFO;
             }
@@ -1131,6 +1282,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_SECTION_GENERAL:
                 case ROW_SECTION_PLAYER:
                 case ROW_SECTION_SECURITY:
+                case ROW_SECTION_PLUGINS:
                     return TYPE_SECTION;
                 case ROW_VPN_HEADER:
                 case ROW_GENERAL_HEADER:

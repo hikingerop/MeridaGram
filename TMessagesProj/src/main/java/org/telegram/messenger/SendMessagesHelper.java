@@ -4432,6 +4432,22 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public void sendMessage(SendMessageParams sendMessageParams) {
+        // MeridaGram plugins: a text message goes through the switched-on plugins first (they may change it
+        // or ask not to send it); then encryption, if it is on for the chat.
+        if (sendMessageParams.message != null && sendMessageParams.retryMessageObject == null
+                && sendMessageParams.photo == null && sendMessageParams.document == null && sendMessageParams.location == null
+                && sendMessageParams.user == null && sendMessageParams.game == null && sendMessageParams.poll == null
+                && sendMessageParams.todo == null && sendMessageParams.invoice == null
+                && org.telegram.messenger.merida.MeridaPlugins.hasSendHooks()) {
+            final String pluginText = org.telegram.messenger.merida.MeridaPlugins.onSendMessage(sendMessageParams.message, sendMessageParams.peer);
+            if (pluginText == null) {
+                return;
+            }
+            if (!pluginText.equals(sendMessageParams.message)) {
+                sendMessageParams.message = pluginText;
+                sendMessageParams.entities = null;
+            }
+        }
         // MeridaGram: encryption over Telegram. In a chat with a MeridaGram password, text goes out as
         // ciphertext; if encrypting fails nothing is sent, never the plain text.
         if (sendMessageParams.message != null && sendMessageParams.retryMessageObject == null

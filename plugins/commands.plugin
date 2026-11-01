@@ -1,0 +1,54 @@
+__id__ = "commands"
+__name__ = "Команды"
+__description__ = ".rev текст — перевернуть, .up текст — БОЛЬШИМИ, .calc 2+2*3 — посчитать, .time — время"
+__author__ = "@MeridaGram"
+__version__ = "1.0"
+
+# Пример плагина MeridaGram. Работает так: перед отправкой сообщения MeridaGram передаёт его текст
+# в on_send_message. Можно вернуть новый текст (он уйдёт вместо старого), None (ничего не менять)
+# или "" (не отправлять сообщение совсем).
+
+import ast
+import datetime
+import operator
+
+_OPS = {
+    ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
+    ast.Div: operator.truediv, ast.Mod: operator.mod, ast.Pow: operator.pow,
+    ast.FloorDiv: operator.floordiv, ast.USub: operator.neg, ast.UAdd: operator.pos,
+}
+
+
+def _calc(node):
+    """Считает только числа и + - * / % ** //, без выполнения чужого кода."""
+    if isinstance(node, ast.Expression):
+        return _calc(node.body)
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return node.value
+    if isinstance(node, ast.BinOp) and type(node.op) in _OPS:
+        left, right = _calc(node.left), _calc(node.right)
+        if isinstance(node.op, ast.Pow) and abs(right) > 100:
+            raise ValueError("слишком большая степень")
+        return _OPS[type(node.op)](left, right)
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _OPS:
+        return _OPS[type(node.op)](_calc(node.operand))
+    raise ValueError("непонятное выражение")
+
+
+def on_send_message(text, dialog_id):
+    if text.startswith(".rev "):
+        return text[5:][::-1]
+    if text.startswith(".up "):
+        return text[4:].upper()
+    if text.startswith(".calc "):
+        expr = text[6:].strip()
+        try:
+            result = _calc(ast.parse(expr.replace(",", "."), mode="eval"))
+            if isinstance(result, float) and result.is_integer():
+                result = int(result)
+            return f"{expr} = {result}"
+        except Exception as e:
+            return f"{expr} = ошибка ({e})"
+    if text.strip() == ".time":
+        return datetime.datetime.now().strftime("Сейчас %H:%M:%S, %d.%m.%Y")
+    return None

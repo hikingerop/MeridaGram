@@ -196,6 +196,7 @@ public class ApplicationLoader extends Application {
         applicationInited = true;
         NativeLoader.initNativeLibs(ApplicationLoader.applicationContext);
         MeridaVpn.init();
+        org.telegram.messenger.merida.MeridaPlugins.init();
 
         try {
             LocaleController.getInstance(); //TODO improve

@@ -11806,6 +11806,22 @@
     <string name="MeridaBackground">Work in the background</string>
     <string name="MeridaSubBackground">Notifications arrive without delay</string>
     <string name="MeridaInfoBackground">MeridaGram keeps its connection to Telegram even when closed, so notifications arrive at once. A permanent notification appears and the battery is used a bit more. Useful on Xiaomi, Huawei and other phones that put apps to sleep.</string>
+    <string name="MeridaPluginsHeader">Plugins</string>
+    <string name="MeridaPluginsEnable">Enable plugins</string>
+    <string name="MeridaInfoPlugins">Plugins are small Python programs that add new things to MeridaGram, for example commands in messages. To install one, send a .plugin file to any chat (for example Saved Messages) and tap it. A plugin gets full access to MeridaGram, so install only plugins from people you trust.</string>
+    <string name="MeridaPluginsInstalled">Installed</string>
+    <string name="MeridaPluginsEmpty">No plugins yet. Send a .plugin file to any chat and tap it to install.</string>
+    <string name="MeridaPluginsHint">Tap a plugin to turn it on or off. Long-press to remove it.</string>
+    <string name="MeridaPluginError">⚠️ Error: %1$s</string>
+    <string name="MeridaPluginRemove">Remove plugin</string>
+    <string name="MeridaPluginRemoveInfo">Remove «%1$s»? You can install it again from the file.</string>
+    <string name="MeridaPluginInstallTitle">Install plugin?</string>
+    <string name="MeridaPluginNotPlugin">This is not a MeridaGram plugin: the file has no __id__ = \"...\" line.</string>
+    <string name="MeridaPluginWarning">⚠️ A plugin gets full access to MeridaGram: it can read your chats and send messages as you. Install only plugins from people you trust.</string>
+    <string name="MeridaPluginsOffHint">Plugins are off now. Turn them on in MeridaGram Settings → Plugins.</string>
+    <string name="MeridaPluginInstall">Install</string>
+    <string name="MeridaPluginInstalled">Plugin «%1$s» installed</string>
+    <string name="MeridaPluginInstallFailed">Could not install the plugin</string>
     <string name="MeridaHideFolderTabs">Hide folder tabs</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>

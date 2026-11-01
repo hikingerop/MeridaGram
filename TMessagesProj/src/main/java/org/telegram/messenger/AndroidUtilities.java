@@ -4278,6 +4278,11 @@ public class AndroidUtilities {
     }
 
     public static boolean openForView(File f, String fileName, String mimeType, final Activity activity, Theme.ResourcesProvider resourcesProvider, boolean restrict) {
+        // MeridaGram: a .plugin file tapped in a chat offers to install the plugin
+        if (f != null && f.exists() && !restrict && org.telegram.messenger.merida.MeridaPlugins.isFile(fileName)) {
+            org.telegram.messenger.merida.MeridaPlugins.askInstall(activity, f);
+            return true;
+        }
         if (f != null && f.exists()) {
             String realMimeType = null;
             Intent intent = new Intent(Intent.ACTION_VIEW);

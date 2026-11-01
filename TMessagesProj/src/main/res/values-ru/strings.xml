@@ -439,6 +439,22 @@
     <string name="MeridaBackground">Работать в фоне</string>
     <string name="MeridaSubBackground">Уведомления приходят без задержек</string>
     <string name="MeridaInfoBackground">MeridaGram держит соединение с Telegram, даже когда закрыт, поэтому уведомления приходят сразу. В шторке появится постоянное уведомление, батарея тратится чуть больше. Полезно на телефонах Xiaomi, Huawei и других, которые «усыпляют» приложения.</string>
+    <string name="MeridaPluginsHeader">Плагины</string>
+    <string name="MeridaPluginsEnable">Включить плагины</string>
+    <string name="MeridaInfoPlugins">Плагины — это небольшие программы на Python, которые добавляют в MeridaGram новые возможности: например, команды в сообщениях. Чтобы установить плагин, отправьте файл .plugin в любой чат (например, в Избранное) и нажмите на него. Плагин получает полный доступ к MeridaGram — ставьте только плагины от тех, кому доверяете.</string>
+    <string name="MeridaPluginsInstalled">Установленные</string>
+    <string name="MeridaPluginsEmpty">Плагинов пока нет. Отправьте файл .plugin в любой чат и нажмите на него, чтобы установить.</string>
+    <string name="MeridaPluginsHint">Нажмите на плагин, чтобы включить или выключить его. Зажмите, чтобы удалить.</string>
+    <string name="MeridaPluginError">⚠️ Ошибка: %1$s</string>
+    <string name="MeridaPluginRemove">Удалить плагин</string>
+    <string name="MeridaPluginRemoveInfo">Удалить «%1$s»? Его можно будет установить снова из файла.</string>
+    <string name="MeridaPluginInstallTitle">Установить плагин?</string>
+    <string name="MeridaPluginNotPlugin">Это не плагин MeridaGram: в файле нет строки __id__ = \"...\".</string>
+    <string name="MeridaPluginWarning">⚠️ Плагин получает полный доступ к MeridaGram: может читать переписку и отправлять сообщения от вашего имени. Устанавливайте только плагины от тех, кому доверяете.</string>
+    <string name="MeridaPluginsOffHint">Плагины сейчас выключены. Включите их: Настройки MeridaGram → Плагины.</string>
+    <string name="MeridaPluginInstall">Установить</string>
+    <string name="MeridaPluginInstalled">Плагин «%1$s» установлен</string>
+    <string name="MeridaPluginInstallFailed">Не удалось установить плагин</string>
     <string name="MeridaHideFolderTabs">Скрыть вкладки папок</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
