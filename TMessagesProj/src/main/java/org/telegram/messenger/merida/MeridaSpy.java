@@ -80,6 +80,46 @@ public final class MeridaSpy {
         }
     }
 
+    /** Colours for the «deleted» mark; 0 means the colour of the message time. */
+    public static final int[] MARK_COLORS = {0, 0xFFE53935, 0xFFE91E63, 0xFF8E24AA, 0xFF5E35B1, 0xFF1E88E5, 0xFF00897B, 0xFF43A047, 0xFFFB8C00};
+
+    public static int markColor() {
+        final int i = MeridaSettings.spyMarkColor.get();
+        return i > 0 && i < MARK_COLORS.length ? MARK_COLORS[i] : 0;
+    }
+
+    /** The mark shown before the time of a kept message: a bin icon and/or the word «deleted». */
+    public static CharSequence mark() {
+        final int style = MeridaSettings.spyMarkStyle.get();
+        final int color = markColor();
+        final android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder();
+        if (style != 2) {
+            sb.append("d");
+            final org.telegram.ui.Components.ColoredImageSpan icon = new org.telegram.ui.Components.ColoredImageSpan(org.telegram.messenger.R.drawable.msg_delete);
+            icon.setSize(org.telegram.messenger.AndroidUtilities.dp(14));
+            if (color != 0) {
+                icon.setOverrideColor(color);
+            }
+            sb.setSpan(icon, 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (style != 1) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            final int start = sb.length();
+            sb.append(org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.MeridaDeletedWord));
+            if (color != 0) {
+                sb.setSpan(new android.text.style.ForegroundColorSpan(color), start, sb.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+        return sb;
+    }
+
+    /** The icon is wider than the letter it replaces when the time is measured. */
+    public static int markExtraWidth() {
+        return MeridaSettings.spyMarkStyle.get() != 2 ? org.telegram.messenger.AndroidUtilities.dp(8) : 0;
+    }
+
     /** Forgets every mark (the kept messages then look like normal ones). */
     public static void clear(int account) {
         synchronized (lock) {

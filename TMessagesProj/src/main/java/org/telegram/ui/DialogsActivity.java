@@ -3517,8 +3517,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                 logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
                 logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
                 // MeridaGram: the chat list shows our name as text instead of Telegram's logo picture
-                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
-                actionBar.setTitle(ssb, statusDrawable);
+                actionBar.setTitle(meridaTitle(), statusDrawable);
                 updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
             }
             if (folderId == 0) {
@@ -6849,6 +6848,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    /** MeridaGram's name on the top bar, with a ghost icon while ghost mode is on (if chosen in settings). */
+    private CharSequence meridaTitle() {
+        final SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
+        if (org.telegram.utils.settings.MeridaSettings.ghostMode.get() && org.telegram.utils.settings.MeridaSettings.ghostStatus.get()) {
+            ssb.append("  g");
+            final ColoredImageSpan ghost = new ColoredImageSpan(R.drawable.msg_mask);
+            ghost.setSize(dp(22));
+            ssb.setSpan(ghost, ssb.length() - 1, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return ssb;
+    }
+
     private void updateFilterTabs(boolean force, boolean animated) {
         if (filterTabsView == null || inPreviewMode || searchIsShowed || (rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment())) {
             return;
@@ -7020,6 +7031,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
     @Override
     public void onResume() {
         super.onResume();
+        // MeridaGram: the ghost icon follows ghost mode after coming back from settings
+        if (actionBar != null && statusDrawable != null && folderId == 0 && communityId == 0 && !onlySelect) {
+            actionBar.setTitle(meridaTitle(), statusDrawable);
+        }
         if (dialogStoriesCell != null) {
             dialogStoriesCell.onResume();
         }

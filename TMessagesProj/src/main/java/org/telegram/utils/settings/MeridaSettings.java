@@ -55,6 +55,22 @@ public final class MeridaSettings {
     public static final BooleanSetting spySaveDeleted =
         BooleanSetting.of("merida_spy_save_deleted", false);
 
+    /** Messages kept by spy mode are drawn half-transparent. */
+    public static final BooleanSetting spyTranslucent =
+        BooleanSetting.of("merida_spy_translucent", true);
+
+    /** The mark next to their time: 0 icon and word, 1 icon only, 2 word only (MeridaSpy.mark). */
+    public static final IntSetting spyMarkStyle =
+        IntSetting.of("merida_spy_mark_style", 0);
+
+    /** Colour of that mark, index in MeridaSpy.MARK_COLORS; 0 is the colour of the time. */
+    public static final IntSetting spyMarkColor =
+        IntSetting.of("merida_spy_mark_color", 0);
+
+    /** A ghost icon next to MeridaGram on the chat list's top bar while ghost mode is on. */
+    public static final BooleanSetting ghostStatus =
+        BooleanSetting.of("merida_ghost_status", true);
+
     /** Telegram's New Year snow on the top bar and chat backgrounds, any time of the year. */
     public static final BooleanSetting snow =
         BooleanSetting.of("merida_snow", false);

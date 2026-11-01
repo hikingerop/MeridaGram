@@ -18533,8 +18533,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             currentTimeString = timeString;
         }
         // MeridaGram spy mode: a message its sender deleted stays in the chat with a mark
-        if (MeridaSpy.isDeleted(currentAccount, currentMessageObject)) {
-            currentTimeString = TextUtils.concat(getString(R.string.MeridaDeletedMark), " ", currentTimeString);
+        meridaDeleted = MeridaSpy.isDeleted(currentAccount, currentMessageObject);
+        if (meridaDeleted) {
+            currentTimeString = TextUtils.concat(MeridaSpy.mark(), " ", currentTimeString);
         }
         if (currentMessageObject.isStakedDice()) {
             currentTimeString = TextUtils.concat("💎", StarsIntroActivity.formatTON(currentMessageObject.getStakedDiceAmount()), "  ", currentTimeString);
@@ -18566,6 +18567,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             }
         }
         timeTextWidth = timeWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentTimeString, 0, currentTimeString == null ? 0 : currentTimeString.length()));
+        if (meridaDeleted) {
+            timeTextWidth += MeridaSpy.markExtraWidth();
+            timeWidth += MeridaSpy.markExtraWidth();
+        }
         if (currentMessageObject.scheduled && currentMessageObject.messageOwner.date == 0x7FFFFFFE || currentMessageObject.notime) {
             timeWidth -= dp(8);
         }
@@ -20165,6 +20170,21 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
     }
 
     @SuppressLint("WrongCall")
+    /** MeridaGram spy mode: this message was deleted by its sender and is kept with a mark. */
+    private boolean meridaDeleted;
+
+    @Override
+    public void draw(Canvas canvas) {
+        if (meridaDeleted && org.telegram.utils.settings.MeridaSettings.spyTranslucent.get() && getWidth() > 0 && getHeight() > 0) {
+            // kept deleted messages look faded, so they stand out from normal ones
+            final int restore = canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), 128);
+            super.draw(canvas);
+            canvas.restoreToCount(restore);
+            return;
+        }
+        super.draw(canvas);
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         drawInternal(canvas);

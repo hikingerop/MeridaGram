@@ -125,6 +125,13 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_COPY_ID_MENU = 65;
     private static final int ROW_PLAYER_SLEEP = 66;
     private static final int ROW_SECURITY_GAP = 67;
+    private static final int ROW_SPY_TRANSLUCENT = 68;
+    private static final int ROW_SPY_MARK = 69;
+    private static final int ROW_SPY_MARK_COLOR = 70;
+    private static final int ROW_GHOST_STATUS = 71;
+    private static final int ROW_BACKGROUND = 72;
+    private static final int[] MARK_STYLE_NAMES = {R.string.MeridaMarkIconWord, R.string.MeridaMarkIcon, R.string.MeridaMarkWord};
+    private static final int[] MARK_COLOR_NAMES = {R.string.MeridaColorDefault, R.string.MeridaColorRed, R.string.MeridaColorPink, R.string.MeridaColorPurple, R.string.MeridaColorViolet, R.string.MeridaColorBlue, R.string.MeridaColorTeal, R.string.MeridaColorGreen, R.string.MeridaColorOrange};
     /** Rows of chats with encryption on the encryption page: ROW_CRYPTO_CHAT_BASE + index in cryptoChats. */
     private static final int ROW_CRYPTO_CHAT_BASE = 2000;
     private static final int[] SLEEP_MINUTES = {15, 30, 45, 60, 90};
@@ -215,11 +222,13 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return new int[]{hdr(R.string.MeridaVpnHeader), ROW_VPN_ENABLED, ROW_VPN_CONNECTION, ROW_VPN_PING, ROW_VPN_SUBSCRIPTION, ROW_VPN_INFO};
             case PAGE_GHOST:
                 return new int[]{
-                        hdr(R.string.MeridaGhostHeader), ROW_GHOST, note(R.string.MeridaInfoGhostMain),
+                        hdr(R.string.MeridaGhostHeader), ROW_GHOST, ROW_GHOST_STATUS, note(R.string.MeridaInfoGhostMain),
                         hdr(R.string.MeridaHdrGhostHide), ROW_GHOST_NO_READ, ROW_GHOST_NO_STORIES, ROW_GHOST_NO_ONLINE, ROW_GHOST_NO_TYPING, ROW_GHOST_AUTO_OFFLINE, note(R.string.MeridaInfoGhostHide),
                         hdr(R.string.MeridaHdrSending), ROW_SEND_SILENT, note(R.string.MeridaInfoSendSilent)};
             case PAGE_SPY:
-                return new int[]{hdr(R.string.MeridaHdrDeleted), ROW_SPY_DELETED, note(R.string.MeridaSpyInfo)};
+                return new int[]{
+                        hdr(R.string.MeridaHdrDeleted), ROW_SPY_DELETED, note(R.string.MeridaSpyInfo),
+                        hdr(R.string.MeridaHdrDeletedLook), ROW_SPY_TRANSLUCENT, ROW_SPY_MARK, ROW_SPY_MARK_COLOR, note(R.string.MeridaInfoDeletedLook)};
             case PAGE_LOOK:
                 return new int[]{
                         hdr(R.string.MeridaHdrChatList), ROW_SNOW_PREVIEW, ROW_SNOW, ROW_HIDE_FOLDER_TABS, ROW_HIDE_STORIES, note(R.string.MeridaInfoChatList),
@@ -227,7 +236,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             case PAGE_GENERAL:
                 return new int[]{
                         hdr(R.string.MeridaHdrId), ROW_SHOW_ID, ROW_COPY_ID_MENU, note(R.string.MeridaInfoId),
-                        hdr(R.string.MeridaHdrScreenshots), ROW_ALLOW_SCREENSHOTS, note(R.string.MeridaInfoScreenshots)};
+                        hdr(R.string.MeridaHdrScreenshots), ROW_ALLOW_SCREENSHOTS, note(R.string.MeridaInfoScreenshots),
+                        hdr(R.string.MeridaHdrNotifications), ROW_BACKGROUND, note(R.string.MeridaInfoBackground)};
             default:
                 return new int[]{ROW_APP_HEADER, ROW_CATEGORIES_HEADER, ROW_SECTION_GENERAL, ROW_SECTION_LOOK, ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_SECURITY,
                         ROW_SECURITY_GAP, ROW_LINKS_HEADER, ROW_LINK_CHANNEL};
@@ -350,6 +360,59 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         builder.setItems(items, (dialog, which) -> {
             MeridaPlayer.setSleepTimer(which == 0 ? 0 : SLEEP_MINUTES[which - 1]);
             refreshPlayerPage();
+        });
+        showDialog(builder.create());
+    }
+
+    /** «Work in the background»: Telegram's keep-alive service and background connection together. */
+    private static boolean backgroundOn() {
+        final android.content.SharedPreferences global = MessagesController.getGlobalNotificationsSettings();
+        final boolean service = global.contains("pushService") ? global.getBoolean("pushService", true)
+                : MessagesController.getMainSettings(UserConfig.selectedAccount).getBoolean("keepAliveService", false);
+        final boolean connection = MessagesController.getNotificationsSettings(UserConfig.selectedAccount)
+                .getBoolean("pushConnection", MessagesController.getInstance(UserConfig.selectedAccount).backgroundConnection);
+        return service && connection;
+    }
+
+    private static void setBackground(boolean on) {
+        MessagesController.getGlobalNotificationsSettings().edit().putBoolean("pushService", on).commit();
+        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+            if (!UserConfig.getInstance(a).isClientActivated()) {
+                continue;
+            }
+            MessagesController.getNotificationsSettings(a).edit().putBoolean("pushService", on).putBoolean("pushConnection", on).commit();
+            org.telegram.tgnet.ConnectionsManager.getInstance(a).setPushConnectionEnabled(on);
+        }
+        org.telegram.messenger.ApplicationLoader.startPushService();
+    }
+
+    private static CharSequence colorName(int i) {
+        final int color = i > 0 && i < org.telegram.messenger.merida.MeridaSpy.MARK_COLORS.length ? org.telegram.messenger.merida.MeridaSpy.MARK_COLORS[i] : 0;
+        final android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder();
+        if (color != 0) {
+            sb.append("● ");
+            sb.setSpan(new android.text.style.ForegroundColorSpan(color), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        sb.append(LocaleController.getString(MARK_COLOR_NAMES[i]));
+        return sb;
+    }
+
+    private void showMarkColorChoice() {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final int current = MeridaSettings.spyMarkColor.get();
+        final CharSequence[] items = new CharSequence[MARK_COLOR_NAMES.length];
+        for (int i = 0; i < items.length; i++) {
+            items[i] = i == current ? android.text.TextUtils.concat("✓ ", colorName(i)) : colorName(i);
+        }
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString(R.string.MeridaMarkColor));
+        builder.setItems(items, (dialog, which) -> {
+            MeridaSettings.spyMarkColor.set(which);
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
         });
         showDialog(builder.create());
     }
@@ -585,6 +648,25 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             showSleepChoice();
             return;
         }
+        if (position == ROW_SPY_MARK) {
+            showChoice(R.string.MeridaMarkStyle, MARK_STYLE_NAMES, MeridaSettings.spyMarkStyle.get(), which -> {
+                MeridaSettings.spyMarkStyle.set(which);
+                adapter.notifyDataSetChanged();
+            });
+            return;
+        }
+        if (position == ROW_SPY_MARK_COLOR) {
+            showMarkColorChoice();
+            return;
+        }
+        if (position == ROW_BACKGROUND) {
+            final boolean on = !backgroundOn();
+            setBackground(on);
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(on);
+            }
+            return;
+        }
         if (isCryptoChatRow(position)) {
             final int i = position - ROW_CRYPTO_CHAT_BASE;
             if (i >= 0 && i < cryptoChats.size()) {
@@ -659,6 +741,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.cryptoEnabled;
             case ROW_HIDE_FOLDER_TABS:
                 return MeridaSettings.hideFolderTabs;
+            case ROW_SPY_TRANSLUCENT:
+                return MeridaSettings.spyTranslucent;
+            case ROW_GHOST_STATUS:
+                return MeridaSettings.ghostStatus;
             case ROW_TIME_WITH_SECONDS:
                 return MeridaSettings.timeWithSeconds;
             case ROW_GHOST:
@@ -711,6 +797,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaSubCopyId;
             case ROW_GHOST_AUTO_OFFLINE:
                 return R.string.MeridaSubAutoOffline;
+            case ROW_GHOST_STATUS:
+                return R.string.MeridaSubGhostStatus;
+            case ROW_BACKGROUND:
+                return R.string.MeridaSubBackground;
             default:
                 return 0;
         }
@@ -734,6 +824,12 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaCryptoFeature;
             case ROW_HIDE_FOLDER_TABS:
                 return R.string.MeridaHideFolderTabs;
+            case ROW_SPY_TRANSLUCENT:
+                return R.string.MeridaSpyTranslucent;
+            case ROW_GHOST_STATUS:
+                return R.string.MeridaGhostStatus;
+            case ROW_BACKGROUND:
+                return R.string.MeridaBackground;
             case ROW_GHOST:
                 return R.string.MeridaGhostMode;
             case ROW_GHOST_NO_READ:
@@ -820,7 +916,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             final int position = holder.getAdapterPosition();
             return type == TYPE_CHECK || type == TYPE_SECTION
                     || (position >= 0 && position < rows.length && (rows[position] == ROW_VPN_RENEW || rows[position] == ROW_VPN_PING
-                    || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] == ROW_PLAYER_SLEEP || isPlayerChatRow(rows[position]) || isCryptoChatRow(rows[position])));
+                    || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] == ROW_PLAYER_SLEEP || rows[position] == ROW_SPY_MARK || rows[position] == ROW_SPY_MARK_COLOR || isPlayerChatRow(rows[position]) || isCryptoChatRow(rows[position])));
         }
 
         @NonNull
@@ -909,7 +1005,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     break;
                 case TYPE_CHECK: {
                     TextCheckCell cell = (TextCheckCell) holder.itemView;
-                    final boolean checked = position == ROW_CRYPTO_ENABLED ? MeridaCrypto.isFeatureOn() : settingForRow(position).get();
+                    final boolean checked = position == ROW_CRYPTO_ENABLED ? MeridaCrypto.isFeatureOn() : position == ROW_BACKGROUND ? backgroundOn() : settingForRow(position).get();
                     // a line under the switch only when another switch or value follows
                     final boolean divider = index + 1 < rows.length && (getItemViewType(index + 1) == TYPE_CHECK || getItemViewType(index + 1) == TYPE_VALUE);
                     final int desc = descForRow(position);
@@ -932,6 +1028,14 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                         final int eq = Math.max(0, Math.min(EQ_NAMES.length - 1, MeridaSettings.playerEqPreset.get()));
                         cell.setTextAndValue(LocaleController.getString(R.string.MeridaPlayerEqualizer), LocaleController.getString(EQ_NAMES[eq]), true);
+                    } else if (position == ROW_SPY_MARK) {
+                        cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                        final int st = Math.max(0, Math.min(MARK_STYLE_NAMES.length - 1, MeridaSettings.spyMarkStyle.get()));
+                        cell.setTextAndValue(LocaleController.getString(R.string.MeridaMarkStyle), LocaleController.getString(MARK_STYLE_NAMES[st]), true);
+                    } else if (position == ROW_SPY_MARK_COLOR) {
+                        cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                        final int ci = Math.max(0, Math.min(MARK_COLOR_NAMES.length - 1, MeridaSettings.spyMarkColor.get()));
+                        cell.setTextAndValue(LocaleController.getString(R.string.MeridaMarkColor), colorName(ci), false);
                     } else if (position == ROW_PLAYER_SLEEP) {
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                         cell.setTextAndValue(LocaleController.getString(R.string.MeridaPlayerSleep), sleepText(), false);
@@ -1048,6 +1152,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_PLAYER_WHERE:
                 case ROW_PLAYER_EQ:
                 case ROW_PLAYER_SLEEP:
+                case ROW_SPY_MARK:
+                case ROW_SPY_MARK_COLOR:
                     return TYPE_VALUE;
                 case ROW_VPN_INFO:
                 case ROW_GENERAL_INFO:
