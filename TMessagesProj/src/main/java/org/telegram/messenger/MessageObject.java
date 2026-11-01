@@ -6109,7 +6109,11 @@ public class MessageObject {
                     }
                 }
             } else {
-                if (messageOwner.message != null) {
+                // MeridaGram: messages encrypted over Telegram are shown decrypted (or as locked)
+                final CharSequence meridaPlain = org.telegram.messenger.merida.MeridaCrypto.decryptForDisplay(currentAccount, getDialogId(), messageOwner.message);
+                if (meridaPlain != null) {
+                    messageText = meridaPlain;
+                } else if (messageOwner.message != null) {
                     try {
                         if (messageOwner.message.length() > 200) {
                             messageText = AndroidUtilities.BAD_CHARS_MESSAGE_LONG_PATTERN.matcher(messageOwner.message).replaceAll("\u200C");

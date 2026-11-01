@@ -3590,6 +3590,15 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         }
 
         req.peer = getMessagesController().getInputPeer(messageObject.getDialogId());
+        // MeridaGram: an edit in an encrypted chat is encrypted too
+        if (message != null && !org.telegram.messenger.merida.MeridaCrypto.isEncrypted(message) && org.telegram.messenger.merida.MeridaCrypto.isOn(currentAccount, messageObject.getDialogId())) {
+            final java.util.List<String> meridaParts = org.telegram.messenger.merida.MeridaCrypto.encryptParts(currentAccount, messageObject.getDialogId(), message);
+            if (meridaParts == null || meridaParts.size() != 1) {
+                return 0;
+            }
+            message = meridaParts.get(0);
+            entities = null;
+        }
         if (message != null) {
             req.message = message;
             req.flags |= 2048;
@@ -4423,6 +4432,30 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     public void sendMessage(SendMessageParams sendMessageParams) {
+        // MeridaGram: encryption over Telegram. In a chat with a MeridaGram password, text goes out as
+        // ciphertext; if encrypting fails nothing is sent, never the plain text.
+        if (sendMessageParams.message != null && sendMessageParams.retryMessageObject == null
+                && sendMessageParams.photo == null && sendMessageParams.document == null && sendMessageParams.location == null
+                && sendMessageParams.user == null && sendMessageParams.game == null && sendMessageParams.poll == null
+                && sendMessageParams.todo == null && sendMessageParams.invoice == null
+                && !org.telegram.messenger.merida.MeridaCrypto.isEncrypted(sendMessageParams.message)
+                && org.telegram.messenger.merida.MeridaCrypto.isOn(currentAccount, sendMessageParams.peer)) {
+            final java.util.List<String> meridaParts = org.telegram.messenger.merida.MeridaCrypto.encryptParts(currentAccount, sendMessageParams.peer, sendMessageParams.message);
+            if (meridaParts == null) {
+                return;
+            }
+            sendMessageParams.message = meridaParts.get(0);
+            sendMessageParams.entities = null;
+            sendMessageParams.mediaWebPage = null;
+            for (int i = 1; i < meridaParts.size(); i++) {
+                final SendMessageParams more = SendMessageParams.of(meridaParts.get(i), sendMessageParams.peer);
+                more.replyToMsg = sendMessageParams.replyToMsg;
+                more.replyToTopMsg = sendMessageParams.replyToTopMsg;
+                more.notify = sendMessageParams.notify;
+                more.scheduleDate = sendMessageParams.scheduleDate;
+                AndroidUtilities.runOnUIThread(() -> sendMessage(more), 150L * i);
+            }
+        }
         final SendMessageChatArguments sendMessageChatArguments = sendMessageParams.sendMessageChatArguments != null ?
                 sendMessageParams.sendMessageChatArguments : SendMessageChatArguments.EMPTY;
         String message = sendMessageParams.message;

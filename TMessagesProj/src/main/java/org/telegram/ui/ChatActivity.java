@@ -65,6 +65,7 @@ import android.os.Vibrator;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
+import android.text.InputType;
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -1100,6 +1101,61 @@ public class ChatActivity extends BaseFragment implements
         return textSelectionHelper != null && textSelectionHelper.isTryingSelect();
     }
 
+    /**
+     * MeridaGram: encryption over Telegram for this chat. Both people enter the same password (agreed in
+     * person); text messages then travel as ciphertext that only MeridaGram with this password can read.
+     */
+    private void showMeridaCryptoDialog() {
+        final Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        final long did = getDialogId();
+        final boolean on = org.telegram.messenger.merida.MeridaCrypto.isOn(currentAccount, did);
+        final boolean hasPassword = org.telegram.messenger.merida.MeridaCrypto.hasPassword(currentAccount, did);
+
+        final LinearLayout layout = new LinearLayout(activity);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        final EditTextBoldCursor input = new EditTextBoldCursor(activity);
+        input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+        input.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
+        input.setHintTextColor(getThemedColor(Theme.key_dialogTextHint));
+        input.setHint(LocaleController.getString(R.string.MeridaCryptoPasswordHint));
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        input.setSingleLine(true);
+        input.setBackground(null);
+        input.setLineColors(getThemedColor(Theme.key_dialogInputField), getThemedColor(Theme.key_dialogInputFieldActivated), getThemedColor(Theme.key_text_RedBold));
+        input.setPadding(0, dp(8), 0, dp(8));
+        layout.addView(input, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 24, 4, 24, 4));
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(activity, themeDelegate);
+        builder.setTitle(LocaleController.getString(R.string.MeridaCryptoTitle));
+        builder.setMessage(LocaleController.getString(on ? R.string.MeridaCryptoInfoOn : R.string.MeridaCryptoInfo));
+        builder.setView(layout);
+        builder.setPositiveButton(LocaleController.getString(R.string.MeridaCryptoEnable), (dialog, which) -> {
+            final String password = input.getText() == null ? "" : input.getText().toString();
+            if (password.length() < 4) {
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.MeridaCryptoShort)).show();
+                return;
+            }
+            org.telegram.messenger.merida.MeridaCrypto.setPassword(currentAccount, did, password);
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.MeridaCryptoEnabled)).show();
+        });
+        if (on) {
+            builder.setNeutralButton(LocaleController.getString(R.string.MeridaCryptoDisable), (dialog, which) -> {
+                org.telegram.messenger.merida.MeridaCrypto.setOn(currentAccount, did, false);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.MeridaCryptoDisabled)).show();
+            });
+        } else if (hasPassword) {
+            builder.setNeutralButton(LocaleController.getString(R.string.MeridaCryptoResume), (dialog, which) -> {
+                org.telegram.messenger.merida.MeridaCrypto.setOn(currentAccount, did, true);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.MeridaCryptoEnabled)).show();
+            });
+        }
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showDialog(builder.create());
+    }
+
     public void clearTextSelection() {
         if (textSelectionHelper != null && textSelectionHelper.isInSelectionMode()) textSelectionHelper.clear();
     }
@@ -1685,6 +1741,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int view_as_topics = 59;
 
     private final static int search = 40;
+    private final static int merida_crypto = 7701;
 
     private final static int topic_close = 60;
     private final static int open_forum = 61;
@@ -4009,6 +4066,8 @@ public class ChatActivity extends BaseFragment implements
                     getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/help", dialog_id, null, null, null, false, null, null, null, true, 0, 0, null, false));
                 } else if (id == bot_settings) {
                     getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/settings", dialog_id, null, null, null, false, null, null, null, true, 0, 0, null, false));
+                } else if (id == merida_crypto) {
+                    showMeridaCryptoDialog();
                 } else if (id == search) {
                     openSearchWithText(isSupportedTags() ? "" : null);
                 } else if (id == translate) {
@@ -4469,6 +4528,9 @@ public class ChatActivity extends BaseFragment implements
             if (ChatObject.isBoostSupported(currentChat) && (getUserConfig().isPremium() || ChatObject.isBoosted(chatInfo) || ChatObject.hasAdminRights(currentChat))) {
                 RLottieDrawable drawable = new RLottieDrawable(R.raw.boosts, dp(24), dp(24));
                 headerItem.lazilyAddSubItem(boost_group, drawable, LocaleController.getString(ChatObject.isChannelAndNotMegaGroup(currentChat) ? R.string.BoostingBoostChannelMenu : R.string.BoostingBoostGroupMenu));
+            }
+            if (currentEncryptedChat == null) {
+                headerItem.lazilyAddSubItem(merida_crypto, R.drawable.msg_secret, LocaleController.getString(R.string.MeridaCryptoMenu));
             }
             translateItem = headerItem.lazilyAddSubItem(translate, R.drawable.msg_translate, LocaleController.getString(R.string.TranslateMessage));
             updateTranslateItemVisibility();
