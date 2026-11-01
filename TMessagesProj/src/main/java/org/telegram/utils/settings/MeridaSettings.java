@@ -85,7 +85,7 @@ public final class MeridaSettings {
      * Secret chats, disappearing media and paid media stay protected.
      */
     public static final BooleanSetting allowScreenshots =
-        BooleanSetting.of("merida_allow_screenshots", false);
+        BooleanSetting.of("merida_allow_screenshots", true);
 
     /** Warn with a big window when a new device logs into the account (MeridaSessions). */
     public static final BooleanSetting sessionGuard =
