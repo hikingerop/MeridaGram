@@ -334,11 +334,19 @@ public class TONIntroActivity extends GradientHeaderActivity implements Notifica
 
         final SpannableStringBuilder sb = new SpannableStringBuilder();
         sb.append(starBalanceIcon);
-        sb.append(formatStarsAmount(balance, 0.66f, ' '));
+        final boolean meridaVisual = org.telegram.messenger.merida.MeridaVisual.gramsOn();
+        if (meridaVisual) {
+            // MeridaGram «Visual»: only the number on screen, with a mark and no dollar value
+            sb.append(org.telegram.messenger.merida.MeridaVisual.gramsText());
+        } else {
+            sb.append(formatStarsAmount(balance, 0.66f, ' '));
+        }
         starBalanceTextView.setText(sb);
 
         final double dollars = balance.amount / 1_000_000_000.0 * ton_usd_rate;
-        if ((int) (dollars * 100) > 0) {
+        if (meridaVisual) {
+            starBalanceTitleView.setText(LocaleController.getString(R.string.MeridaVisualBalanceTitle));
+        } else if ((int) (dollars * 100) > 0) {
             starBalanceTitleView.setText("≈" + BillingController.getInstance().formatCurrency((int) (dollars * 100), "USD"));
         } else {
             starBalanceTitleView.setText(LocaleController.getString(R.string.YourTonBalance));

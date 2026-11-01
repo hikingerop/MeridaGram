@@ -11173,6 +11173,22 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return verifiedCrossfadeDrawable[a];
     }
 
+    private final Drawable[] meridaVisualPremium = new Drawable[2];
+
+    /** MeridaGram «Visual»: a Premium star with the «VISUAL» pill, only on your own profile. */
+    private Drawable getMeridaVisualPremium(int a) {
+        if (meridaVisualPremium[a] == null) {
+            final Drawable star = ContextCompat.getDrawable(getParentActivity(), R.drawable.msg_premium_liststar).mutate();
+            int color = getThemedColor(Theme.key_profile_verifiedBackground);
+            if (a == 1) {
+                color = dontApplyPeerColor(color);
+            }
+            star.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+            meridaVisualPremium[a] = org.telegram.messenger.merida.MeridaVisual.withMark(star);
+        }
+        return meridaVisualPremium[a];
+    }
+
     private Drawable getPremiumCrossfadeDrawable(int a) {
         if (premiumCrossfadeDrawable[a] == null) {
             premiumStarDrawable[a] = ContextCompat.getDrawable(getParentActivity(), R.drawable.msg_premium_liststar).mutate();
@@ -11557,6 +11573,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         rightIconIsPremium = true;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(null, false, false, a));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.AccDescrPremium);
+                    } else if (user.self && org.telegram.messenger.merida.MeridaVisual.premiumOn()) {
+                        nameTextView[a].setRightDrawable(getMeridaVisualPremium(a));
+                        nameTextViewRightDrawableContentDescription = null;
                     } else {
                         nameTextView[a].setRightDrawable(null);
                         nameTextViewRightDrawableContentDescription = null;
@@ -11577,6 +11596,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         rightIconIsStatus = false;
                         rightIconIsPremium = true;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(null, true, true, a));
+                    } else if (user.self && org.telegram.messenger.merida.MeridaVisual.premiumOn()) {
+                        nameTextView[a].setRightDrawable(getMeridaVisualPremium(a));
                     } else {
                         nameTextView[a].setRightDrawable(null);
                     }
@@ -13978,12 +13999,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     } else if (position == starsRow) {
                         StarsController c = StarsController.getInstance(currentAccount);
                         long balance = c.getBalance().amount;
-                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.MenuTelegramStars), c.balanceAvailable() && balance > 0 ? StarsIntroActivity.formatStarsAmount(c.getBalance(), 0.85f, ' ') : "", new AnimatedEmojiDrawable.WrapSizeDrawable(PremiumGradient.getInstance().goldenStarMenuDrawable, dp(24), dp(24)), true);
+                        textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.MenuTelegramStars), org.telegram.messenger.merida.MeridaVisual.starsOn() ? org.telegram.messenger.merida.MeridaVisual.starsText() : c.balanceAvailable() && balance > 0 ? StarsIntroActivity.formatStarsAmount(c.getBalance(), 0.85f, ' ') : "", new AnimatedEmojiDrawable.WrapSizeDrawable(PremiumGradient.getInstance().goldenStarMenuDrawable, dp(24), dp(24)), true);
                         textCell.setImageLeft(23);
                     } else if (position == tonRow) {
                         StarsController c = StarsController.getTonInstance(currentAccount);
                         long balance = c.getBalance().amount;
-                        textCell.setTextAndValueAndIcon(getString(R.string.MyTON), c.balanceAvailable() && balance > 0 ? StarsIntroActivity.formatStarsAmount(c.getBalance(), 0.85f, ' ') : "", R.drawable.settings_gram_24, true);
+                        textCell.setTextAndValueAndIcon(getString(R.string.MyTON), org.telegram.messenger.merida.MeridaVisual.gramsOn() ? org.telegram.messenger.merida.MeridaVisual.gramsText() : c.balanceAvailable() && balance > 0 ? StarsIntroActivity.formatStarsAmount(c.getBalance(), 0.85f, ' ') : "", R.drawable.settings_gram_24, true);
                         textCell.setImageLeft(23);
                     } else if (position == businessRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.TelegramBusiness), R.drawable.menu_shop, true);

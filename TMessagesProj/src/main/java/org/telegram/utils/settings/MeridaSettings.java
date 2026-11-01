@@ -24,6 +24,22 @@ public final class MeridaSettings {
     public static final BooleanSetting pluginsEnabled =
         BooleanSetting.of("merida_plugins_enabled", false);
 
+    /**
+     * «Visual»: a stars/GRAM balance and a Premium badge shown only on this phone, always with a «visual»
+     * mark (MeridaVisual). Nothing is sent to Telegram.
+     */
+    public static final BooleanSetting visualEnabled =
+        BooleanSetting.of("merida_visual_enabled", false);
+
+    public static final IntSetting visualStars =
+        IntSetting.of("merida_visual_stars", 0);
+
+    public static final IntSetting visualGrams =
+        IntSetting.of("merida_visual_grams", 0);
+
+    public static final BooleanSetting visualPremium =
+        BooleanSetting.of("merida_visual_premium", false);
+
     /** Folder tabs are not shown above the chat list; only «All chats» stays. */
     public static final BooleanSetting hideFolderTabs =
         BooleanSetting.of("merida_hide_folder_tabs", false);

@@ -429,7 +429,12 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
 
         final SpannableStringBuilder sb = new SpannableStringBuilder();
         sb.append(starBalanceIcon);
-        sb.append(formatStarsAmount(s.getBalance(), 0.66f, ' '));
+        if (org.telegram.messenger.merida.MeridaVisual.starsOn()) {
+            // MeridaGram «Visual»: only the number on screen, with a mark; the real balance is untouched
+            sb.append(org.telegram.messenger.merida.MeridaVisual.starsText());
+        } else {
+            sb.append(formatStarsAmount(s.getBalance(), 0.66f, ' '));
+        }
         starBalanceTextView.setText(sb);
 
         buyButton.setText(LocaleController.getString(s.getBalance().amount > 0 ? R.string.StarsBuyMore : R.string.StarsBuy), true);

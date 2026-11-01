@@ -458,6 +458,17 @@
     <string name="MeridaAppName">MeridaGram</string>
     <string name="MeridaOfficialResource">«%1$s» — официальный ресурс MeridaGram.</string>
     <string name="MeridaVersionBuild">%1$s · сборка %2$s</string>
+    <string name="MeridaVisualMark">визуал</string>
+    <string name="MeridaVisualBalanceTitle">Визуальный баланс — видите только вы</string>
+    <string name="MeridaHdrVisual">Визуал</string>
+    <string name="MeridaVisualEnable">Визуал</string>
+    <string name="MeridaSubVisual">Только на этом телефоне, всегда с меткой</string>
+    <string name="MeridaVisualStars">Звёзды</string>
+    <string name="MeridaVisualGrams">GRAM</string>
+    <string name="MeridaVisualPremium">Значок Premium</string>
+    <string name="MeridaSubVisualPremium">У имени в вашем профиле, с меткой</string>
+    <string name="MeridaVisualNumberHint">Сколько показывать. 0 — показывать настоящий баланс.</string>
+    <string name="MeridaInfoVisual">Красивый баланс звёзд и GRAM и значок Premium — только на экране этого телефона. Рядом всегда оранжевая метка «ВИЗУАЛ», отключить её нельзя: так никто не примет скриншот за настоящий. В Telegram ничего не отправляется, настоящий баланс и покупки не меняются, другие люди этого не видят.</string>
     <string name="MeridaHideFolderTabs">Скрыть вкладки папок</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
