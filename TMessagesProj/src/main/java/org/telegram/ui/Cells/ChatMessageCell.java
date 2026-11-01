@@ -12067,7 +12067,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 flagSecure = new FlagSecureReason(window, () ->
                     currentMessageObject != null && currentMessageObject.messageOwner != null && (
                         currentMessageObject.type == MessageObject.TYPE_PAID_MEDIA && (groupMedia == null || !groupMedia.hidden) ||
-                        currentMessageObject.messageOwner.noforwards && !currentMessageObject.isEphemeral() ||
+                        currentMessageObject.messageOwner.noforwards && !currentMessageObject.isEphemeral() && !org.telegram.utils.settings.MeridaSettings.allowScreenshots.get() ||
                         currentMessageObject.isVoiceOnce() ||
                         currentMessageObject.hasRevealedExtendedMedia()
                     )

@@ -8722,7 +8722,7 @@ public class ChatActivity extends BaseFragment implements
 
         flagSecure = new FlagSecureReason(getParentActivity().getWindow(), () ->
             currentEncryptedChat != null ||
-            isPeerNoForwards()
+            isPeerNoForwards() && !org.telegram.utils.settings.MeridaSettings.allowScreenshots.get() // MeridaGram: screenshots allowed in protected channels and groups
         );
 
         if (oldMessage != null) {

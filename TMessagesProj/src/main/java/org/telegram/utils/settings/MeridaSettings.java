@@ -65,6 +65,13 @@ public final class MeridaSettings {
     public static final BooleanSetting playerPreload =
         BooleanSetting.of("merida_player_preload", true);
 
+    /**
+     * Allow screenshots in channels, groups and stories where copying is restricted.
+     * Secret chats, disappearing media and paid media stay protected.
+     */
+    public static final BooleanSetting allowScreenshots =
+        BooleanSetting.of("merida_allow_screenshots", false);
+
     public static final BooleanSetting vpnEnabled =
         BooleanSetting.of("merida_vpn_enabled", true);
 

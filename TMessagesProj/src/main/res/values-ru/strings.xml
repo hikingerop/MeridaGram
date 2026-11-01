@@ -267,7 +267,7 @@
     <string name="MeridaSettings">Настройки MeridaGram</string>
     <string name="MeridaSettingsInfo">Функции MeridaGram</string>
     <string name="MeridaSettingsGeneral">Основные</string>
-    <string name="MeridaSettingsGeneralInfo">Секунды у сообщений появятся после повторного открытия чата.</string>
+    <string name="MeridaSettingsGeneralInfo">Секунды у сообщений появятся после повторного открытия чата. Скриншоты разрешаются в каналах и группах, где запрещено копирование. В секретных чатах, у исчезающих и платных фото запрет остаётся.</string>
     <string name="MeridaHideStories">Скрыть истории</string>
     <string name="MeridaGhostHeader">Призрак</string>
     <string name="MeridaGhostMode">Режим призрака</string>
@@ -303,6 +303,7 @@
     <string name="MeridaPlayerSleepOff">Выключить таймер</string>
     <string name="MeridaPlayerSleepSet">Музыка остановится через %1$d мин</string>
     <string name="MeridaPlayerTurnOn">Включить продвинутый плеер</string>
+    <string name="MeridaAllowScreenshots">Разрешить скриншоты</string>
     <string name="MeridaSnow">Снег</string>
     <string name="MeridaSnowInfo">Наверху — как будет выглядеть снег. Он падает в шапке списка чатов и на фоне чатов в любое время года. Появится после перезапуска MeridaGram. Если включён режим экономии энергии, на фоне чатов снег не показывается.</string>
     <string name="MeridaSpyHeader">Шпион</string>

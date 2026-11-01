@@ -98,6 +98,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_SECTIONS_INFO = 31;
     private static final int ROW_SNOW_PREVIEW = 32;
     private static final int ROW_SECTION_PLAYER = 33;
+    private static final int ROW_ALLOW_SCREENSHOTS = 45;
     private static final int ROW_PLAYER_HEADER = 34;
     private static final int ROW_PLAYER_ADVANCED = 35;
     private static final int ROW_PLAYER_WHERE = 36;
@@ -152,7 +153,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             case PAGE_LOOK:
                 return new int[]{ROW_LOOK_HEADER, ROW_SNOW_PREVIEW, ROW_SNOW, ROW_LOOK_INFO};
             case PAGE_GENERAL:
-                return new int[]{ROW_GENERAL_HEADER, ROW_HIDE_STORIES, ROW_SHOW_ID, ROW_TIME_WITH_SECONDS, ROW_GENERAL_INFO};
+                return new int[]{ROW_GENERAL_HEADER, ROW_HIDE_STORIES, ROW_SHOW_ID, ROW_TIME_WITH_SECONDS, ROW_ALLOW_SCREENSHOTS, ROW_GENERAL_INFO};
             default:
                 return new int[]{ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_LOOK, ROW_SECTION_GENERAL, ROW_SECTIONS_INFO};
         }
@@ -446,6 +447,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.snow;
             case ROW_PLAYER_ADVANCED:
                 return MeridaSettings.playerAdvanced;
+            case ROW_ALLOW_SCREENSHOTS:
+                return MeridaSettings.allowScreenshots;
             case ROW_PLAYER_BASS:
                 return MeridaSettings.playerBassBoost;
             case ROW_PLAYER_LOUDER:
@@ -489,6 +492,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaSnow;
             case ROW_PLAYER_ADVANCED:
                 return R.string.MeridaPlayerAdvanced;
+            case ROW_ALLOW_SCREENSHOTS:
+                return R.string.MeridaAllowScreenshots;
             case ROW_PLAYER_BASS:
                 return R.string.MeridaPlayerBass;
             case ROW_PLAYER_LOUDER:
@@ -608,7 +613,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     cell.setTextAndCheck(
                             LocaleController.getString(titleForRow(position)),
                             settingForRow(position).get(),
-                            position != ROW_TIME_WITH_SECONDS && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED && position != ROW_SNOW && position != ROW_PLAYER_PRELOAD
+                            position != ROW_ALLOW_SCREENSHOTS && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED && position != ROW_SNOW && position != ROW_PLAYER_PRELOAD
                     );
                     // parts of ghost mode are greyed out while the master switch is off
                     cell.setEnabled(!isGhostPart(position) || MeridaSettings.ghostMode.get(), null);
