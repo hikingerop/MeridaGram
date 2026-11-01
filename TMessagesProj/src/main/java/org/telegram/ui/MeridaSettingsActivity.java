@@ -63,6 +63,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int TYPE_VALUE = 3;
     private static final int TYPE_SECTION = 4;
     private static final int TYPE_SNOW_PREVIEW = 5;
+    private static final int TYPE_APP_HEADER = 6;
 
     private static final int ROW_VPN_HEADER = 0;
     private static final int ROW_VPN_ENABLED = 1;
@@ -103,6 +104,11 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_STRIP_METADATA = 47;
     private static final int ROW_WEBAPP_PRIVACY = 48;
     private static final int ROW_VPN_PING = 49;
+    private static final int ROW_APP_HEADER = 50;
+    private static final int ROW_CATEGORIES_HEADER = 51;
+    private static final int ROW_LINKS_HEADER = 52;
+    private static final int ROW_LINK_CHANNEL = 53;
+    private static final int ROW_LINK_BOT = 54;
 
     /** Last speed test result in ms; -1 not run yet, -2 running, -3 failed. */
     private static int pingResult = -1;
@@ -162,7 +168,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             case PAGE_GENERAL:
                 return new int[]{ROW_GENERAL_HEADER, ROW_HIDE_STORIES, ROW_SHOW_ID, ROW_TIME_WITH_SECONDS, ROW_ALLOW_SCREENSHOTS, ROW_SESSION_GUARD, ROW_STRIP_METADATA, ROW_WEBAPP_PRIVACY, ROW_GENERAL_INFO};
             default:
-                return new int[]{ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_LOOK, ROW_SECTION_GENERAL, ROW_SECTIONS_INFO};
+                return new int[]{ROW_APP_HEADER, ROW_CATEGORIES_HEADER, ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_LOOK, ROW_SECTION_GENERAL,
+                        ROW_LINKS_HEADER, ROW_LINK_CHANNEL, ROW_LINK_BOT, ROW_SECTIONS_INFO};
         }
     }
 
@@ -419,6 +426,14 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             }
             return;
         }
+        if (position == ROW_LINK_CHANNEL) {
+            Browser.openUrl(getParentActivity(), "https://t.me/MeridaGram");
+            return;
+        }
+        if (position == ROW_LINK_BOT) {
+            Browser.openUrl(getParentActivity(), "https://t.me/" + MeridaVpn.BOT_USERNAME);
+            return;
+        }
         if (position == ROW_VPN_PING) {
             runPingTest();
             return;
@@ -619,6 +634,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 view = new TextCell(context);
             } else if (viewType == TYPE_SNOW_PREVIEW) {
                 view = new SnowPreviewView(context);
+            } else if (viewType == TYPE_APP_HEADER) {
+                view = new AppHeaderView(context);
+                view.setTag(RecyclerListView.TAG_NOT_SECTION);
             } else {
                 view = new TextInfoPrivacyCell(context);
             }
@@ -634,9 +652,11 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             final int position = rows[index];
             switch (holder.getItemViewType()) {
                 case TYPE_SNOW_PREVIEW:
+                case TYPE_APP_HEADER:
                     break;
                 case TYPE_SECTION: {
                     TextCell cell = (TextCell) holder.itemView;
+                    cell.valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
                     final boolean divider = position != ROW_SECTION_GENERAL;
                     if (position == ROW_SECTION_VPN) {
                         cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaVpnHeader), connectionText(), R.drawable.msg_policy, divider);
@@ -644,6 +664,12 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaGhostMode), onOff(MeridaSettings.ghostMode.get()), R.drawable.msg_mask, divider);
                     } else if (position == ROW_SECTION_SPY) {
                         cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaSpyHeader), onOff(MeridaSettings.spySaveDeleted.get()), R.drawable.msg_views, divider);
+                    } else if (position == ROW_LINK_CHANNEL || position == ROW_LINK_BOT) {
+                        final boolean channel = position == ROW_LINK_CHANNEL;
+                        cell.setTextAndValueAndIcon(LocaleController.getString(channel ? R.string.MeridaLinkChannel : R.string.MeridaVpnHeader),
+                                channel ? "@MeridaGram" : "@" + MeridaVpn.BOT_USERNAME, channel ? R.drawable.msg_channel : R.drawable.msg_bot, channel);
+                        cell.valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+                        break;
                     } else if (position == ROW_SECTION_PLAYER) {
                         cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaPlayerHeader), onOff(MeridaSettings.playerAdvanced.get()), R.drawable.msg_filled_data_music, divider);
                     } else if (position == ROW_SECTION_LOOK) {
@@ -655,7 +681,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 }
                 case TYPE_HEADER:
                     ((HeaderCell) holder.itemView).setText(LocaleController.getString(
-                            position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : position == ROW_SPY_HEADER ? R.string.MeridaSpyHeader : position == ROW_LOOK_HEADER ? R.string.MeridaLookHeader : position == ROW_PLAYER_HEADER ? R.string.MeridaPlayerHeader : position == ROW_PLAYER_CHATS_HEADER ? (MeridaSettings.playerMode.get() == MeridaPlayer.MODE_ONLY ? R.string.MeridaPlayerChosenOnly : R.string.MeridaPlayerChosenExcept) : R.string.MeridaSettingsGeneral
+                            position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : position == ROW_SPY_HEADER ? R.string.MeridaSpyHeader : position == ROW_LOOK_HEADER ? R.string.MeridaLookHeader : position == ROW_PLAYER_HEADER ? R.string.MeridaPlayerHeader : position == ROW_CATEGORIES_HEADER ? R.string.MeridaCategories : position == ROW_LINKS_HEADER ? R.string.MeridaLinks : position == ROW_PLAYER_CHATS_HEADER ? (MeridaSettings.playerMode.get() == MeridaPlayer.MODE_ONLY ? R.string.MeridaPlayerChosenOnly : R.string.MeridaPlayerChosenExcept) : R.string.MeridaSettingsGeneral
                     ));
                     break;
                 case TYPE_CHECK: {
@@ -739,6 +765,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             switch (rows[index]) {
                 case ROW_SNOW_PREVIEW:
                     return TYPE_SNOW_PREVIEW;
+                case ROW_APP_HEADER:
+                    return TYPE_APP_HEADER;
+                case ROW_LINK_CHANNEL:
+                case ROW_LINK_BOT:
                 case ROW_SECTION_VPN:
                 case ROW_SECTION_GHOST:
                 case ROW_SECTION_SPY:
@@ -753,6 +783,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_LOOK_HEADER:
                 case ROW_PLAYER_HEADER:
                 case ROW_PLAYER_CHATS_HEADER:
+                case ROW_CATEGORIES_HEADER:
+                case ROW_LINKS_HEADER:
                     return TYPE_HEADER;
                 case ROW_VPN_CONNECTION:
                 case ROW_VPN_SUBSCRIPTION:
@@ -781,6 +813,36 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
      * A small copy of the chat list's top bar with the snow always falling, so people can see what
      * «Snow» looks like before turning it on.
      */
+    /** Top of the main page: the MeridaGram icon, name and version, like other Telegram clients. */
+    private static class AppHeaderView extends android.widget.LinearLayout {
+        AppHeaderView(Context context) {
+            super(context);
+            setOrientation(VERTICAL);
+            setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+            setPadding(0, AndroidUtilities.dp(12), 0, AndroidUtilities.dp(16));
+
+            final android.widget.ImageView icon = new android.widget.ImageView(context);
+            icon.setImageResource(R.mipmap.ic_launcher_round);
+            icon.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+            addView(icon, LayoutHelper.createLinear(96, 96, android.view.Gravity.CENTER_HORIZONTAL));
+
+            final android.widget.TextView name = new android.widget.TextView(context);
+            name.setText(LocaleController.getString(R.string.AppName));
+            name.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 24);
+            name.setTypeface(AndroidUtilities.bold());
+            name.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            name.setGravity(android.view.Gravity.CENTER);
+            addView(name, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, android.view.Gravity.CENTER_HORIZONTAL, 0, 12, 0, 0));
+
+            final android.widget.TextView version = new android.widget.TextView(context);
+            version.setText(org.telegram.messenger.BuildVars.BUILD_VERSION_STRING);
+            version.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 15);
+            version.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
+            version.setGravity(android.view.Gravity.CENTER);
+            addView(version, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, android.view.Gravity.CENTER_HORIZONTAL, 0, 4, 0, 0));
+        }
+    }
+
     private static class SnowPreviewView extends View {
         private final SnowflakesEffect snow = new SnowflakesEffect(0);
         /** Not shown: only gives the snow the size of the preview bar to spread flakes over. */
