@@ -143,6 +143,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_VISUAL_USERNAME = 80;
     private static final int ROW_VISUAL_NUMBER = 81;
     private static final int ROW_VISUAL_RATING = 82;
+    private static final int ROW_VISUAL_PURCHASES = 83;
     /** Installed plugins on the plugins page: ROW_PLUGIN_BASE + index in plugins. */
     private static final int ROW_PLUGIN_BASE = 9000;
     private static final int[] MARK_STYLE_NAMES = {R.string.MeridaMarkIconWord, R.string.MeridaMarkIcon, R.string.MeridaMarkWord};
@@ -327,7 +328,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return new int[]{
                         hdr(R.string.MeridaHdrChatList), ROW_SNOW_PREVIEW, ROW_SNOW, ROW_HIDE_FOLDER_TABS, ROW_HIDE_STORIES, note(R.string.MeridaInfoChatList),
                         hdr(R.string.MeridaHdrMessages), ROW_TIME_WITH_SECONDS, note(R.string.MeridaInfoSeconds),
-                        hdr(R.string.MeridaHdrVisual), ROW_VISUAL_ENABLED, ROW_VISUAL_STARS, ROW_VISUAL_GRAMS, ROW_VISUAL_GIFTS, ROW_VISUAL_USERNAME, ROW_VISUAL_NUMBER, ROW_VISUAL_RATING, ROW_VISUAL_PREMIUM, note(R.string.MeridaInfoVisual)};
+                        hdr(R.string.MeridaHdrVisual), ROW_VISUAL_ENABLED, ROW_VISUAL_STARS, ROW_VISUAL_GRAMS, ROW_VISUAL_GIFTS, ROW_VISUAL_USERNAME, ROW_VISUAL_NUMBER, ROW_VISUAL_RATING, ROW_VISUAL_PURCHASES, ROW_VISUAL_PREMIUM, note(R.string.MeridaInfoVisual)};
             case PAGE_GENERAL:
                 return new int[]{
                         hdr(R.string.MeridaHdrId), ROW_SHOW_ID, ROW_COPY_ID_MENU, note(R.string.MeridaInfoId),
@@ -561,8 +562,11 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         final CharSequence[] items = new CharSequence[slugs.size() + 1];
         items[0] = LocaleController.getString(R.string.MeridaVisualGiftAdd);
         for (int i = 0; i < slugs.size(); i++) {
-            final org.telegram.tgnet.tl.TL_stars.TL_starGiftUnique gift = org.telegram.messenger.merida.MeridaVisualGifts.load(slugs.get(i));
-            items[i + 1] = (gift != null ? gift.title + " #" + gift.num : slugs.get(i)) + "  ✕";
+            final org.telegram.tgnet.tl.TL_stars.StarGift any = org.telegram.messenger.merida.MeridaVisualGifts.loadAny(slugs.get(i));
+            final String label = any instanceof org.telegram.tgnet.tl.TL_stars.TL_starGiftUnique
+                    ? any.title + " #" + ((org.telegram.tgnet.tl.TL_stars.TL_starGiftUnique) any).num
+                    : any != null ? LocaleController.formatString(R.string.MeridaVisualSendGift, org.telegram.messenger.merida.MeridaVisual.formatNumber(any.stars)) : slugs.get(i);
+            items[i + 1] = label + "  ✕";
         }
         final AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.MeridaVisualGifts));
@@ -1116,6 +1120,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.visualEnabled;
             case ROW_VISUAL_PREMIUM:
                 return MeridaSettings.visualPremium;
+            case ROW_VISUAL_PURCHASES:
+                return MeridaSettings.visualPurchases;
             case ROW_GHOST_STATUS:
                 return MeridaSettings.ghostStatus;
             case ROW_TIME_WITH_SECONDS:
@@ -1178,6 +1184,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaSubVisual;
             case ROW_VISUAL_PREMIUM:
                 return R.string.MeridaSubVisualPremium;
+            case ROW_VISUAL_PURCHASES:
+                return R.string.MeridaSubVisualPurchases;
             default:
                 return 0;
         }
@@ -1209,6 +1217,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaVisualEnable;
             case ROW_VISUAL_PREMIUM:
                 return R.string.MeridaVisualPremium;
+            case ROW_VISUAL_PURCHASES:
+                return R.string.MeridaVisualPurchases;
             case ROW_GHOST_STATUS:
                 return R.string.MeridaGhostStatus;
             case ROW_BACKGROUND:

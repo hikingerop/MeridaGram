@@ -704,6 +704,24 @@ public class SendGiftSheet extends BottomSheetWithRecyclerListView implements No
     }
 
     private void buyStarGift() {
+        if (org.telegram.messenger.merida.MeridaVisual.purchasesOn()) {
+            // MeridaGram «Visual purchases»: to yourself the gift goes to your visual gifts; to someone else an
+            // honest «not a real gift» message is sent. Telegram is not asked to buy anything.
+            final String text;
+            if (dialogId == UserConfig.getInstance(currentAccount).getClientUserId()) {
+                text = org.telegram.messenger.merida.MeridaVisualGifts.buyForSelf(starGift);
+            } else {
+                org.telegram.messenger.SendMessagesHelper.getInstance(currentAccount).sendMessage(org.telegram.messenger.SendMessagesHelper.SendMessageParams.of(
+                        org.telegram.messenger.merida.MeridaVisualSend.build(org.telegram.messenger.merida.MeridaVisualSend.giftItem(org.telegram.messenger.merida.MeridaVisualGifts.priceInStars(starGift))), dialogId));
+                text = LocaleController.getString(R.string.MeridaVisualSentHonest);
+            }
+            android.widget.Toast.makeText(getContext(), text, android.widget.Toast.LENGTH_LONG).show();
+            if (closeParentSheet != null) {
+                closeParentSheet.run();
+            }
+            dismiss();
+            return;
+        }
         StarsController.getInstance(currentAccount).buyStarGift(
             this.starGift,
             anonymous,

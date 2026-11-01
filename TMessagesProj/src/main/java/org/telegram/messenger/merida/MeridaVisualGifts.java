@@ -77,8 +77,14 @@ public final class MeridaVisualGifts {
         return userFull.id == UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId() ? slugs().size() : 0;
     }
 
-    public static TL_stars.TL_starGiftUnique load(String slug) {
-        final String stored = prefs().getString("gift_" + slug, null);
+    public static TL_stars.TL_starGiftUnique load(String key) {
+        final TL_stars.StarGift gift = loadAny(key);
+        return gift instanceof TL_stars.TL_starGiftUnique ? (TL_stars.TL_starGiftUnique) gift : null;
+    }
+
+    /** Any stored visual gift: an NFT (key = its slug) or an ordinary gift bought visually (key = «g<id>-<time>»). */
+    public static TL_stars.StarGift loadAny(String key) {
+        final String stored = prefs().getString("gift_" + key, null);
         if (stored == null) {
             return null;
         }
@@ -86,11 +92,68 @@ public final class MeridaVisualGifts {
             final SerializedData data = new SerializedData(Base64.decode(stored, Base64.NO_WRAP));
             final TL_stars.StarGift gift = TL_stars.StarGift.TLdeserialize(data, data.readInt32(false), false);
             data.cleanup();
-            return gift instanceof TL_stars.TL_starGiftUnique ? (TL_stars.TL_starGiftUnique) gift : null;
+            return gift;
         } catch (Throwable e) {
             FileLog.e(e);
             return null;
         }
+    }
+
+    /** Keeps a gift object as a visual gift; returns false when it could not be stored. */
+    public static boolean store(String key, TL_stars.StarGift gift) {
+        try {
+            final SerializedData data = new SerializedData(gift.getObjectSize());
+            gift.serializeToStream(data);
+            final String encoded = Base64.encodeToString(data.toByteArray(), Base64.NO_WRAP);
+            data.cleanup();
+            final List<String> slugs = slugs();
+            slugs.remove(key);
+            slugs.add(0, key);
+            while (slugs.size() > MAX_GIFTS) {
+                prefs().edit().remove("gift_" + slugs.remove(slugs.size() - 1)).apply();
+            }
+            prefs().edit().putString("gift_" + key, encoded).apply();
+            saveSlugs(slugs);
+            return true;
+        } catch (Throwable e) {
+            FileLog.e(e);
+            return false;
+        }
+    }
+
+    /** The price of a gift in stars: the resale price for an NFT, the shop price for an ordinary gift. */
+    public static long priceInStars(TL_stars.StarGift gift) {
+        if (gift == null) {
+            return 0;
+        }
+        if (gift.resell_amount != null) {
+            for (TL_stars.StarsAmount a : gift.resell_amount) {
+                if (a instanceof TL_stars.TL_starsAmount) {
+                    return a.amount;
+                }
+            }
+        }
+        return gift.stars;
+    }
+
+    /**
+     * «Visual purchase» for yourself: the visual stars balance pays, the gift goes to your visual gifts.
+     * Telegram is not asked and real stars are never spent. Returns a message for the user.
+     */
+    public static String buyForSelf(TL_stars.StarGift gift) {
+        final long price = priceInStars(gift);
+        final int balance = org.telegram.utils.settings.MeridaSettings.visualStars.get();
+        if (price > balance) {
+            return org.telegram.messenger.LocaleController.formatString(org.telegram.messenger.R.string.MeridaVisualBuyNoStars, MeridaVisual.formatNumber(price), MeridaVisual.formatNumber(balance));
+        }
+        final String key = gift instanceof TL_stars.TL_starGiftUnique && ((TL_stars.TL_starGiftUnique) gift).slug != null
+                ? ((TL_stars.TL_starGiftUnique) gift).slug
+                : "g" + gift.id + "-" + System.currentTimeMillis();
+        if (!store(key, gift)) {
+            return org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.MeridaVisualBuyFailed);
+        }
+        org.telegram.utils.settings.MeridaSettings.visualStars.set((int) (balance - price));
+        return org.telegram.messenger.LocaleController.formatString(org.telegram.messenger.R.string.MeridaVisualBought, MeridaVisual.formatNumber(price));
     }
 
     public interface Result {
@@ -112,24 +175,7 @@ public final class MeridaVisualGifts {
             MessagesController.getInstance(account).putUsers(r.users, false);
             MessagesController.getInstance(account).putChats(r.chats, false);
             final TL_stars.TL_starGiftUnique gift = (TL_stars.TL_starGiftUnique) r.gift;
-            try {
-                final SerializedData data = new SerializedData(gift.getObjectSize());
-                gift.serializeToStream(data);
-                final String encoded = Base64.encodeToString(data.toByteArray(), Base64.NO_WRAP);
-                data.cleanup();
-                final List<String> slugs = slugs();
-                slugs.remove(slug);
-                slugs.add(0, slug);
-                while (slugs.size() > MAX_GIFTS) {
-                    prefs().edit().remove("gift_" + slugs.remove(slugs.size() - 1)).apply();
-                }
-                prefs().edit().putString("gift_" + slug, encoded).apply();
-                saveSlugs(slugs);
-                result.done(gift.title + " #" + gift.num);
-            } catch (Throwable e) {
-                FileLog.e(e);
-                result.done(null);
-            }
+            result.done(store(slug, gift) ? gift.title + " #" + gift.num : null);
         }));
     }
 
@@ -148,7 +194,7 @@ public final class MeridaVisualGifts {
         }
         final int now = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         for (String slug : slugs()) {
-            final TL_stars.TL_starGiftUnique gift = load(slug);
+            final TL_stars.StarGift gift = loadAny(slug);
             if (gift == null) {
                 continue;
             }

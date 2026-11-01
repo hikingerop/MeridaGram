@@ -2141,6 +2141,11 @@ public class ResaleGiftsFragment extends BaseFragment implements FactorAnimator.
         }
 
         private void buyGift(TL_stars.TL_starGiftUnique gift) {
+            if (org.telegram.messenger.merida.MeridaVisual.purchasesOn()) {
+                // MeridaGram «Visual purchases»: paid by the visual balance, the gift goes to your visual gifts
+                android.widget.Toast.makeText(getContext(), org.telegram.messenger.merida.MeridaVisualGifts.buyForSelf(gift), android.widget.Toast.LENGTH_LONG).show();
+                return;
+            }
             final AlertDialog progressDialog = new AlertDialog(getContext(), AlertDialog.ALERT_TYPE_SPINNER);
             progressDialog.showDelayed(400);
             final long to = UserConfig.getInstance(currentAccount).getClientUserId();

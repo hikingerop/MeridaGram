@@ -11862,6 +11862,14 @@
     <string name="MeridaVisualSendStars">%1$s stars</string>
     <string name="MeridaVisualSendPremium">Telegram Premium for %1$d months</string>
     <string name="MeridaVisualSendNote">Not real: Telegram did not charge or credit anything.</string>
+    <string name="MeridaVisualPurchases">Visual purchases</string>
+    <string name="MeridaSubVisualPurchases">The gift shop and market pay with visual stars</string>
+    <string name="MeridaVisualBought">Bought visually for %1$s ⭐ — the gift is in your profile with a «VISUAL» mark. No real stars were spent.</string>
+    <string name="MeridaVisualBuyNoStars">Not enough visual stars: %1$s needed, %2$s available. Add more in Appearance → Visual → Stars.</string>
+    <string name="MeridaVisualBuyFailed">Could not keep the gift.</string>
+    <string name="MeridaVisualBuyOnlySelf">Visual purchases are only for yourself. To give one: ⋮ in a chat → Visual gift.</string>
+    <string name="MeridaVisualSentHonest">A «visual gift — not real» message was sent. No real stars were spent.</string>
+    <string name="MeridaVisualSendGift">Gift for %1$s ⭐</string>
     <string name="MeridaHideFolderTabs">Hide folder tabs</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>

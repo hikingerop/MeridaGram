@@ -31,6 +31,10 @@ public final class MeridaVisualSend {
         return title + " #" + num + " · t.me/nft/" + slug;
     }
 
+    public static String giftItem(long stars) {
+        return "🎁 " + LocaleController.formatString(R.string.MeridaVisualSendGift, MeridaVisual.formatNumber(stars));
+    }
+
     public static String starsItem(int stars) {
         return "⭐ " + LocaleController.formatString(R.string.MeridaVisualSendStars, MeridaVisual.formatNumber(stars));
     }

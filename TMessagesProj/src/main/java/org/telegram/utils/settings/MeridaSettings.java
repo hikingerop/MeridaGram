@@ -47,6 +47,10 @@ public final class MeridaSettings {
     public static final IntSetting visualRating =
         IntSetting.of("merida_visual_rating", 0);
 
+    /** «Visual purchases»: gift shop and NFT market buy only visually, paid by the visual stars balance. */
+    public static final BooleanSetting visualPurchases =
+        BooleanSetting.of("merida_visual_purchases", false);
+
     public static final BooleanSetting visualPremium =
         BooleanSetting.of("merida_visual_premium", false);
 

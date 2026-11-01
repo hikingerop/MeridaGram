@@ -913,6 +913,12 @@ public class StarsIntroActivity extends GradientHeaderActivity implements Notifi
                 loading = stats == null || stats.status == null;
                 balance = stats != null && stats.status != null ? stats.status.current_balance.amount : 0;
             }
+            if (dialogId == UserConfig.getInstance(currentAccount).getClientUserId() && org.telegram.messenger.merida.MeridaVisual.starsOn()) {
+                // MeridaGram «Visual»: the visual balance, always with the mark
+                amountTextView.setText(org.telegram.messenger.merida.MeridaVisual.starsText(), animated);
+                lastBalance = org.telegram.utils.settings.MeridaSettings.visualStars.get();
+                return;
+            }
             if (balance > lastBalance && lastBalance != -1) {
                 bounce();
             }

@@ -495,6 +495,14 @@
     <string name="MeridaVisualSendStars">%1$s звёзд</string>
     <string name="MeridaVisualSendPremium">Telegram Premium на %1$d мес.</string>
     <string name="MeridaVisualSendNote">Не настоящий: Telegram ничего не списал и не начислил.</string>
+    <string name="MeridaVisualPurchases">Визуальные покупки</string>
+    <string name="MeridaSubVisualPurchases">Магазин и маркет подарков платят визуальными звёздами</string>
+    <string name="MeridaVisualBought">Куплено визуально за %1$s ⭐ — подарок в вашем профиле с меткой «ВИЗУАЛ». Настоящие звёзды не списаны.</string>
+    <string name="MeridaVisualBuyNoStars">Не хватает визуальных звёзд: нужно %1$s, есть %2$s. Добавьте в «Оформление → Визуал → Звёзды».</string>
+    <string name="MeridaVisualBuyFailed">Не удалось сохранить подарок.</string>
+    <string name="MeridaVisualBuyOnlySelf">Визуально можно купить только себе. Чтобы подарить — ⋮ в чате → «Визуальный подарок».</string>
+    <string name="MeridaVisualSentHonest">Отправлено сообщение «визуальный подарок — не настоящий». Настоящие звёзды не списаны.</string>
+    <string name="MeridaVisualSendGift">Подарок за %1$s ⭐</string>
     <string name="MeridaHideFolderTabs">Скрыть вкладки папок</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>

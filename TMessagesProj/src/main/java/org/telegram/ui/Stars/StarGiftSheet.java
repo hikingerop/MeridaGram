@@ -7949,6 +7949,16 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
         final AmountUtils.Currency currency = gift.resale_ton_only ?
             AmountUtils.Currency.TON : AmountUtils.Currency.STARS;
 
+        if (org.telegram.messenger.merida.MeridaVisual.purchasesOn()) {
+            // MeridaGram «Visual purchases»: nothing is bought from Telegram, real stars are not spent
+            final String text = to == UserConfig.getInstance(currentAccount).getClientUserId()
+                    ? org.telegram.messenger.merida.MeridaVisualGifts.buyForSelf(gift)
+                    : LocaleController.getString(R.string.MeridaVisualBuyOnlySelf);
+            android.widget.Toast.makeText(getContext(), text, android.widget.Toast.LENGTH_LONG).show();
+            dismiss();
+            return;
+        }
+
         if (slugStarGift != null && resale) {
             GiftMessageBottomSheet giftMessageBottomSheet = new GiftMessageBottomSheet(getContext(), resourcesProvider, gift, to);
             giftMessageBottomSheet.setCallback((message, hideMyName) -> {

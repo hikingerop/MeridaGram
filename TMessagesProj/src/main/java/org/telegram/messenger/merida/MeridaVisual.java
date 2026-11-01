@@ -46,6 +46,10 @@ public final class MeridaVisual {
         return on() && MeridaSettings.visualGrams.get() > 0;
     }
 
+    public static boolean purchasesOn() {
+        return on() && MeridaSettings.visualPurchases.get();
+    }
+
     public static boolean premiumOn() {
         return on() && MeridaSettings.visualPremium.get();
     }
