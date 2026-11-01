@@ -2908,8 +2908,95 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             o.dismiss();
             onSubItemClick(7);
         });
+        addMeridaPlayerOptions(o, messageObject);
         o.setTranslationY(dp(64));
         o.show();
+    }
+
+    /**
+     * MeridaGram: the advanced player's options right in the player's menu: on/off for this chat,
+     * equalizer presets, bass boost, louder quiet tracks and a sleep timer (see MeridaPlayer).
+     */
+    private void addMeridaPlayerOptions(ItemOptions o, MessageObject messageObject) {
+        final long dialogId = messageObject.getDialogId();
+        o.addGap();
+        if (!org.telegram.utils.settings.MeridaSettings.playerAdvanced.get()) {
+            o.add(R.drawable.msg_tone_on, getString(R.string.MeridaPlayerTurnOn), () -> {
+                org.telegram.utils.settings.MeridaSettings.playerAdvanced.set(true);
+                org.telegram.messenger.merida.MeridaPlayer.reapply();
+                o.dismiss();
+            });
+        } else {
+            final ItemOptions player = o.makeSwipeback();
+            player.add(R.drawable.ic_ab_back, getString(R.string.Back), o::closeSwipeback);
+            player.addGap();
+            player.add(R.drawable.msg_viewchats, getString(org.telegram.messenger.merida.MeridaPlayer.isActiveFor(dialogId) ? R.string.MeridaPlayerThisChatOn : R.string.MeridaPlayerThisChatOff), () -> {
+                org.telegram.messenger.merida.MeridaPlayer.toggleChat(dialogId);
+                o.dismiss();
+            });
+            player.add(R.drawable.msg_call_speaker, getString(R.string.MeridaPlayerBass) + ": " + onOffText(org.telegram.utils.settings.MeridaSettings.playerBassBoost.get()), () -> {
+                org.telegram.utils.settings.MeridaSettings.playerBassBoost.toggle();
+                org.telegram.messenger.merida.MeridaPlayer.reapply();
+                o.dismiss();
+            });
+            player.add(R.drawable.msg_unmute, getString(R.string.MeridaPlayerLouder) + ": " + onOffText(org.telegram.utils.settings.MeridaSettings.playerLouder.get()), () -> {
+                org.telegram.utils.settings.MeridaSettings.playerLouder.toggle();
+                org.telegram.messenger.merida.MeridaPlayer.reapply();
+                o.dismiss();
+            });
+            o.add(R.drawable.msg_settings, getString(R.string.MeridaPlayerMenu), () -> o.openSwipeback(player));
+            if (o.getLast() != null) {
+                o.getLast().setRightIcon(R.drawable.msg_arrowright);
+            }
+
+            final int[] presetNames = {R.string.MeridaPlayerEqNormal, R.string.MeridaPlayerEqBass, R.string.MeridaPlayerEqRock, R.string.MeridaPlayerEqPop, R.string.MeridaPlayerEqVoice, R.string.MeridaPlayerEqElectro};
+            final int current = Math.max(0, Math.min(presetNames.length - 1, org.telegram.utils.settings.MeridaSettings.playerEqPreset.get()));
+            final ItemOptions eq = o.makeSwipeback();
+            eq.add(R.drawable.ic_ab_back, getString(R.string.Back), o::closeSwipeback);
+            eq.addGap();
+            for (int i = 0; i < presetNames.length; i++) {
+                final int preset = i;
+                eq.add(0, (i == current ? "✓ " : "") + getString(presetNames[i]), () -> {
+                    org.telegram.utils.settings.MeridaSettings.playerEqPreset.set(preset);
+                    org.telegram.messenger.merida.MeridaPlayer.reapply();
+                    o.dismiss();
+                });
+            }
+            o.add(R.drawable.msg_tone_on, getString(R.string.MeridaPlayerEqualizer) + ": " + getString(presetNames[current]), () -> o.openSwipeback(eq));
+            if (o.getLast() != null) {
+                o.getLast().setRightIcon(R.drawable.msg_arrowright);
+            }
+        }
+
+        final int left = org.telegram.messenger.merida.MeridaPlayer.sleepMinutesLeft();
+        final ItemOptions sleep = o.makeSwipeback();
+        sleep.add(R.drawable.ic_ab_back, getString(R.string.Back), o::closeSwipeback);
+        sleep.addGap();
+        final int[] minutes = {15, 30, 45, 60, 90};
+        for (int m : minutes) {
+            sleep.add(0, LocaleController.formatString(R.string.MeridaPlayerSleepIn, m), () -> {
+                org.telegram.messenger.merida.MeridaPlayer.setSleepTimer(m);
+                o.dismiss();
+                BulletinFactory.of((FrameLayout) containerView, resourcesProvider)
+                        .createSimpleBulletin(R.raw.sandclock, LocaleController.formatString(R.string.MeridaPlayerSleepSet, m))
+                        .show();
+            });
+        }
+        if (left > 0) {
+            sleep.addGap();
+            sleep.add(0, getString(R.string.MeridaPlayerSleepOff), () -> {
+                org.telegram.messenger.merida.MeridaPlayer.setSleepTimer(0);
+                o.dismiss();
+            });
+        }
+        o.add(R.drawable.msg_mute_period, left > 0 ? LocaleController.formatString(R.string.MeridaPlayerSleepLeft, left) : getString(R.string.MeridaPlayerSleep), () -> o.openSwipeback(sleep));
+        if (o.getLast() != null) {
+            o.getLast().setRightIcon(R.drawable.msg_arrowright);
+        }
+    }
+
+    private static String onOffText(boolean on) {
+        return getString(on ? R.string.NotificationsOn : R.string.NotificationsOff);
     }
 
     private ItemOptions buildSaveOptions(ItemOptions o, MessageObject messageObject) {

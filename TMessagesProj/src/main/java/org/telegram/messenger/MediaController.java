@@ -2525,6 +2525,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 }
             }
             audioPlayer = null;
+            org.telegram.messenger.merida.MeridaPlayer.onStop();
             Theme.unrefAudioVisualizeDrawable(playingMessageObject);
         } else if (videoPlayer != null) {
             currentAspectRatioFrameLayout = null;
@@ -3124,34 +3125,32 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         if (currentPlayList == null || currentPlayList.size() < 2) {
             return;
         }
-        int nextIndex;
-        if (SharedConfig.playOrderReversed) {
-            nextIndex = currentPlaylistNum + 1;
-            if (nextIndex >= currentPlayList.size()) {
-                nextIndex = 0;
+        // MeridaGram: the advanced player loads a few tracks ahead, Telegram itself only the next one
+        final int ahead = Math.min(currentPlayList.size() - 1,
+                org.telegram.messenger.merida.MeridaPlayer.preloadCount(playingMessageObject != null ? playingMessageObject.getDialogId() : 0));
+        for (int step = 1; step <= ahead; step++) {
+            int nextIndex;
+            if (SharedConfig.playOrderReversed) {
+                nextIndex = (currentPlaylistNum + step) % currentPlayList.size();
+            } else {
+                nextIndex = ((currentPlaylistNum - step) % currentPlayList.size() + currentPlayList.size()) % currentPlayList.size();
             }
-        } else {
-            nextIndex = currentPlaylistNum - 1;
-            if (nextIndex < 0) {
-                nextIndex = currentPlayList.size() - 1;
+            if (nextIndex < 0 || nextIndex >= currentPlayList.size()) {
+                return;
             }
-        }
-        if (nextIndex < 0 || nextIndex >= currentPlayList.size()) {
-            return;
-        }
 
-        MessageObject nextAudio = currentPlayList.get(nextIndex);
-        File file = null;
-        if (!TextUtils.isEmpty(nextAudio.messageOwner.attachPath)) {
-            file = new File(nextAudio.messageOwner.attachPath);
-            if (!file.exists()) {
-                file = null;
+            MessageObject nextAudio = currentPlayList.get(nextIndex);
+            File file = null;
+            if (!TextUtils.isEmpty(nextAudio.messageOwner.attachPath)) {
+                file = new File(nextAudio.messageOwner.attachPath);
+                if (!file.exists()) {
+                    file = null;
+                }
             }
-        }
-        final File cacheFile = file != null ? file : FileLoader.getInstance(currentAccount).getPathToMessage(nextAudio.messageOwner);
-        boolean exist = cacheFile.exists();
-        if (cacheFile != file && !cacheFile.exists() && nextAudio.isMusic()) {
-            FileLoader.getInstance(currentAccount).loadFile(nextAudio.getDocument(), nextAudio, FileLoader.PRIORITY_LOW, nextAudio.shouldEncryptPhotoOrVideo() ? 2 : 0);
+            final File cacheFile = file != null ? file : FileLoader.getInstance(currentAccount).getPathToMessage(nextAudio.messageOwner);
+            if (cacheFile != file && !cacheFile.exists() && nextAudio.isMusic()) {
+                FileLoader.getInstance(currentAccount).loadFile(nextAudio.getDocument(), nextAudio, FileLoader.PRIORITY_LOW, nextAudio.shouldEncryptPhotoOrVideo() ? 2 : 0);
+            }
         }
     }
 
@@ -4029,6 +4028,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                 }
                 audioPlayer.setStreamType(useFrontSpeaker ? AudioManager.STREAM_VOICE_CALL : AudioManager.STREAM_MUSIC);
                 audioPlayer.play();
+                // MeridaGram: equalizer, bass and louder tracks of the advanced player
+                org.telegram.messenger.merida.MeridaPlayer.onPlay(audioPlayer, messageObject);
                 if (!messageObject.isVoice()) {
                     if (audioVolumeAnimator != null) {
                         audioVolumeAnimator.removeAllListeners();

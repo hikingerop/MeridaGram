@@ -17,6 +17,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MessagesController;
+import org.telegram.messenger.UserObject;
+import org.telegram.messenger.DialogObject;
+import org.telegram.messenger.merida.MeridaPlayer;
+import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
@@ -49,6 +55,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     public static final int PAGE_SPY = 3;
     public static final int PAGE_LOOK = 4;
     public static final int PAGE_GENERAL = 5;
+    public static final int PAGE_PLAYER = 6;
 
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_CHECK = 1;
@@ -90,9 +97,27 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_SECTION_GENERAL = 30;
     private static final int ROW_SECTIONS_INFO = 31;
     private static final int ROW_SNOW_PREVIEW = 32;
+    private static final int ROW_SECTION_PLAYER = 33;
+    private static final int ROW_PLAYER_HEADER = 34;
+    private static final int ROW_PLAYER_ADVANCED = 35;
+    private static final int ROW_PLAYER_WHERE = 36;
+    private static final int ROW_PLAYER_EQ = 37;
+    private static final int ROW_PLAYER_BASS = 38;
+    private static final int ROW_PLAYER_LOUDER = 39;
+    private static final int ROW_PLAYER_PRELOAD = 40;
+    private static final int ROW_PLAYER_INFO = 41;
+    private static final int ROW_PLAYER_CHATS_HEADER = 42;
+    private static final int ROW_PLAYER_CHATS_EMPTY = 43;
+    private static final int ROW_PLAYER_CHATS_HINT = 44;
+    /** Rows of the chosen chats on the player page: ROW_PLAYER_CHAT_BASE + index in playerChats. */
+    private static final int ROW_PLAYER_CHAT_BASE = 1000;
+
+    private static final int[] EQ_NAMES = {R.string.MeridaPlayerEqNormal, R.string.MeridaPlayerEqBass, R.string.MeridaPlayerEqRock, R.string.MeridaPlayerEqPop, R.string.MeridaPlayerEqVoice, R.string.MeridaPlayerEqElectro};
+    private static final int[] MODE_NAMES = {R.string.MeridaPlayerModeAll, R.string.MeridaPlayerModeExcept, R.string.MeridaPlayerModeOnly};
 
     private final int page;
-    private final int[] rows;
+    private int[] rows;
+    private final java.util.ArrayList<Long> playerChats = new java.util.ArrayList<>();
     private RecyclerListView listView;
     private ListAdapter adapter;
 
@@ -104,6 +129,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         super(pageArgs(page));
         this.page = page;
         this.rows = rowsFor(page);
+        if (page == PAGE_PLAYER) {
+            buildPlayerRows();
+        }
     }
 
     private static Bundle pageArgs(int page) {
@@ -126,8 +154,75 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             case PAGE_GENERAL:
                 return new int[]{ROW_GENERAL_HEADER, ROW_HIDE_STORIES, ROW_SHOW_ID, ROW_TIME_WITH_SECONDS, ROW_GENERAL_INFO};
             default:
-                return new int[]{ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_LOOK, ROW_SECTION_GENERAL, ROW_SECTIONS_INFO};
+                return new int[]{ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_LOOK, ROW_SECTION_GENERAL, ROW_SECTIONS_INFO};
         }
+    }
+
+    /** The player page lists the chosen chats, so its rows change when the list or the mode changes. */
+    private void buildPlayerRows() {
+        playerChats.clear();
+        final java.util.ArrayList<Integer> list = new java.util.ArrayList<>();
+        list.add(ROW_PLAYER_HEADER);
+        list.add(ROW_PLAYER_ADVANCED);
+        list.add(ROW_PLAYER_WHERE);
+        list.add(ROW_PLAYER_EQ);
+        list.add(ROW_PLAYER_BASS);
+        list.add(ROW_PLAYER_LOUDER);
+        list.add(ROW_PLAYER_PRELOAD);
+        list.add(ROW_PLAYER_INFO);
+        if (MeridaSettings.playerMode.get() != MeridaPlayer.MODE_ALL) {
+            list.add(ROW_PLAYER_CHATS_HEADER);
+            playerChats.addAll(MeridaPlayer.getChosenChats());
+            if (playerChats.isEmpty()) {
+                list.add(ROW_PLAYER_CHATS_EMPTY);
+            } else {
+                for (int i = 0; i < playerChats.size(); i++) {
+                    list.add(ROW_PLAYER_CHAT_BASE + i);
+                }
+                list.add(ROW_PLAYER_CHATS_HINT);
+            }
+        }
+        rows = new int[list.size()];
+        for (int i = 0; i < rows.length; i++) {
+            rows[i] = list.get(i);
+        }
+    }
+
+    private void refreshPlayerPage() {
+        buildPlayerRows();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    private String chatName(long dialogId) {
+        final MessagesController controller = MessagesController.getInstance(currentAccount);
+        if (DialogObject.isUserDialog(dialogId)) {
+            final TLRPC.User user = controller.getUser(dialogId);
+            if (user != null) {
+                return UserObject.getUserName(user);
+            }
+        } else {
+            final TLRPC.Chat chat = controller.getChat(-dialogId);
+            if (chat != null && chat.title != null) {
+                return chat.title;
+            }
+        }
+        return String.valueOf(dialogId);
+    }
+
+    private void showChoice(int title, int[] names, int selected, java.util.function.IntConsumer onChosen) {
+        if (getParentActivity() == null) {
+            return;
+        }
+        final CharSequence[] items = new CharSequence[names.length];
+        for (int i = 0; i < names.length; i++) {
+            items[i] = (i == selected ? "✓ " : "") + LocaleController.getString(names[i]);
+        }
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setTitle(LocaleController.getString(title));
+        builder.setItems(items, (dialog, which) -> onChosen.accept(which));
+        showDialog(builder.create());
     }
 
     private int positionOf(int row) {
@@ -224,6 +319,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaLookHeader;
             case PAGE_GENERAL:
                 return R.string.MeridaSettingsGeneral;
+            case PAGE_PLAYER:
+                return R.string.MeridaPlayerHeader;
             default:
                 return R.string.MeridaSettings;
         }
@@ -241,6 +338,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return PAGE_LOOK;
             case ROW_SECTION_GENERAL:
                 return PAGE_GENERAL;
+            case ROW_SECTION_PLAYER:
+                return PAGE_PLAYER;
             default:
                 return -1;
         }
@@ -259,6 +358,30 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 ((TextCheckCell) view).setChecked(enabled);
             }
             adapter.notifyDataSetChanged();
+            return;
+        }
+        if (position == ROW_PLAYER_WHERE) {
+            showChoice(R.string.MeridaPlayerWhere, MODE_NAMES, MeridaSettings.playerMode.get(), which -> {
+                MeridaSettings.playerMode.set(which);
+                MeridaPlayer.reapply();
+                refreshPlayerPage();
+            });
+            return;
+        }
+        if (position == ROW_PLAYER_EQ) {
+            showChoice(R.string.MeridaPlayerEqualizer, EQ_NAMES, MeridaSettings.playerEqPreset.get(), which -> {
+                MeridaSettings.playerEqPreset.set(which);
+                MeridaPlayer.reapply();
+                refreshPlayerPage();
+            });
+            return;
+        }
+        if (position >= ROW_PLAYER_CHAT_BASE) {
+            final int i = position - ROW_PLAYER_CHAT_BASE;
+            if (i >= 0 && i < playerChats.size()) {
+                MeridaPlayer.removeChosen(playerChats.get(i));
+                refreshPlayerPage();
+            }
             return;
         }
         if (position == ROW_VPN_RENEW) {
@@ -280,6 +403,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             if (first >= 0) {
                 adapter.notifyItemRangeChanged(first, ROW_GHOST_AUTO_OFFLINE - ROW_GHOST_NO_READ + 1);
             }
+        }
+        if (position == ROW_PLAYER_ADVANCED || position == ROW_PLAYER_BASS || position == ROW_PLAYER_LOUDER) {
+            MeridaPlayer.reapply();
         }
         if (position == ROW_HIDE_STORIES) {
             for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
@@ -318,6 +444,14 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.spySaveDeleted;
             case ROW_SNOW:
                 return MeridaSettings.snow;
+            case ROW_PLAYER_ADVANCED:
+                return MeridaSettings.playerAdvanced;
+            case ROW_PLAYER_BASS:
+                return MeridaSettings.playerBassBoost;
+            case ROW_PLAYER_LOUDER:
+                return MeridaSettings.playerLouder;
+            case ROW_PLAYER_PRELOAD:
+                return MeridaSettings.playerPreload;
             default:
                 return null;
         }
@@ -353,6 +487,14 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaSpySaveDeleted;
             case ROW_SNOW:
                 return R.string.MeridaSnow;
+            case ROW_PLAYER_ADVANCED:
+                return R.string.MeridaPlayerAdvanced;
+            case ROW_PLAYER_BASS:
+                return R.string.MeridaPlayerBass;
+            case ROW_PLAYER_LOUDER:
+                return R.string.MeridaPlayerLouder;
+            case ROW_PLAYER_PRELOAD:
+                return R.string.MeridaPlayerPreload;
             default:
                 return R.string.MeridaTimeWithSeconds;
         }
@@ -404,7 +546,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             final int type = holder.getItemViewType();
             final int position = holder.getAdapterPosition();
             return type == TYPE_CHECK || type == TYPE_SECTION
-                    || (position >= 0 && position < rows.length && rows[position] == ROW_VPN_RENEW);
+                    || (position >= 0 && position < rows.length && (rows[position] == ROW_VPN_RENEW
+                    || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] >= ROW_PLAYER_CHAT_BASE));
         }
 
         @NonNull
@@ -446,6 +589,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaGhostMode), onOff(MeridaSettings.ghostMode.get()), R.drawable.msg_mask, divider);
                     } else if (position == ROW_SECTION_SPY) {
                         cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaSpyHeader), onOff(MeridaSettings.spySaveDeleted.get()), R.drawable.msg_views, divider);
+                    } else if (position == ROW_SECTION_PLAYER) {
+                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaPlayerHeader), onOff(MeridaSettings.playerAdvanced.get()), R.drawable.msg_filled_data_music, divider);
                     } else if (position == ROW_SECTION_LOOK) {
                         cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaLookHeader), "", R.drawable.msg_palette, divider);
                     } else {
@@ -455,7 +600,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 }
                 case TYPE_HEADER:
                     ((HeaderCell) holder.itemView).setText(LocaleController.getString(
-                            position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : position == ROW_SPY_HEADER ? R.string.MeridaSpyHeader : position == ROW_LOOK_HEADER ? R.string.MeridaLookHeader : R.string.MeridaSettingsGeneral
+                            position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : position == ROW_SPY_HEADER ? R.string.MeridaSpyHeader : position == ROW_LOOK_HEADER ? R.string.MeridaLookHeader : position == ROW_PLAYER_HEADER ? R.string.MeridaPlayerHeader : position == ROW_PLAYER_CHATS_HEADER ? (MeridaSettings.playerMode.get() == MeridaPlayer.MODE_ONLY ? R.string.MeridaPlayerChosenOnly : R.string.MeridaPlayerChosenExcept) : R.string.MeridaSettingsGeneral
                     ));
                     break;
                 case TYPE_CHECK: {
@@ -463,7 +608,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     cell.setTextAndCheck(
                             LocaleController.getString(titleForRow(position)),
                             settingForRow(position).get(),
-                            position != ROW_TIME_WITH_SECONDS && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED && position != ROW_SNOW
+                            position != ROW_TIME_WITH_SECONDS && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED && position != ROW_SNOW && position != ROW_PLAYER_PRELOAD
                     );
                     // parts of ghost mode are greyed out while the master switch is off
                     cell.setEnabled(!isGhostPart(position) || MeridaSettings.ghostMode.get(), null);
@@ -471,7 +616,19 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 }
                 case TYPE_VALUE: {
                     TextSettingsCell cell = (TextSettingsCell) holder.itemView;
-                    if (position == ROW_VPN_CONNECTION) {
+                    if (position == ROW_PLAYER_WHERE) {
+                        cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                        final int mode = Math.max(0, Math.min(MODE_NAMES.length - 1, MeridaSettings.playerMode.get()));
+                        cell.setTextAndValue(LocaleController.getString(R.string.MeridaPlayerWhere), LocaleController.getString(MODE_NAMES[mode]), true);
+                    } else if (position == ROW_PLAYER_EQ) {
+                        cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                        final int eq = Math.max(0, Math.min(EQ_NAMES.length - 1, MeridaSettings.playerEqPreset.get()));
+                        cell.setTextAndValue(LocaleController.getString(R.string.MeridaPlayerEqualizer), LocaleController.getString(EQ_NAMES[eq]), true);
+                    } else if (position >= ROW_PLAYER_CHAT_BASE) {
+                        final int i = position - ROW_PLAYER_CHAT_BASE;
+                        cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                        cell.setTextAndValue(i < playerChats.size() ? chatName(playerChats.get(i)) : "", "✕", i < playerChats.size() - 1);
+                    } else if (position == ROW_VPN_CONNECTION) {
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                         cell.setTextAndValue(LocaleController.getString(R.string.MeridaVpnConnection), connectionText(), true);
                     } else if (position == ROW_VPN_SUBSCRIPTION) {
@@ -499,6 +656,12 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         text = LocaleController.getString(R.string.MeridaSnowInfo);
                     } else if (position == ROW_SECTIONS_INFO) {
                         text = LocaleController.getString(R.string.MeridaSectionsInfo);
+                    } else if (position == ROW_PLAYER_INFO) {
+                        text = LocaleController.getString(R.string.MeridaPlayerInfo);
+                    } else if (position == ROW_PLAYER_CHATS_EMPTY) {
+                        text = LocaleController.getString(R.string.MeridaPlayerNoChats);
+                    } else if (position == ROW_PLAYER_CHATS_HINT) {
+                        text = LocaleController.getString(R.string.MeridaPlayerRemoveHint);
                     } else {
                         text = LocaleController.getString(R.string.MeridaSettingsGeneralInfo);
                     }
@@ -510,6 +673,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
 
         @Override
         public int getItemViewType(int index) {
+            if (rows[index] >= ROW_PLAYER_CHAT_BASE) {
+                return TYPE_VALUE;
+            }
             switch (rows[index]) {
                 case ROW_SNOW_PREVIEW:
                     return TYPE_SNOW_PREVIEW;
@@ -518,16 +684,21 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_SECTION_SPY:
                 case ROW_SECTION_LOOK:
                 case ROW_SECTION_GENERAL:
+                case ROW_SECTION_PLAYER:
                     return TYPE_SECTION;
                 case ROW_VPN_HEADER:
                 case ROW_GENERAL_HEADER:
                 case ROW_GHOST_HEADER:
                 case ROW_SPY_HEADER:
                 case ROW_LOOK_HEADER:
+                case ROW_PLAYER_HEADER:
+                case ROW_PLAYER_CHATS_HEADER:
                     return TYPE_HEADER;
                 case ROW_VPN_CONNECTION:
                 case ROW_VPN_SUBSCRIPTION:
                 case ROW_VPN_RENEW:
+                case ROW_PLAYER_WHERE:
+                case ROW_PLAYER_EQ:
                     return TYPE_VALUE;
                 case ROW_VPN_INFO:
                 case ROW_GENERAL_INFO:
@@ -535,6 +706,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_SPY_INFO:
                 case ROW_LOOK_INFO:
                 case ROW_SECTIONS_INFO:
+                case ROW_PLAYER_INFO:
+                case ROW_PLAYER_CHATS_EMPTY:
+                case ROW_PLAYER_CHATS_HINT:
                     return TYPE_INFO;
                 default:
                     return TYPE_CHECK;

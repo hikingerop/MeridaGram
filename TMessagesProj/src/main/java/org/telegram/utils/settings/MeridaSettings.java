@@ -44,6 +44,27 @@ public final class MeridaSettings {
     public static final BooleanSetting snow =
         BooleanSetting.of("merida_snow", false);
 
+    /** Advanced music player (equalizer, bass, louder tracks, preload); see MeridaPlayer. */
+    public static final BooleanSetting playerAdvanced =
+        BooleanSetting.of("merida_player_advanced", true);
+
+    /** Where it works: 0 all chats, 1 all except chosen, 2 only chosen (MeridaPlayer.MODE_*). */
+    public static final IntSetting playerMode =
+        IntSetting.of("merida_player_mode", 0);
+
+    /** Equalizer preset, MeridaPlayer.EQ_*; 0 means the equalizer is off. */
+    public static final IntSetting playerEqPreset =
+        IntSetting.of("merida_player_eq", 0);
+
+    public static final BooleanSetting playerBassBoost =
+        BooleanSetting.of("merida_player_bass", false);
+
+    public static final BooleanSetting playerLouder =
+        BooleanSetting.of("merida_player_louder", false);
+
+    public static final BooleanSetting playerPreload =
+        BooleanSetting.of("merida_player_preload", true);
+
     public static final BooleanSetting vpnEnabled =
         BooleanSetting.of("merida_vpn_enabled", true);
 
