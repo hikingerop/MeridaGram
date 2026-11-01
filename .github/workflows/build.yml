@@ -78,6 +78,10 @@ jobs:
           sed -i -E "s/^RELEASE_KEY_PASSWORD=.*/RELEASE_KEY_PASSWORD=$MERIDA_KEYSTORE_PASSWORD/; s/^RELEASE_KEY_ALIAS=.*/RELEASE_KEY_ALIAS=meridagram/; s/^RELEASE_STORE_PASSWORD=.*/RELEASE_STORE_PASSWORD=$MERIDA_KEYSTORE_PASSWORD/" gradle.properties
           echo "Signing with own key"
 
+      # The build number is shown under MeridaGram's name in MeridaGram Settings
+      - name: Write build number
+        run: sed -i 's/NUMBER = "dev"/NUMBER = "${{ github.run_number }}"/' TMessagesProj/src/main/java/org/telegram/messenger/merida/MeridaBuild.java
+
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build

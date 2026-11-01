@@ -1386,7 +1386,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             addView(name, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, android.view.Gravity.CENTER_HORIZONTAL, 0, 12, 0, 0));
 
             final android.widget.TextView version = new android.widget.TextView(context);
-            version.setText(org.telegram.messenger.BuildVars.BUILD_VERSION_STRING);
+            // the build number shows at once whether the newest APK is installed
+            version.setText(LocaleController.formatString(R.string.MeridaVersionBuild, org.telegram.messenger.BuildVars.BUILD_VERSION_STRING, org.telegram.messenger.merida.MeridaBuild.NUMBER));
             version.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 15);
             version.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText));
             version.setGravity(android.view.Gravity.CENTER);
