@@ -33,12 +33,22 @@ fi
 if ! command -v awg > /dev/null || ! command -v awg-quick > /dev/null; then
   echo "→ Ставлю AmneziaWG (1–3 минуты)…"
   . /etc/os-release
-  [ "${ID:-}" = ubuntu ] || die "Скрипт рассчитан на Ubuntu, а здесь ${PRETTY_NAME:-неизвестная система}. Пришлите это сообщение в чат."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
-  apt-get install -y -qq software-properties-common python3-launchpadlib gnupg2 curl > /dev/null
+  apt-get install -y -qq gnupg2 curl ca-certificates > /dev/null
   apt-get install -y -qq "linux-headers-$(uname -r)" > /dev/null 2>&1 || echo "  (заголовки ядра не нашлись — попробую без них)"
-  add-apt-repository -y ppa:amnezia/ppa > /dev/null
+  if [ "${ID:-}" = ubuntu ]; then
+    apt-get install -y -qq software-properties-common python3-launchpadlib > /dev/null
+    add-apt-repository -y ppa:amnezia/ppa > /dev/null
+  elif [ "${ID:-}" = debian ]; then
+    # у AmneziaWG нет пакетов для Debian, их официальная инструкция берёт сборку для Ubuntu focal
+    mkdir -p /etc/apt/keyrings
+    curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x57290828" | gpg --dearmor --yes -o /etc/apt/keyrings/amnezia.gpg \
+      || die "Не удалось скачать ключ репозитория AmneziaWG. Пришлите скриншот в чат."
+    echo "deb [signed-by=/etc/apt/keyrings/amnezia.gpg] https://ppa.launchpadcontent.net/amnezia/ppa/ubuntu focal main" > /etc/apt/sources.list.d/amnezia.list
+  else
+    die "Скрипт рассчитан на Ubuntu и Debian, а здесь ${PRETTY_NAME:-неизвестная система}. Пришлите это сообщение в чат."
+  fi
   apt-get update -qq
   apt-get install -y -qq amneziawg > /dev/null || die "Не удалось поставить AmneziaWG. Пришлите скриншот этого экрана в чат."
 fi
