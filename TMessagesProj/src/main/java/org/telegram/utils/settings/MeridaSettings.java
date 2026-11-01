@@ -37,6 +37,16 @@ public final class MeridaSettings {
     public static final IntSetting visualGrams =
         IntSetting.of("merida_visual_grams", 0);
 
+    /** Visual username (without @), number (digits, only 888…) and rating level; see MeridaVisual. */
+    public static final StringSetting visualUsername =
+        StringSetting.of("merida_visual_username", null);
+
+    public static final StringSetting visualNumber =
+        StringSetting.of("merida_visual_number", null);
+
+    public static final IntSetting visualRating =
+        IntSetting.of("merida_visual_rating", 0);
+
     public static final BooleanSetting visualPremium =
         BooleanSetting.of("merida_visual_premium", false);
 

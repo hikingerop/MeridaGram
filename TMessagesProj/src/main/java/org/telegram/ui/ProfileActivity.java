@@ -5694,7 +5694,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         });
         ratingView.setOnClickListener(this::showStarRatingBottomSheet);
         if (userInfo != null) {
-            ratingView.set(userInfo.stars_rating);
+            ratingView.set(meridaRating(userInfo));
         }
 
         avatarContainer2.addView(ratingView);
@@ -9295,7 +9295,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (uid == userId) {
                 userInfo = (TLRPC.UserFull) args[1];
                 if (ratingView != null) {
-                    ratingView.set(userInfo.stars_rating);
+                    ratingView.set(meridaRating(userInfo));
                 }
                 if (storyView != null) {
                     storyView.setStories(userInfo.stories);
@@ -10426,7 +10426,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     ) {
         userInfo = value;
         if (ratingView != null) {
-            ratingView.set(userInfo.stars_rating);
+            ratingView.set(meridaRating(userInfo));
         }
         if (storyView != null) {
             storyView.setStories(userInfo.stories);
@@ -10782,7 +10782,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (userInfo != null && !TextUtils.isEmpty(userInfo.about)) {
                     userInfoRow = rowCount++;
                 }
-                if (user != null && username != null) {
+                if (user != null && (username != null || user.self && org.telegram.messenger.merida.MeridaVisual.usernameOn())) {
                     usernameRow = rowCount++;
                 }
                 if (user != null && MeridaSettings.showId.get()) {
@@ -13618,7 +13618,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             phoneNumber = null;
                         }
                         isFragmentPhoneNumber = phoneNumber != null && phoneNumber.matches("888\\d{8}");
-                        detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
+                        if (user != null && user.self && org.telegram.messenger.merida.MeridaVisual.numberOn()) {
+                            // MeridaGram «Visual»: an anonymous number with «VISUAL» written over it
+                            detailCell.setTextAndValue(org.telegram.messenger.merida.MeridaVisual.watermark(org.telegram.messenger.merida.MeridaVisual.formatNumber888(MeridaSettings.visualNumber.get())), LocaleController.getString(R.string.AnonymousNumber), false);
+                        } else {
+                            detailCell.setTextAndValue(text, LocaleController.getString(isFragmentPhoneNumber ? R.string.AnonymousNumber : R.string.PhoneMobile), false);
+                        }
                     } else if (position == noteRow) {
                         final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
                         if (userInfo == null) return;
@@ -13675,6 +13680,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             } else {
                                 text = "—";
                             }
+                            // MeridaGram «Visual»: your own profile, with «VISUAL» written over the name
+                            if (user != null && user.self && org.telegram.messenger.merida.MeridaVisual.usernameOn()) {
+                                text = org.telegram.messenger.merida.MeridaVisual.watermark("@" + MeridaSettings.visualUsername.get());
+                            }
                             containsQr = !myProfile;
                         } else if (currentChat != null) {
                             TLRPC.Chat chat = getMessagesController().getChat(chatId);
@@ -13709,7 +13718,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         } else {
                             value = LocaleController.getString(R.string.NumberUnknown);
                         }
-                        detailCell.setTextAndValue(value, LocaleController.getString(R.string.TapToChangePhone), true);
+                        if (org.telegram.messenger.merida.MeridaVisual.numberOn()) {
+                            detailCell.setTextAndValue(org.telegram.messenger.merida.MeridaVisual.watermark(org.telegram.messenger.merida.MeridaVisual.formatNumber888(MeridaSettings.visualNumber.get())), LocaleController.getString(R.string.TapToChangePhone), true);
+                        } else {
+                            detailCell.setTextAndValue(value, LocaleController.getString(R.string.TapToChangePhone), true);
+                        }
                         detailCell.setContentDescriptionValueFirst(false);
                     } else if (position == setUsernameRow) {
                         TLRPC.User user = UserConfig.getInstance(currentAccount).getCurrentUser();
@@ -16791,7 +16804,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
+    /** MeridaGram «Visual»: your own profile may show a rating set on this phone, marked as visual. */
+    private TL_stars.Tl_starsRating meridaRating(TLRPC.UserFull info) {
+        final boolean visual = info != null && info.id == getUserConfig().getClientUserId() && org.telegram.messenger.merida.MeridaVisual.ratingOn();
+        if (ratingView != null) {
+            ratingView.meridaVisual = visual;
+        }
+        return visual ? org.telegram.messenger.merida.MeridaVisual.visualRating() : info == null ? null : info.stars_rating;
+    }
+
     private void showStarRatingBottomSheet(View ignoreView) {
+        if (ratingView != null && ratingView.meridaVisual) {
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.chats_infotip, getString(R.string.MeridaVisualRatingInfo)).show();
+            return;
+        }
         final Context context = getContext();
         final TLRPC.UserFull userFull = getUserInfo();
         if (userFull == null || userFull.stars_rating == null) {

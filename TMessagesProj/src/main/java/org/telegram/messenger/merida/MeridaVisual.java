@@ -113,6 +113,119 @@ public final class MeridaVisual {
         }
     }
 
+    // ---- stage 3: username, number, rating -------------------------------------------------------
+
+    public static boolean usernameOn() {
+        final String u = MeridaSettings.visualUsername.get();
+        return on() && u != null && !u.isEmpty();
+    }
+
+    public static boolean numberOn() {
+        final String n = MeridaSettings.visualNumber.get();
+        return on() && n != null && isAnonymousNumber(n);
+    }
+
+    public static boolean ratingOn() {
+        return on() && MeridaSettings.visualRating.get() > 0;
+    }
+
+    /** Only anonymous Fragment numbers: 888 and 8 more digits. Real phone numbers belong to real people. */
+    public static boolean isAnonymousNumber(String digits) {
+        return digits != null && digits.matches("888\\d{8}");
+    }
+
+    public static String formatNumber888(String digits) {
+        return "+888 " + digits.substring(3, 7) + " " + digits.substring(7);
+    }
+
+    public static boolean isValidUsername(String username) {
+        return username != null && username.matches("[A-Za-z][A-Za-z0-9_]{3,31}");
+    }
+
+    public static final int CHECK_OK = 0;
+    public static final int CHECK_TAKEN = 1;
+    public static final int CHECK_INVALID = 2;
+    public static final int CHECK_ERROR = 3;
+
+    public interface CheckResult {
+        void done(int result);
+    }
+
+    /**
+     * A visual username may not belong to another account, channel or bot: Telegram is asked who has it.
+     * Free and unassigned collectible usernames are allowed; so is your own.
+     */
+    public static void checkUsername(int account, String username, CheckResult result) {
+        if (!isValidUsername(username)) {
+            result.done(CHECK_INVALID);
+            return;
+        }
+        final org.telegram.tgnet.TLRPC.TL_contacts_resolveUsername req = new org.telegram.tgnet.TLRPC.TL_contacts_resolveUsername();
+        req.username = username;
+        org.telegram.tgnet.ConnectionsManager.getInstance(account).sendRequest(req, (response, error) -> AndroidUtilities.runOnUIThread(() -> {
+            if (response instanceof org.telegram.tgnet.TLRPC.TL_contacts_resolvedPeer) {
+                final org.telegram.tgnet.TLRPC.Peer peer = ((org.telegram.tgnet.TLRPC.TL_contacts_resolvedPeer) response).peer;
+                final long self = org.telegram.messenger.UserConfig.getInstance(account).getClientUserId();
+                result.done(peer instanceof org.telegram.tgnet.TLRPC.TL_peerUser && peer.user_id == self ? CHECK_OK : CHECK_TAKEN);
+            } else if (error != null && "USERNAME_NOT_OCCUPIED".equals(error.text)) {
+                result.done(CHECK_OK);
+            } else if (error != null && "USERNAME_INVALID".equals(error.text)) {
+                result.done(CHECK_INVALID);
+            } else {
+                result.done(CHECK_ERROR);
+            }
+        }));
+    }
+
+    public static org.telegram.tgnet.tl.TL_stars.Tl_starsRating visualRating() {
+        final org.telegram.tgnet.tl.TL_stars.Tl_starsRating r = new org.telegram.tgnet.tl.TL_stars.Tl_starsRating();
+        r.level = MeridaSettings.visualRating.get();
+        return r;
+    }
+
+    /**
+     * The text with «VISUAL» written over it, repeated across its whole width, so a screenshot cannot be
+     * cropped to show the text without the mark.
+     */
+    public static CharSequence watermark(CharSequence text) {
+        final SpannableString s = new SpannableString(text);
+        s.setSpan(new WatermarkSpan(), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return s;
+    }
+
+    private static final class WatermarkSpan extends ReplacementSpan {
+        private final TextPaint markPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        private final String mark = LocaleController.getString(R.string.MeridaVisualMark).toUpperCase();
+
+        @Override
+        public int getSize(@NonNull Paint paint, CharSequence text, int start, int end, @Nullable Paint.FontMetricsInt fm) {
+            if (fm != null) {
+                paint.getFontMetricsInt(fm);
+            }
+            return (int) Math.ceil(paint.measureText(text, start, end));
+        }
+
+        @Override
+        public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, @NonNull Paint paint) {
+            canvas.drawText(text, start, end, x, y, paint);
+            final float width = paint.measureText(text, start, end);
+            markPaint.setTextSize(paint.getTextSize() * 0.7f);
+            markPaint.setTypeface(AndroidUtilities.bold());
+            markPaint.setColor(MARK_COLOR);
+            markPaint.setAlpha(225 * paint.getAlpha() / 255);
+            final float step = markPaint.measureText(mark) + paint.getTextSize() * 0.5f;
+            final Paint.FontMetrics fm = markPaint.getFontMetrics();
+            final float cy = (top + bottom) / 2f;
+            canvas.save();
+            canvas.clipRect(x, top, x + width, bottom);
+            canvas.rotate(-8, x + width / 2, cy);
+            for (float mx = x - step / 3; mx < x + width; mx += step) {
+                canvas.drawText(mark, mx, cy - (fm.ascent + fm.descent) / 2, markPaint);
+            }
+            canvas.restore();
+        }
+    }
+
     /** An icon (the Premium star) with the «VISUAL» pill drawn right after it. */
     public static Drawable withMark(Drawable icon) {
         return new MarkedDrawable(icon);

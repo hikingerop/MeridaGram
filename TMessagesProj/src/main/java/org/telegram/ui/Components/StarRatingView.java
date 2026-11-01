@@ -100,7 +100,32 @@ public class StarRatingView extends View {
         drawable.draw(canvas);
 
         canvas.restore();
+
+        if (meridaVisual && visibility > 0) {
+            // MeridaGram «Visual»: a rating that is not real carries the mark under the badge
+            meridaPaint.setTextSize(dp(6.5f));
+            meridaPaint.setTypeface(org.telegram.messenger.AndroidUtilities.bold());
+            final String mark = org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.MeridaVisualMark).toUpperCase();
+            final float w = meridaPaint.measureText(mark) + dp(4);
+            final float h = dp(9);
+            final float cx = getMeasuredWidth() / 2f;
+            final float bottomY = getMeasuredHeight();
+            meridaRect.set(cx - w / 2, bottomY - h, cx + w / 2, bottomY);
+            meridaBg.setColor(0xFFFF9500);
+            meridaBg.setAlpha((int) (255 * visibility));
+            canvas.drawRoundRect(meridaRect, h / 2, h / 2, meridaBg);
+            meridaPaint.setColor(0xFFFFFFFF);
+            meridaPaint.setAlpha((int) (255 * visibility));
+            final android.graphics.Paint.FontMetrics fm = meridaPaint.getFontMetrics();
+            canvas.drawText(mark, cx - w / 2 + dp(2), meridaRect.centerY() - (fm.ascent + fm.descent) / 2, meridaPaint);
+        }
     }
+
+    /** MeridaGram «Visual»: this rating was set on this phone and is not real. */
+    public boolean meridaVisual;
+    private final android.text.TextPaint meridaPaint = new android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+    private final android.graphics.Paint meridaBg = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+    private final android.graphics.RectF meridaRect = new android.graphics.RectF();
 
     @Override
     protected void onAttachedToWindow() {

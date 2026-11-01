@@ -140,6 +140,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_VISUAL_GRAMS = 77;
     private static final int ROW_VISUAL_PREMIUM = 78;
     private static final int ROW_VISUAL_GIFTS = 79;
+    private static final int ROW_VISUAL_USERNAME = 80;
+    private static final int ROW_VISUAL_NUMBER = 81;
+    private static final int ROW_VISUAL_RATING = 82;
     /** Installed plugins on the plugins page: ROW_PLUGIN_BASE + index in plugins. */
     private static final int ROW_PLUGIN_BASE = 9000;
     private static final int[] MARK_STYLE_NAMES = {R.string.MeridaMarkIconWord, R.string.MeridaMarkIcon, R.string.MeridaMarkWord};
@@ -324,7 +327,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return new int[]{
                         hdr(R.string.MeridaHdrChatList), ROW_SNOW_PREVIEW, ROW_SNOW, ROW_HIDE_FOLDER_TABS, ROW_HIDE_STORIES, note(R.string.MeridaInfoChatList),
                         hdr(R.string.MeridaHdrMessages), ROW_TIME_WITH_SECONDS, note(R.string.MeridaInfoSeconds),
-                        hdr(R.string.MeridaHdrVisual), ROW_VISUAL_ENABLED, ROW_VISUAL_STARS, ROW_VISUAL_GRAMS, ROW_VISUAL_GIFTS, ROW_VISUAL_PREMIUM, note(R.string.MeridaInfoVisual)};
+                        hdr(R.string.MeridaHdrVisual), ROW_VISUAL_ENABLED, ROW_VISUAL_STARS, ROW_VISUAL_GRAMS, ROW_VISUAL_GIFTS, ROW_VISUAL_USERNAME, ROW_VISUAL_NUMBER, ROW_VISUAL_RATING, ROW_VISUAL_PREMIUM, note(R.string.MeridaInfoVisual)};
             case PAGE_GENERAL:
                 return new int[]{
                         hdr(R.string.MeridaHdrId), ROW_SHOW_ID, ROW_COPY_ID_MENU, note(R.string.MeridaInfoId),
@@ -616,6 +619,81 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         showDialog(builder.create());
     }
 
+    /** Asks for a line of text; an empty answer turns the value off. */
+    private void showTextInput(int title, int message, String hint, String current, int inputType, java.util.function.Consumer<String> onDone) {
+        final Context context = getParentActivity();
+        if (context == null) {
+            return;
+        }
+        final org.telegram.ui.Components.EditTextBoldCursor input = new org.telegram.ui.Components.EditTextBoldCursor(context);
+        input.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 18);
+        input.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        input.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
+        input.setHint(hint);
+        input.setInputType(inputType);
+        input.setSingleLine(true);
+        input.setBackground(null);
+        input.setLineColors(Theme.getColor(Theme.key_dialogInputField), Theme.getColor(Theme.key_dialogInputFieldActivated), Theme.getColor(Theme.key_text_RedBold));
+        input.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8));
+        if (current != null) {
+            input.setText(current);
+            input.setSelection(input.length());
+        }
+        final android.widget.LinearLayout layout = new android.widget.LinearLayout(context);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.addView(input, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 24, 4, 24, 4));
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(LocaleController.getString(title));
+        builder.setMessage(LocaleController.getString(message));
+        builder.setView(layout);
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), (d, w) -> onDone.accept(input.getText() == null ? "" : input.getText().toString().trim()));
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showDialog(builder.create());
+    }
+
+    private void toast(int res) {
+        if (getParentActivity() != null) {
+            android.widget.Toast.makeText(getParentActivity(), LocaleController.getString(res), android.widget.Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void askVisualUsername() {
+        showTextInput(R.string.MeridaVisualUsername, R.string.MeridaVisualUsernameHint, "username", MeridaSettings.visualUsername.get(),
+                android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS, text -> {
+                    final String username = text.startsWith("@") ? text.substring(1) : text;
+                    if (username.isEmpty()) {
+                        MeridaSettings.visualUsername.set(null);
+                        adapter.notifyDataSetChanged();
+                        return;
+                    }
+                    org.telegram.messenger.merida.MeridaVisual.checkUsername(currentAccount, username, result -> {
+                        if (result == org.telegram.messenger.merida.MeridaVisual.CHECK_OK) {
+                            MeridaSettings.visualUsername.set(username);
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            toast(result == org.telegram.messenger.merida.MeridaVisual.CHECK_TAKEN ? R.string.MeridaVisualUsernameTaken
+                                    : result == org.telegram.messenger.merida.MeridaVisual.CHECK_INVALID ? R.string.MeridaVisualUsernameInvalid : R.string.MeridaVisualUsernameError);
+                        }
+                    });
+                });
+    }
+
+    private void askVisualNumber() {
+        showTextInput(R.string.MeridaVisualNumber, R.string.MeridaVisualNumberRule, "+888 0000 0000", null,
+                android.text.InputType.TYPE_CLASS_PHONE, text -> {
+                    final String digits = text.replaceAll("[^0-9]", "");
+                    if (digits.isEmpty()) {
+                        MeridaSettings.visualNumber.set(null);
+                        adapter.notifyDataSetChanged();
+                    } else if (org.telegram.messenger.merida.MeridaVisual.isAnonymousNumber(digits)) {
+                        MeridaSettings.visualNumber.set(digits);
+                        adapter.notifyDataSetChanged();
+                    } else {
+                        toast(R.string.MeridaVisualNumberOnly888);
+                    }
+                });
+    }
+
     private static String visualNumberText(int value) {
         return value > 0 ? org.telegram.messenger.merida.MeridaVisual.formatNumber(value) : LocaleController.getString(R.string.NotificationsOff);
     }
@@ -890,6 +968,21 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         }
         if (position == ROW_VISUAL_GIFTS) {
             showVisualGifts();
+            return;
+        }
+        if (position == ROW_VISUAL_USERNAME) {
+            askVisualUsername();
+            return;
+        }
+        if (position == ROW_VISUAL_NUMBER) {
+            askVisualNumber();
+            return;
+        }
+        if (position == ROW_VISUAL_RATING) {
+            showNumberInput(R.string.MeridaVisualRating, MeridaSettings.visualRating.get(), value -> {
+                MeridaSettings.visualRating.set(Math.min(100, value));
+                adapter.notifyDataSetChanged();
+            });
             return;
         }
         if (position == ROW_VISUAL_STARS || position == ROW_VISUAL_GRAMS) {
@@ -1206,7 +1299,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             final int position = holder.getAdapterPosition();
             return type == TYPE_CHECK || type == TYPE_SECTION || type == TYPE_LINK
                     || (position >= 0 && position < rows.length && (rows[position] == ROW_VPN_RENEW || rows[position] == ROW_VPN_PING
-                    || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] == ROW_PLAYER_SLEEP || rows[position] == ROW_SPY_MARK || rows[position] == ROW_SPY_MARK_COLOR || rows[position] == ROW_VISUAL_STARS || rows[position] == ROW_VISUAL_GRAMS || rows[position] == ROW_VISUAL_GIFTS || isPlayerChatRow(rows[position]) || isCryptoChatRow(rows[position])));
+                    || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] == ROW_PLAYER_SLEEP || rows[position] == ROW_SPY_MARK || rows[position] == ROW_SPY_MARK_COLOR || rows[position] == ROW_VISUAL_STARS || rows[position] == ROW_VISUAL_GRAMS || rows[position] == ROW_VISUAL_GIFTS || rows[position] == ROW_VISUAL_USERNAME || rows[position] == ROW_VISUAL_NUMBER || rows[position] == ROW_VISUAL_RATING || isPlayerChatRow(rows[position]) || isCryptoChatRow(rows[position])));
         }
 
         @NonNull
@@ -1353,6 +1446,19 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
                         final int eq = Math.max(0, Math.min(EQ_NAMES.length - 1, MeridaSettings.playerEqPreset.get()));
                         cell.setTextAndValue(LocaleController.getString(R.string.MeridaPlayerEqualizer), LocaleController.getString(EQ_NAMES[eq]), true);
+                    } else if (position == ROW_VISUAL_USERNAME || position == ROW_VISUAL_NUMBER || position == ROW_VISUAL_RATING) {
+                        final String off = LocaleController.getString(R.string.NotificationsOff);
+                        final String u = MeridaSettings.visualUsername.get();
+                        final String n = MeridaSettings.visualNumber.get();
+                        final int r = MeridaSettings.visualRating.get();
+                        cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                        if (position == ROW_VISUAL_USERNAME) {
+                            cell.setTextAndValue(LocaleController.getString(R.string.MeridaVisualUsername), u != null && !u.isEmpty() ? "@" + u : off, true);
+                        } else if (position == ROW_VISUAL_NUMBER) {
+                            cell.setTextAndValue(LocaleController.getString(R.string.MeridaVisualNumber), org.telegram.messenger.merida.MeridaVisual.isAnonymousNumber(n) ? org.telegram.messenger.merida.MeridaVisual.formatNumber888(n) : off, true);
+                        } else {
+                            cell.setTextAndValue(LocaleController.getString(R.string.MeridaVisualRating), r > 0 ? LocaleController.formatString(R.string.MeridaVisualRatingLevel, r) : off, true);
+                        }
                     } else if (position == ROW_VISUAL_GIFTS) {
                         final int n = org.telegram.messenger.merida.MeridaVisualGifts.slugs().size();
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
@@ -1496,6 +1602,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_VISUAL_STARS:
                 case ROW_VISUAL_GRAMS:
                 case ROW_VISUAL_GIFTS:
+                case ROW_VISUAL_USERNAME:
+                case ROW_VISUAL_NUMBER:
+                case ROW_VISUAL_RATING:
                     return TYPE_VALUE;
                 case ROW_VPN_INFO:
                 case ROW_GENERAL_INFO:
