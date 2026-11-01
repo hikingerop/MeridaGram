@@ -6850,7 +6850,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
 
     /** MeridaGram's name on the top bar, with a ghost icon while ghost mode is on (if chosen in settings). */
     private CharSequence meridaTitle() {
-        final SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
+        final SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.MeridaAppName));
         if (org.telegram.utils.settings.MeridaSettings.ghostMode.get() && org.telegram.utils.settings.MeridaSettings.ghostStatus.get()) {
             ssb.append("  g");
             final ColoredImageSpan ghost = new ColoredImageSpan(R.drawable.msg_mask);

@@ -630,7 +630,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     @Override
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
-        actionBar.setAllowOverlayTitle(true);
+        // our own title always, not Telegram's «Connecting…»
+        actionBar.setAllowOverlayTitle(false);
         actionBar.setTitle(LocaleController.getString(titleForPage(page)));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
@@ -642,12 +643,17 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         });
 
         FrameLayout frameLayout = new FrameLayout(context);
-        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
+        // in a dark theme the background is pure black, like exteraGram; the cards keep the theme's colour
+        frameLayout.setBackgroundColor(blackBackground() ? 0xFF000000 : Theme.getColor(Theme.key_windowBackgroundGray));
         fragmentView = frameLayout;
 
         listView = new RecyclerListView(context);
         listView.setSections();
-        actionBar.setAdaptiveBackground(listView);
+        if (blackBackground()) {
+            actionBar.setBackgroundColor(0xFF000000);
+        } else {
+            actionBar.setAdaptiveBackground(listView);
+        }
         listView.setLayoutManager(new LinearLayoutManager(context));
         listView.setVerticalScrollBarEnabled(false);
         listView.setAdapter(adapter = new ListAdapter(context));
@@ -671,6 +677,15 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 LayoutHelper.MATCH_PARENT
         ));
         return fragmentView;
+    }
+
+    private static boolean blackBackground() {
+        return Theme.isCurrentThemeDark();
+    }
+
+    @Override
+    public int getNavigationBarColor() {
+        return blackBackground() ? 0xFF000000 : super.getNavigationBarColor();
     }
 
     private static int titleForPage(int page) {
@@ -1344,7 +1359,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             addView(icon, LayoutHelper.createLinear(96, 96, android.view.Gravity.CENTER_HORIZONTAL));
 
             final android.widget.TextView name = new android.widget.TextView(context);
-            name.setText(LocaleController.getString(R.string.AppName));
+            name.setText(LocaleController.getString(R.string.MeridaAppName));
             name.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 24);
             name.setTypeface(AndroidUtilities.bold());
             name.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
@@ -1403,7 +1418,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             titlePaint.setColor(textColor);
             dotPaint.setColor(textColor);
             canvas.drawPath(clip, barPaint);
-            canvas.drawText(LocaleController.getString(R.string.AppName), bar.left + AndroidUtilities.dp(18), bar.centerY() + AndroidUtilities.dp(7), titlePaint);
+            canvas.drawText(LocaleController.getString(R.string.MeridaAppName), bar.left + AndroidUtilities.dp(18), bar.centerY() + AndroidUtilities.dp(7), titlePaint);
             final float dotX = bar.right - AndroidUtilities.dp(20);
             for (int i = -1; i <= 1; i++) {
                 canvas.drawCircle(dotX, bar.centerY() + i * AndroidUtilities.dp(5), AndroidUtilities.dp(1.8f), dotPaint);
