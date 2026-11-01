@@ -658,6 +658,14 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
 
         public void onItemClick(UItem item, View view, int position, float x, float y) {
             if (list == null) return;
+            if (item.object instanceof TL_stars.SavedStarGift && org.telegram.messenger.merida.MeridaVisualGifts.isVisual((TL_stars.SavedStarGift) item.object)) {
+                // a visual gift opens the real gift page, with its real owner
+                final String slug = org.telegram.messenger.merida.MeridaVisualGifts.slugOf((TL_stars.SavedStarGift) item.object);
+                if (slug != null) {
+                    org.telegram.messenger.browser.Browser.openUrl(getContext(), "https://t.me/nft/" + slug);
+                }
+                return;
+            }
             if (item.object instanceof TL_stars.SavedStarGift) {
                 final TL_stars.SavedStarGift userGift = (TL_stars.SavedStarGift) item.object;
                 if (reordering) {
@@ -714,6 +722,9 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
 
         public boolean onItemLongPress(UItem item, View view, int position, float x, float y) {
             if (list == null) return false;
+            if (item.object instanceof TL_stars.SavedStarGift && org.telegram.messenger.merida.MeridaVisualGifts.isVisual((TL_stars.SavedStarGift) item.object)) {
+                return false;
+            }
             if (view instanceof GiftSheet.GiftCell && item.object instanceof TL_stars.SavedStarGift) {
                 final GiftSheet.GiftCell cell = (GiftSheet.GiftCell) view;
                 final TL_stars.SavedStarGift savedStarGift = (TL_stars.SavedStarGift) item.object;
@@ -1706,7 +1717,7 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
         }
         if (dialogId >= 0) {
             final TLRPC.UserFull userFull = MessagesController.getInstance(currentAccount).getUserFull(dialogId);
-            return userFull != null ? userFull.stargifts_count : 0;
+            return userFull != null ? userFull.stargifts_count + org.telegram.messenger.merida.MeridaVisualGifts.extraFor(userFull) : 0;
         } else {
             final TLRPC.ChatFull chatFull = MessagesController.getInstance(currentAccount).getChatFull(-dialogId);
             return chatFull != null ? chatFull.stargifts_count : 0;

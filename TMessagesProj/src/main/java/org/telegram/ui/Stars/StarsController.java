@@ -3724,6 +3724,13 @@ public class StarsController {
                     gifts.addAll(rez.gifts);
                     lastOffset = rez.next_offset;
                     totalCount = rez.count;
+                    // MeridaGram «Visual»: your visual NFT gifts first, only in your own profile on this phone
+                    if (first && craftingGiftId == 0 && !isCollection && isInclude_unique() && isInclude_displayed()
+                            && (dialogId == 0 || dialogId == UserConfig.getInstance(currentAccount).getClientUserId())) {
+                        final ArrayList<TL_stars.SavedStarGift> visual = org.telegram.messenger.merida.MeridaVisualGifts.savedGifts();
+                        gifts.addAll(0, visual);
+                        totalCount += visual.size();
+                    }
                     chat_notifications_enabled = (rez.flags & 2) != 0 ? rez.chat_notifications_enabled : null;
                     endReached = gifts.size() > totalCount || lastOffset == null;
                 } else {

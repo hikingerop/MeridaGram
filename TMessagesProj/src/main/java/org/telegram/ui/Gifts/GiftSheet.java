@@ -1978,6 +1978,15 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
         }
 
         private void updateRibbonText() {
+            if (userGift != null && org.telegram.messenger.merida.MeridaVisualGifts.isVisual(userGift)) {
+                // MeridaGram «Visual»: this gift is not really yours, and the ribbon says so
+                ribbon.setVisibility(View.VISIBLE);
+                ribbon.setColor(0xFFFF9500);
+                ribbon.setStrokeColor(0);
+                ribbon.setBackdrop(null);
+                ribbon.setText(getString(R.string.MeridaVisualMark).toUpperCase(), false);
+                return;
+            }
             if (userGift != null) {
                 if (userGift.gift instanceof TL_stars.TL_starGiftUnique) {
                     ribbon.setVisibility(View.VISIBLE);
