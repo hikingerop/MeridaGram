@@ -89,6 +89,8 @@ jobs:
 
       # Releases do not count toward the Actions storage quota, so this is the main download place
       - name: Publish release
+        # a refused release must not lose the APK: the artifact below is still uploaded
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           NOTES: ${{ github.event.head_commit.message || 'Manual build' }}
