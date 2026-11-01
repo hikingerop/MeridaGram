@@ -55,9 +55,49 @@ public final class MeridaCrypto {
 
     // ---- settings per chat ------------------------------------------------------------------
 
+    /**
+     * The whole feature, switched in MeridaGram Settings → Encryption. A phone that already had
+     * encrypted chats before the switch existed keeps it on, so nothing is suddenly sent in plain text.
+     */
+    public static boolean isFeatureOn() {
+        final org.telegram.utils.settings.BooleanSetting setting = org.telegram.utils.settings.MeridaSettings.cryptoEnabled;
+        if (!setting.isSet()) {
+            boolean used = false;
+            for (String k : prefs().getAll().keySet()) {
+                if (k.startsWith("key_")) {
+                    used = true;
+                    break;
+                }
+            }
+            setting.set(used);
+        }
+        return setting.get();
+    }
+
     /** True when this chat has a password and sending encrypted messages is on. */
     public static boolean isOn(int account, long dialogId) {
+        return isFeatureOn() && prefs().getBoolean("on_" + id(account, dialogId), false) && key(account, dialogId) != null;
+    }
+
+    /** True when the chat's own switch is on, whatever the main switch says (for the settings list). */
+    public static boolean isChatOn(int account, long dialogId) {
         return prefs().getBoolean("on_" + id(account, dialogId), false) && key(account, dialogId) != null;
+    }
+
+    /** Chats of this account that have a password, for the list in settings. */
+    public static List<Long> chatsWithPassword(int account) {
+        final List<Long> result = new ArrayList<>();
+        final String prefix = "key_" + account + "_";
+        for (String k : prefs().getAll().keySet()) {
+            if (k.startsWith(prefix)) {
+                try {
+                    result.add(Long.parseLong(k.substring(prefix.length())));
+                } catch (NumberFormatException ignore) {
+                }
+            }
+        }
+        java.util.Collections.sort(result);
+        return result;
     }
 
     public static boolean hasPassword(int account, long dialogId) {

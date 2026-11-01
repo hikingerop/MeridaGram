@@ -4530,7 +4530,7 @@ public class ChatActivity extends BaseFragment implements
                 RLottieDrawable drawable = new RLottieDrawable(R.raw.boosts, dp(24), dp(24));
                 headerItem.lazilyAddSubItem(boost_group, drawable, LocaleController.getString(ChatObject.isChannelAndNotMegaGroup(currentChat) ? R.string.BoostingBoostChannelMenu : R.string.BoostingBoostGroupMenu));
             }
-            if (currentEncryptedChat == null) {
+            if (currentEncryptedChat == null && org.telegram.messenger.merida.MeridaCrypto.isFeatureOn()) {
                 headerItem.lazilyAddSubItem(merida_crypto, R.drawable.msg_secret, LocaleController.getString(R.string.MeridaCryptoMenu));
             }
             translateItem = headerItem.lazilyAddSubItem(translate, R.drawable.msg_translate, LocaleController.getString(R.string.TranslateMessage));
@@ -46804,7 +46804,7 @@ public class ChatActivity extends BaseFragment implements
             icons.add(sendMoneyIndex, R.drawable.ic_gram);
         }
 
-        if (org.telegram.utils.settings.MeridaSettings.showId.get() && meridaSenderId(selectedObject) != 0 && !selectedObject.isSponsored()) {
+        if (org.telegram.utils.settings.MeridaSettings.copyIdMenu.get() && meridaSenderId(selectedObject) != 0 && !selectedObject.isSponsored()) {
             int copyIdIndex = options.indexOf(OPTION_DELETE);
             if (copyIdIndex < 0) {
                 copyIdIndex = options.size();

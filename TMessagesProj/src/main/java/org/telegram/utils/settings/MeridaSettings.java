@@ -9,6 +9,17 @@ public final class MeridaSettings {
     public static final BooleanSetting showId =
         BooleanSetting.of("merida_show_id", false);
 
+    /** «Copy ID» of the sender in the message menu. */
+    public static final BooleanSetting copyIdMenu =
+        BooleanSetting.of("merida_copy_id_menu", false);
+
+    /**
+     * Encryption over Telegram (MeridaCrypto). While off, the chat menu has no «MeridaGram encryption»
+     * and new messages go out as usual; see MeridaCrypto.isFeatureOn for phones that used it before.
+     */
+    public static final BooleanSetting cryptoEnabled =
+        BooleanSetting.of("merida_crypto_enabled", false);
+
     /** Folder tabs are not shown above the chat list; only «All chats» stays. */
     public static final BooleanSetting hideFolderTabs =
         BooleanSetting.of("merida_hide_folder_tabs", false);

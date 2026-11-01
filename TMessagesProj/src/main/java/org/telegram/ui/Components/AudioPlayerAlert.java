@@ -2919,14 +2919,12 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
      */
     private void addMeridaPlayerOptions(ItemOptions o, MessageObject messageObject) {
         final long dialogId = messageObject.getDialogId();
-        o.addGap();
+        // turned on only in MeridaGram Settings → Player; while off the menu stays as in Telegram
         if (!org.telegram.utils.settings.MeridaSettings.playerAdvanced.get()) {
-            o.add(R.drawable.msg_tone_on, getString(R.string.MeridaPlayerTurnOn), () -> {
-                org.telegram.utils.settings.MeridaSettings.playerAdvanced.set(true);
-                org.telegram.messenger.merida.MeridaPlayer.reapply();
-                o.dismiss();
-            });
-        } else {
+            return;
+        }
+        o.addGap();
+        {
             final ItemOptions player = o.makeSwipeback();
             player.add(R.drawable.ic_ab_back, getString(R.string.Back), o::closeSwipeback);
             player.addGap();
