@@ -11697,6 +11697,10 @@
     <string name="MeridaVpnPingTap">Check</string>
     <string name="MeridaVpnPingMs">%1$d ms</string>
     <string name="MeridaVpnPingFailed">No answer</string>
+    <string name="MeridaSignatureTitle">Unofficial MeridaGram</string>
+    <string name="MeridaSignatureText">This copy of MeridaGram is not signed with the author\'s key. Anyone could have changed it, for example added a virus that steals accounts. Delete it and download MeridaGram only from the official channel @MeridaGram.</string>
+    <string name="MeridaSignatureOpenChannel">Open @MeridaGram</string>
+    <string name="MeridaSignatureLater">Got it</string>
     <string name="MeridaSnow">Snow</string>
     <string name="MeridaSnowInfo">Above is how the snow looks. It falls on the chat list\'s top bar and on chat backgrounds any time of the year. Appears after MeridaGram restarts. In power saving mode there is no snow on chat backgrounds.</string>
     <string name="MeridaSpyHeader">Spy</string>

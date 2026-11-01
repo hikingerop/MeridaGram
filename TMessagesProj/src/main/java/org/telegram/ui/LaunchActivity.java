@@ -7086,6 +7086,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         isResumed = true;
         // MeridaGram: look for devices that logged into the account while we were away
         org.telegram.messenger.merida.MeridaSessions.checkAll();
+        // MeridaGram: warn if this copy is not signed with the official MeridaGram key
+        org.telegram.messenger.merida.MeridaSignature.check();
         pipActivityHandler.onResume();
         if (onResumeStaticCallback != null) {
             onResumeStaticCallback.run();

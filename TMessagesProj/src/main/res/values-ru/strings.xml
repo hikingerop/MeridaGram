@@ -330,6 +330,10 @@
     <string name="MeridaVpnPingTap">Проверить</string>
     <string name="MeridaVpnPingMs">%1$d мс</string>
     <string name="MeridaVpnPingFailed">Нет ответа</string>
+    <string name="MeridaSignatureTitle">Неофициальный MeridaGram</string>
+    <string name="MeridaSignatureText">Эта копия MeridaGram подписана не ключом автора. Её мог изменить кто угодно — например, добавить вирус, который ворует аккаунты. Удалите её и скачайте MeridaGram только в официальном канале @MeridaGram.</string>
+    <string name="MeridaSignatureOpenChannel">Открыть @MeridaGram</string>
+    <string name="MeridaSignatureLater">Понятно</string>
     <string name="MeridaSnow">Снег</string>
     <string name="MeridaSnowInfo">Наверху — как будет выглядеть снег. Он падает в шапке списка чатов и на фоне чатов в любое время года. Появится после перезапуска MeridaGram. Если включён режим экономии энергии, на фоне чатов снег не показывается.</string>
     <string name="MeridaSpyHeader">Шпион</string>
