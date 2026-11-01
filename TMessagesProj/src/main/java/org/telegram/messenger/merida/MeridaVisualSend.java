@@ -51,8 +51,31 @@ public final class MeridaVisualSend {
         return s.startsWith("🎁 ") && s.endsWith("\n" + TAG) && s.split("\n").length >= 3;
     }
 
-    /** How MeridaGram shows such a message: a title, the orange mark, the item and a note that it is not real. */
     public static CharSequence render(CharSequence text) {
+        return render(text, false);
+    }
+
+    /** The NFT's real animated model for the sender's own copy of the message; null for stars, GRAM, Premium. */
+    private static org.telegram.tgnet.TLRPC.Document modelOf(String itemLine) {
+        final int i = itemLine.indexOf("t.me/nft/");
+        if (i < 0) {
+            return null;
+        }
+        final String slug = MeridaVisualGifts.parseSlug(itemLine.substring(i));
+        final org.telegram.tgnet.tl.TL_stars.TL_starGiftUnique gift = slug == null ? null : MeridaVisualGifts.load(slug);
+        if (gift == null) {
+            return null;
+        }
+        final org.telegram.tgnet.tl.TL_stars.starGiftAttributeModel model =
+                org.telegram.ui.Stars.StarsController.findAttribute(gift.attributes, org.telegram.tgnet.tl.TL_stars.starGiftAttributeModel.class);
+        return model == null ? null : model.document;
+    }
+
+    /**
+     * How MeridaGram shows such a message: a title, the orange mark, the item and a note that it is not real.
+     * The sender's own copy also shows the NFT's animated model; the other person always has the plain-words text.
+     */
+    public static CharSequence render(CharSequence text, boolean out) {
         final String[] lines = text.toString().split("\n");
         final StringBuilder item = new StringBuilder();
         for (int i = 1; i < lines.length - 1; i++) {
@@ -62,6 +85,17 @@ public final class MeridaVisualSend {
             item.append(lines[i]);
         }
         final SpannableStringBuilder sb = new SpannableStringBuilder();
+        if (out) {
+            try {
+                final org.telegram.tgnet.TLRPC.Document model = modelOf(item.toString());
+                if (model != null) {
+                    sb.append("🎁");
+                    sb.setSpan(new org.telegram.ui.Components.AnimatedEmojiSpan(model, 3.5f, null), 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    sb.append('\n');
+                }
+            } catch (Throwable ignore) {
+            }
+        }
         sb.append("🎁 ");
         final int titleStart = sb.length();
         sb.append(LocaleController.getString(R.string.MeridaVisualSendCardTitle));
