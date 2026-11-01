@@ -68,6 +68,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int TYPE_SNOW_PREVIEW = 5;
     private static final int TYPE_APP_HEADER = 6;
     private static final int TYPE_GAP = 7;
+    /** Links: a plain grey icon, kept apart from the coloured section tiles so recycled rows don't mix them. */
+    private static final int TYPE_LINK = 8;
 
     private static final int ROW_VPN_HEADER = 0;
     private static final int ROW_VPN_ENABLED = 1;
@@ -1058,7 +1060,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         public boolean isEnabled(RecyclerView.ViewHolder holder) {
             final int type = holder.getItemViewType();
             final int position = holder.getAdapterPosition();
-            return type == TYPE_CHECK || type == TYPE_SECTION
+            return type == TYPE_CHECK || type == TYPE_SECTION || type == TYPE_LINK
                     || (position >= 0 && position < rows.length && (rows[position] == ROW_VPN_RENEW || rows[position] == ROW_VPN_PING
                     || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] == ROW_PLAYER_SLEEP || rows[position] == ROW_SPY_MARK || rows[position] == ROW_SPY_MARK_COLOR || isPlayerChatRow(rows[position]) || isCryptoChatRow(rows[position])));
         }
@@ -1077,7 +1079,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 view = new TextCheckCell(context);
             } else if (viewType == TYPE_VALUE) {
                 view = new TextSettingsCell(context);
-            } else if (viewType == TYPE_SECTION) {
+            } else if (viewType == TYPE_SECTION || viewType == TYPE_LINK) {
                 view = new TextCell(context);
             } else if (viewType == TYPE_SNOW_PREVIEW) {
                 view = new SnowPreviewView(context);
@@ -1102,6 +1104,12 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case TYPE_APP_HEADER:
                 case TYPE_GAP:
                     break;
+                case TYPE_LINK: {
+                    TextCell cell = (TextCell) holder.itemView;
+                    cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaLinkChannel), "@MeridaGram", R.drawable.msg_channel, false);
+                    cell.valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
+                    break;
+                }
                 case TYPE_SECTION: {
                     // like exteraGram: icon and name only, no status on the right
                     TextCell cell = (TextCell) holder.itemView;
@@ -1111,34 +1119,44 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         cell.valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
                         break;
                     }
+                    // MeridaGram's own icons on coloured tiles, each section its own colour
                     final int title;
                     final int icon;
+                    final int color;
                     if (position == ROW_SECTION_VPN) {
                         title = R.string.MeridaVpnHeader;
-                        icon = R.drawable.msg_policy;
+                        icon = R.drawable.merida_section_proxy;
+                        color = 0xFF7B5CFF;
                     } else if (position == ROW_SECTION_GHOST) {
                         title = R.string.MeridaGhostMode;
-                        icon = R.drawable.msg_mask;
+                        icon = R.drawable.merida_section_ghost;
+                        color = 0xFF5AC8FA;
                     } else if (position == ROW_SECTION_SPY) {
                         title = R.string.MeridaSpyHeader;
-                        icon = R.drawable.msg_views;
+                        icon = R.drawable.merida_section_spy;
+                        color = 0xFF34C759;
                     } else if (position == ROW_SECTION_SECURITY) {
                         title = R.string.MeridaSecurityHeader;
-                        icon = R.drawable.msg_permissions;
+                        icon = R.drawable.merida_section_security;
+                        color = 0xFFFF3B30;
                     } else if (position == ROW_SECTION_PLUGINS) {
                         title = R.string.MeridaPluginsHeader;
-                        icon = R.drawable.msg_bots;
+                        icon = R.drawable.merida_section_plugins;
+                        color = 0xFF30B0C7;
                     } else if (position == ROW_SECTION_PLAYER) {
                         title = R.string.MeridaPlayerHeader;
-                        icon = R.drawable.msg_tone_on;
+                        icon = R.drawable.merida_section_player;
+                        color = 0xFFFF9500;
                     } else if (position == ROW_SECTION_LOOK) {
                         title = R.string.MeridaLookHeader;
-                        icon = R.drawable.msg_palette;
+                        icon = R.drawable.merida_section_look;
+                        color = 0xFFFF5E99;
                     } else {
                         title = R.string.MeridaSettingsGeneral;
-                        icon = R.drawable.msg_settings;
+                        icon = R.drawable.merida_section_general;
+                        color = 0xFF8E8E93;
                     }
-                    cell.setTextAndIcon(LocaleController.getString(title), icon, divider);
+                    cell.setTextAndColorfulIcon(LocaleController.getString(title), icon, color, divider);
                     break;
                 }
                 case TYPE_HEADER:
@@ -1290,6 +1308,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case ROW_APP_HEADER:
                     return TYPE_APP_HEADER;
                 case ROW_LINK_CHANNEL:
+                    return TYPE_LINK;
                 case ROW_SECTION_VPN:
                 case ROW_SECTION_GHOST:
                 case ROW_SECTION_SPY:
