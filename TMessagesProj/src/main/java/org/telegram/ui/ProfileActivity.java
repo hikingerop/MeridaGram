@@ -372,6 +372,21 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[] botVerificationDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable[2];
     private final Drawable[] verifiedCheckDrawable = new Drawable[2];
     private final CrossfadeDrawable[] verifiedCrossfadeDrawable = new CrossfadeDrawable[2];
+    /** MeridaGram's own badge next to the name of its official channels. */
+    private final org.telegram.messenger.merida.MeridaBadge[] meridaBadges = new org.telegram.messenger.merida.MeridaBadge[2];
+
+    private Drawable getMeridaBadge(int a) {
+        if (meridaBadges[a] == null) {
+            meridaBadges[a] = new org.telegram.messenger.merida.MeridaBadge(a == 0 ? 24 : 28);
+        }
+        return meridaBadges[a];
+    }
+
+    private void showMeridaBadgeInfo(TLRPC.Chat chat) {
+        if (BulletinFactory.canShowBulletin(this)) {
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.contact_check, LocaleController.formatString(R.string.MeridaOfficialResource, chat.title)).show();
+        }
+    }
     private final CrossfadeDrawable[] premiumCrossfadeDrawable = new CrossfadeDrawable[2];
     private ScamDrawable scamDrawable;
     private UndoView undoView;
@@ -11866,6 +11881,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 Browser.openUrl(getContext(), "https://" + getMessagesController().linkPrefix + "/nft/" + slug);
                             });
                         }
+                    } else if (org.telegram.messenger.merida.MeridaBadge.isOfficial(chat)) {
+                        nameTextView[a].setRightDrawable(getMeridaBadge(a));
+                        nameTextView[a].setRightDrawableOutside(true);
+                        final TLRPC.Chat officialChat = chat;
+                        nameTextView[a].setRightDrawableOnClick(v -> showMeridaBadgeInfo(officialChat));
                     }
                 } else if (!copyFromChatActivity) {
                     if (chat.scam || chat.fake) {
@@ -11880,6 +11900,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (DialogObject.getEmojiStatusDocumentId(chat.emoji_status) != 0) {
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(chat.emoji_status, false, false, a));
                         nameTextView[a].setRightDrawableOutside(true);
+                    } else if (org.telegram.messenger.merida.MeridaBadge.isOfficial(chat)) {
+                        nameTextView[a].setRightDrawable(getMeridaBadge(a));
+                        nameTextView[a].setRightDrawableOutside(true);
+                        final TLRPC.Chat officialChat = chat;
+                        nameTextView[a].setRightDrawableOnClick(v -> showMeridaBadgeInfo(officialChat));
                     } else {
                         nameTextView[a].setRightDrawable(null);
                     }

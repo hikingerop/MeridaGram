@@ -456,6 +456,7 @@
     <string name="MeridaPluginInstalled">Плагин «%1$s» установлен</string>
     <string name="MeridaPluginInstallFailed">Не удалось установить плагин</string>
     <string name="MeridaAppName">MeridaGram</string>
+    <string name="MeridaOfficialResource">«%1$s» — официальный ресурс MeridaGram.</string>
     <string name="MeridaHideFolderTabs">Скрыть вкладки папок</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
