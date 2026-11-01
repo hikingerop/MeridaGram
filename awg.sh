@@ -52,7 +52,28 @@ if ! command -v awg > /dev/null || ! command -v awg-quick > /dev/null; then
   apt-get update -qq
   apt-get install -y -qq amneziawg > /dev/null || die "Не удалось поставить AmneziaWG. Пришлите скриншот этого экрана в чат."
 fi
-modprobe amneziawg 2> /dev/null || true
+# Нет модуля ядра (не нашлись заголовки ядра) — ставим AmneziaWG «без ядра»: программу amneziawg-go
+# из официальных исходников. awg-quick сам переключается на неё, если модуля нет.
+if ! modprobe amneziawg 2> /dev/null && ! command -v amneziawg-go > /dev/null; then
+  echo "→ Модуля ядра нет — собираю AmneziaWG без него (2–5 минут)…"
+  [ -c /dev/net/tun ] || die "На сервере нет /dev/net/tun — попросите хостинг включить TUN/TAP и пришлите это сообщение в чат."
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get install -y -qq git ca-certificates curl > /dev/null
+  case "$(uname -m)" in
+    x86_64) GOARCH=amd64 ;;
+    aarch64) GOARCH=arm64 ;;
+    *) die "Неизвестный процессор $(uname -m). Пришлите это сообщение в чат." ;;
+  esac
+  B=/tmp/merida-awg-build
+  rm -rf "$B" && mkdir -p "$B"
+  curl -fsSL "https://go.dev/dl/go1.26.10.linux-$GOARCH.tar.gz" -o "$B/go.tgz" || die "Не удалось скачать Go. Пришлите скриншот в чат."
+  tar -C "$B" -xzf "$B/go.tgz"
+  git clone -q --depth 1 https://github.com/amnezia-vpn/amneziawg-go "$B/src" || die "Не удалось скачать amneziawg-go. Пришлите скриншот в чат."
+  ( cd "$B/src" && GOPATH="$B/gopath" GOCACHE="$B/cache" CGO_ENABLED=0 "$B/go/bin/go" build -o /usr/bin/amneziawg-go . ) \
+    || die "Не удалось собрать amneziawg-go. Пришлите скриншот в чат."
+  rm -rf "$B"
+  echo "  amneziawg-go готов."
+fi
 
 # ---------- ключи и настройки из СЛОВА (одинаковые на обоих серверах) ----------
 read -r MAIN_PRIV RELAY_PRIV PORT S1 S2 H1 H2 H3 H4 < <(python3 - "$WORD" <<'PY'
