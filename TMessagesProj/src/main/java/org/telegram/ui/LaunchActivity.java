@@ -7084,6 +7084,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
     protected void onResume() {
         super.onResume();
         isResumed = true;
+        // MeridaGram: look for devices that logged into the account while we were away
+        org.telegram.messenger.merida.MeridaSessions.checkAll();
         pipActivityHandler.onResume();
         if (onResumeStaticCallback != null) {
             onResumeStaticCallback.run();

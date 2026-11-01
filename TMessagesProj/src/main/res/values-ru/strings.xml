@@ -267,7 +267,7 @@
     <string name="MeridaSettings">Настройки MeridaGram</string>
     <string name="MeridaSettingsInfo">Функции MeridaGram</string>
     <string name="MeridaSettingsGeneral">Основные</string>
-    <string name="MeridaSettingsGeneralInfo">Секунды у сообщений появятся после повторного открытия чата. Скриншоты разрешаются в каналах и группах, где запрещено копирование. В секретных чатах, у исчезающих и платных фото запрет остаётся.</string>
+    <string name="MeridaSettingsGeneralInfo">Секунды у сообщений появятся после повторного открытия чата. Скриншоты разрешаются в каналах и группах, где запрещено копирование. В секретных чатах, у исчезающих и платных фото запрет остаётся. «Убирать геометку из фото»: у фото, отправленных файлом, удаляются место съёмки, модель телефона и время. «Предупреждать о новых входах»: если в аккаунт войдёт новое устройство, появится окно с кнопкой завершить этот вход.</string>
     <string name="MeridaHideStories">Скрыть истории</string>
     <string name="MeridaGhostHeader">Призрак</string>
     <string name="MeridaGhostMode">Режим призрака</string>
@@ -317,6 +317,14 @@
     <string name="MeridaCryptoDisabled">Шифрование выключено. Новые сообщения уходят обычным текстом.</string>
     <string name="MeridaCryptoLocked">Зашифрованное сообщение MeridaGram. Чтобы прочитать, введите пароль: ⋮ → Шифрование MeridaGram.</string>
     <string name="MeridaCryptoWrongPassword">Не удалось расшифровать: пароль не совпадает.</string>
+    <string name="MeridaSessionGuard">Предупреждать о новых входах</string>
+    <string name="MeridaSessionsTitle">Новый вход в аккаунт</string>
+    <string name="MeridaSessionsText">В ваш аккаунт вошло новое устройство. Если это не вы — сразу завершите этот вход и смените облачный пароль (Настройки → Конфиденциальность).</string>
+    <string name="MeridaSessionsItsMe">Это я</string>
+    <string name="MeridaSessionsEndThese">Завершить этот вход</string>
+    <string name="MeridaSessionsEndAll">Выйти везде, кроме этого телефона</string>
+    <string name="MeridaSessionsPasswordPending">Ещё не ввёл облачный пароль — успейте завершить вход!</string>
+    <string name="MeridaStripMetadata">Убирать геометку из фото</string>
     <string name="MeridaSnow">Снег</string>
     <string name="MeridaSnowInfo">Наверху — как будет выглядеть снег. Он падает в шапке списка чатов и на фоне чатов в любое время года. Появится после перезапуска MeridaGram. Если включён режим экономии энергии, на фоне чатов снег не показывается.</string>
     <string name="MeridaSpyHeader">Шпион</string>

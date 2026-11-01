@@ -9467,6 +9467,8 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                 extension = null;
             }
         }
+        // MeridaGram: photos sent as files go without GPS position, phone model and time
+        path = org.telegram.messenger.merida.MeridaExif.cleanCopy(path);
         final File f = new File(path);
         if (!f.exists() || f.length() == 0) {
             return ERROR_TYPE_UNSUPPORTED;

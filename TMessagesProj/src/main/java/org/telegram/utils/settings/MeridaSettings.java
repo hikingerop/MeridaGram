@@ -72,6 +72,14 @@ public final class MeridaSettings {
     public static final BooleanSetting allowScreenshots =
         BooleanSetting.of("merida_allow_screenshots", false);
 
+    /** Warn with a big window when a new device logs into the account (MeridaSessions). */
+    public static final BooleanSetting sessionGuard =
+        BooleanSetting.of("merida_session_guard", true);
+
+    /** Remove GPS position, phone model and time from photos sent as files (MeridaExif). */
+    public static final BooleanSetting stripPhotoMetadata =
+        BooleanSetting.of("merida_strip_photo_metadata", true);
+
     public static final BooleanSetting vpnEnabled =
         BooleanSetting.of("merida_vpn_enabled", true);
 
