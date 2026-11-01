@@ -59,6 +59,25 @@ jobs:
           grep -q "APP_ID = $TG_API_ID;" "$F" || { echo "::error::could not set APP_ID"; exit 1; }
           echo "Using own Telegram API ID"
 
+      # Own signing key, kept in repository secrets MERIDA_KEYSTORE (base64 of the JKS file, alias
+      # «meridagram») and MERIDA_KEYSTORE_PASSWORD. Without them the build is signed with the public key
+      # from the Telegram sources, which anyone can use.
+      - name: Use own signing key
+        env:
+          MERIDA_KEYSTORE: ${{ secrets.MERIDA_KEYSTORE }}
+          MERIDA_KEYSTORE_PASSWORD: ${{ secrets.MERIDA_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$MERIDA_KEYSTORE" ] || [ -z "$MERIDA_KEYSTORE_PASSWORD" ]; then
+            echo "::warning::MERIDA_KEYSTORE secrets are not set, signing with the public key from the sources"
+            exit 0
+          fi
+          echo "$MERIDA_KEYSTORE_PASSWORD" | grep -qE '^[A-Za-z0-9]+$' || { echo "::error::MERIDA_KEYSTORE_PASSWORD must be letters and digits only"; exit 1; }
+          echo "$MERIDA_KEYSTORE" | tr -d ' \r\n' | base64 -d > TMessagesProj/config/release.keystore
+          keytool -list -keystore TMessagesProj/config/release.keystore -storepass "$MERIDA_KEYSTORE_PASSWORD" -alias meridagram > /dev/null \
+            || { echo "::error::MERIDA_KEYSTORE does not open with MERIDA_KEYSTORE_PASSWORD"; exit 1; }
+          sed -i -E "s/^RELEASE_KEY_PASSWORD=.*/RELEASE_KEY_PASSWORD=$MERIDA_KEYSTORE_PASSWORD/; s/^RELEASE_KEY_ALIAS=.*/RELEASE_KEY_ALIAS=meridagram/; s/^RELEASE_STORE_PASSWORD=.*/RELEASE_STORE_PASSWORD=$MERIDA_KEYSTORE_PASSWORD/" gradle.properties
+          echo "Signing with own key"
+
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build
