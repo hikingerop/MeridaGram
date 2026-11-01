@@ -1805,7 +1805,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             default: vpn = getString(R.string.MeridaDiagVpnOff); break;
         }
         return getString(R.string.MeridaDiagConnection) + " " + connection + "\n"
-            + "Merida VPN: " + vpn + "\n"
+            + "Merida Proxy: " + vpn + "\n"
             + "API ID: " + BuildVars.APP_ID + "\n"
             + "Step: " + currentViewNum + (progressRequestId != 0 ? " / request " + progressRequestId : " / no request") + (isRequestingFirebaseSms ? " / Google Play Integrity" : "");
     }
