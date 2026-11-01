@@ -198,8 +198,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             case PAGE_GENERAL:
                 return new int[]{ROW_GENERAL_HEADER, ROW_SHOW_ID, ROW_COPY_ID_MENU, ROW_ALLOW_SCREENSHOTS};
             default:
-                return new int[]{ROW_APP_HEADER, ROW_CATEGORIES_HEADER, ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_SECURITY, ROW_SECTION_LOOK, ROW_SECTION_GENERAL,
-                        ROW_LINKS_HEADER, ROW_LINK_CHANNEL, ROW_SECTIONS_INFO};
+                return new int[]{ROW_APP_HEADER, ROW_CATEGORIES_HEADER, ROW_SECTION_GENERAL, ROW_SECTION_LOOK, ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_SECURITY,
+                        ROW_LINKS_HEADER, ROW_LINK_CHANNEL};
         }
     }
 
@@ -864,28 +864,39 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 case TYPE_GAP:
                     break;
                 case TYPE_SECTION: {
+                    // like exteraGram: icon and name only, no status on the right
                     TextCell cell = (TextCell) holder.itemView;
-                    cell.valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteValueText));
-                    final boolean divider = position != ROW_SECTION_GENERAL;
-                    if (position == ROW_SECTION_VPN) {
-                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaVpnHeader), connectionText(), R.drawable.msg_policy, divider);
-                    } else if (position == ROW_SECTION_GHOST) {
-                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaGhostMode), onOff(MeridaSettings.ghostMode.get()), R.drawable.msg_mask, divider);
-                    } else if (position == ROW_SECTION_SPY) {
-                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaSpyHeader), onOff(MeridaSettings.spySaveDeleted.get()), R.drawable.msg_views, divider);
-                    } else if (position == ROW_LINK_CHANNEL) {
-                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaLinkChannel), "@MeridaGram", R.drawable.msg_channel, false);
+                    final boolean divider = index + 1 < rows.length && getItemViewType(index + 1) == TYPE_SECTION;
+                    if (position == ROW_LINK_CHANNEL) {
+                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaLinkChannel), "@MeridaGram", R.drawable.msg_channel, divider);
                         cell.valueTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
                         break;
-                    } else if (position == ROW_SECTION_SECURITY) {
-                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaSecurityHeader), "", R.drawable.msg_permissions, divider);
-                    } else if (position == ROW_SECTION_PLAYER) {
-                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaPlayerHeader), onOff(MeridaSettings.playerAdvanced.get()), R.drawable.msg_filled_data_music, divider);
-                    } else if (position == ROW_SECTION_LOOK) {
-                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaLookHeader), "", R.drawable.msg_palette, divider);
-                    } else {
-                        cell.setTextAndValueAndIcon(LocaleController.getString(R.string.MeridaSettingsGeneral), "", R.drawable.msg_settings, divider);
                     }
+                    final int title;
+                    final int icon;
+                    if (position == ROW_SECTION_VPN) {
+                        title = R.string.MeridaVpnHeader;
+                        icon = R.drawable.msg_policy;
+                    } else if (position == ROW_SECTION_GHOST) {
+                        title = R.string.MeridaGhostMode;
+                        icon = R.drawable.msg_mask;
+                    } else if (position == ROW_SECTION_SPY) {
+                        title = R.string.MeridaSpyHeader;
+                        icon = R.drawable.msg_views;
+                    } else if (position == ROW_SECTION_SECURITY) {
+                        title = R.string.MeridaSecurityHeader;
+                        icon = R.drawable.msg_permissions;
+                    } else if (position == ROW_SECTION_PLAYER) {
+                        title = R.string.MeridaPlayerHeader;
+                        icon = R.drawable.msg_tone_on;
+                    } else if (position == ROW_SECTION_LOOK) {
+                        title = R.string.MeridaLookHeader;
+                        icon = R.drawable.msg_palette;
+                    } else {
+                        title = R.string.MeridaSettingsGeneral;
+                        icon = R.drawable.msg_settings;
+                    }
+                    cell.setTextAndIcon(LocaleController.getString(title), icon, divider);
                     break;
                 }
                 case TYPE_HEADER:
