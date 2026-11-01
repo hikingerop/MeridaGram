@@ -175,7 +175,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     }
 
     private static boolean isCryptoChatRow(int row) {
-        return row >= ROW_CRYPTO_CHAT_BASE;
+        return row >= ROW_CRYPTO_CHAT_BASE && row < ROW_HDR_BASE;
     }
 
     private static Bundle pageArgs(int page) {
@@ -184,22 +184,53 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         return args;
     }
 
-    /** Which rows each screen shows, top to bottom. */
+    /** Group titles and grey notes under groups, like exteraGram: rows ROW_HDR_BASE + i and ROW_NOTE_BASE + i. */
+    private static final int ROW_HDR_BASE = 3000;
+    private static final int ROW_NOTE_BASE = 5000;
+    private static final java.util.ArrayList<Integer> HEADERS = new java.util.ArrayList<>();
+    private static final java.util.ArrayList<Integer> NOTES = new java.util.ArrayList<>();
+
+    private static int hdr(int res) {
+        int i = HEADERS.indexOf(res);
+        if (i < 0) {
+            HEADERS.add(res);
+            i = HEADERS.size() - 1;
+        }
+        return ROW_HDR_BASE + i;
+    }
+
+    private static int note(int res) {
+        int i = NOTES.indexOf(res);
+        if (i < 0) {
+            NOTES.add(res);
+            i = NOTES.size() - 1;
+        }
+        return ROW_NOTE_BASE + i;
+    }
+
+    /** Which rows each screen shows, top to bottom: small groups, each with a title and a note under it. */
     private static int[] rowsFor(int page) {
         switch (page) {
             case PAGE_VPN:
-                return new int[]{ROW_VPN_HEADER, ROW_VPN_ENABLED, ROW_VPN_CONNECTION, ROW_VPN_PING, ROW_VPN_SUBSCRIPTION, ROW_VPN_INFO};
+                return new int[]{hdr(R.string.MeridaVpnHeader), ROW_VPN_ENABLED, ROW_VPN_CONNECTION, ROW_VPN_PING, ROW_VPN_SUBSCRIPTION, ROW_VPN_INFO};
             case PAGE_GHOST:
-                return new int[]{ROW_GHOST_HEADER, ROW_GHOST, ROW_GHOST_NO_READ, ROW_GHOST_NO_STORIES, ROW_GHOST_NO_ONLINE, ROW_GHOST_NO_TYPING, ROW_GHOST_AUTO_OFFLINE, ROW_SEND_SILENT};
+                return new int[]{
+                        hdr(R.string.MeridaGhostHeader), ROW_GHOST, note(R.string.MeridaInfoGhostMain),
+                        hdr(R.string.MeridaHdrGhostHide), ROW_GHOST_NO_READ, ROW_GHOST_NO_STORIES, ROW_GHOST_NO_ONLINE, ROW_GHOST_NO_TYPING, ROW_GHOST_AUTO_OFFLINE, note(R.string.MeridaInfoGhostHide),
+                        hdr(R.string.MeridaHdrSending), ROW_SEND_SILENT, note(R.string.MeridaInfoSendSilent)};
             case PAGE_SPY:
-                return new int[]{ROW_SPY_HEADER, ROW_SPY_DELETED};
+                return new int[]{hdr(R.string.MeridaHdrDeleted), ROW_SPY_DELETED, note(R.string.MeridaSpyInfo)};
             case PAGE_LOOK:
-                return new int[]{ROW_LOOK_HEADER, ROW_SNOW_PREVIEW, ROW_SNOW, ROW_HIDE_FOLDER_TABS, ROW_HIDE_STORIES, ROW_TIME_WITH_SECONDS};
+                return new int[]{
+                        hdr(R.string.MeridaHdrChatList), ROW_SNOW_PREVIEW, ROW_SNOW, ROW_HIDE_FOLDER_TABS, ROW_HIDE_STORIES, note(R.string.MeridaInfoChatList),
+                        hdr(R.string.MeridaHdrMessages), ROW_TIME_WITH_SECONDS, note(R.string.MeridaInfoSeconds)};
             case PAGE_GENERAL:
-                return new int[]{ROW_GENERAL_HEADER, ROW_SHOW_ID, ROW_COPY_ID_MENU, ROW_ALLOW_SCREENSHOTS};
+                return new int[]{
+                        hdr(R.string.MeridaHdrId), ROW_SHOW_ID, ROW_COPY_ID_MENU, note(R.string.MeridaInfoId),
+                        hdr(R.string.MeridaHdrScreenshots), ROW_ALLOW_SCREENSHOTS, note(R.string.MeridaInfoScreenshots)};
             default:
                 return new int[]{ROW_APP_HEADER, ROW_CATEGORIES_HEADER, ROW_SECTION_GENERAL, ROW_SECTION_LOOK, ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_SECURITY,
-                        ROW_LINKS_HEADER, ROW_LINK_CHANNEL};
+                        ROW_SECURITY_GAP, ROW_LINKS_HEADER, ROW_LINK_CHANNEL};
         }
     }
 
@@ -207,16 +238,20 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private void buildPlayerRows() {
         playerChats.clear();
         final java.util.ArrayList<Integer> list = new java.util.ArrayList<>();
-        list.add(ROW_PLAYER_HEADER);
+        list.add(hdr(R.string.MeridaPlayerHeader));
         list.add(ROW_PLAYER_ADVANCED);
+        list.add(note(R.string.MeridaInfoPlayerMain));
+        list.add(hdr(R.string.MeridaHdrSound));
         list.add(ROW_PLAYER_WHERE);
         list.add(ROW_PLAYER_EQ);
         list.add(ROW_PLAYER_BASS);
         list.add(ROW_PLAYER_LOUDER);
+        list.add(note(R.string.MeridaInfoSound));
+        list.add(hdr(R.string.MeridaHdrPlayback));
         list.add(ROW_PLAYER_PRELOAD);
         list.add(ROW_PLAYER_SLEEP);
+        list.add(note(R.string.MeridaInfoPlayback));
         if (MeridaSettings.playerMode.get() != MeridaPlayer.MODE_ALL) {
-            list.add(ROW_SECURITY_GAP);
             list.add(ROW_PLAYER_CHATS_HEADER);
             playerChats.addAll(MeridaPlayer.getChosenChats());
             if (playerChats.isEmpty()) {
@@ -240,15 +275,17 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         cryptoChats.clear();
         cryptoChats.addAll(MeridaCrypto.chatsWithPassword(currentAccount));
         final java.util.ArrayList<Integer> list = new java.util.ArrayList<>();
-        list.add(ROW_SECURITY_HEADER);
+        list.add(hdr(R.string.MeridaHdrAccount));
         list.add(ROW_SESSION_GUARD);
+        list.add(note(R.string.MeridaDescSessionGuard));
+        list.add(hdr(R.string.MeridaHdrPrivacy));
         list.add(ROW_STRIP_METADATA);
         list.add(ROW_WEBAPP_PRIVACY);
-        list.add(ROW_SECURITY_GAP);
-        list.add(ROW_CRYPTO_HEADER);
+        list.add(note(R.string.MeridaInfoPrivacy));
+        list.add(hdr(R.string.MeridaCryptoHeader));
         list.add(ROW_CRYPTO_ENABLED);
+        list.add(note(R.string.MeridaDescCrypto));
         if (!cryptoChats.isEmpty()) {
-            list.add(ROW_SECURITY_GAP);
             list.add(ROW_CRYPTO_CHATS_HEADER);
             for (int i = 0; i < cryptoChats.size(); i++) {
                 list.add(ROW_CRYPTO_CHAT_BASE + i);
@@ -663,57 +700,17 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         }
     }
 
-    /** What the switch does, shown in grey under its name; 0 when there is nothing to add. */
+    /** A short grey line under the switch's name, like exteraGram; the longer note is under the group. */
     private static int descForRow(int position) {
         switch (position) {
-            case ROW_VPN_ENABLED:
-                return R.string.MeridaDescVpn;
-            case ROW_GHOST:
-                return R.string.MeridaDescGhost;
-            case ROW_GHOST_NO_READ:
-                return R.string.MeridaDescGhostNoRead;
-            case ROW_GHOST_NO_STORIES:
-                return R.string.MeridaDescGhostNoStories;
-            case ROW_GHOST_NO_ONLINE:
-                return R.string.MeridaDescGhostNoOnline;
-            case ROW_GHOST_NO_TYPING:
-                return R.string.MeridaDescGhostNoTyping;
-            case ROW_GHOST_AUTO_OFFLINE:
-                return R.string.MeridaDescGhostAutoOffline;
-            case ROW_SEND_SILENT:
-                return R.string.MeridaDescSendSilent;
-            case ROW_SPY_DELETED:
-                return R.string.MeridaSpyInfo;
-            case ROW_PLAYER_ADVANCED:
-                return R.string.MeridaDescPlayer;
-            case ROW_PLAYER_BASS:
-                return R.string.MeridaDescPlayerBass;
-            case ROW_PLAYER_LOUDER:
-                return R.string.MeridaDescPlayerLouder;
-            case ROW_PLAYER_PRELOAD:
-                return R.string.MeridaDescPlayerPreload;
-            case ROW_SESSION_GUARD:
-                return R.string.MeridaDescSessionGuard;
-            case ROW_STRIP_METADATA:
-                return R.string.MeridaDescStripMetadata;
-            case ROW_WEBAPP_PRIVACY:
-                return R.string.MeridaDescWebAppPrivacy;
-            case ROW_CRYPTO_ENABLED:
-                return R.string.MeridaDescCrypto;
             case ROW_SNOW:
-                return R.string.MeridaDescSnow;
-            case ROW_HIDE_FOLDER_TABS:
-                return R.string.MeridaDescHideFolderTabs;
-            case ROW_HIDE_STORIES:
-                return R.string.MeridaDescHideStories;
+                return R.string.MeridaSubSnow;
             case ROW_TIME_WITH_SECONDS:
-                return R.string.MeridaDescTimeWithSeconds;
-            case ROW_SHOW_ID:
-                return R.string.MeridaDescShowId;
+                return R.string.MeridaSubSeconds;
             case ROW_COPY_ID_MENU:
-                return R.string.MeridaDescCopyIdMenu;
-            case ROW_ALLOW_SCREENSHOTS:
-                return R.string.MeridaDescAllowScreenshots;
+                return R.string.MeridaSubCopyId;
+            case ROW_GHOST_AUTO_OFFLINE:
+                return R.string.MeridaSubAutoOffline;
             default:
                 return 0;
         }
@@ -823,7 +820,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             final int position = holder.getAdapterPosition();
             return type == TYPE_CHECK || type == TYPE_SECTION
                     || (position >= 0 && position < rows.length && (rows[position] == ROW_VPN_RENEW || rows[position] == ROW_VPN_PING
-                    || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] == ROW_PLAYER_SLEEP || rows[position] >= ROW_PLAYER_CHAT_BASE));
+                    || rows[position] == ROW_PLAYER_WHERE || rows[position] == ROW_PLAYER_EQ || rows[position] == ROW_PLAYER_SLEEP || isPlayerChatRow(rows[position]) || isCryptoChatRow(rows[position])));
         }
 
         @NonNull
@@ -834,6 +831,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 view = new org.telegram.ui.Cells.ShadowSectionCell(context);
             } else if (viewType == TYPE_HEADER) {
                 view = new HeaderCell(context);
+                // like exteraGram: the blue title sits above the card, not inside it
+                view.setTag(RecyclerListView.TAG_NOT_SECTION);
             } else if (viewType == TYPE_CHECK) {
                 view = new TextCheckCell(context);
             } else if (viewType == TYPE_VALUE) {
@@ -900,6 +899,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     break;
                 }
                 case TYPE_HEADER:
+                    if (position >= ROW_HDR_BASE && position < ROW_NOTE_BASE) {
+                        ((HeaderCell) holder.itemView).setText(LocaleController.getString(HEADERS.get(position - ROW_HDR_BASE)));
+                        break;
+                    }
                     ((HeaderCell) holder.itemView).setText(LocaleController.getString(
                             position == ROW_VPN_HEADER ? R.string.MeridaVpnHeader : position == ROW_GHOST_HEADER ? R.string.MeridaGhostHeader : position == ROW_SPY_HEADER ? R.string.MeridaSpyHeader : position == ROW_LOOK_HEADER ? R.string.MeridaLookHeader : position == ROW_PLAYER_HEADER ? R.string.MeridaPlayerHeader : position == ROW_CRYPTO_HEADER ? R.string.MeridaCryptoHeader : position == ROW_SECURITY_HEADER ? R.string.MeridaSecurityHeader : position == ROW_CRYPTO_CHATS_HEADER ? R.string.MeridaCryptoChatsHeader : position == ROW_CATEGORIES_HEADER ? R.string.MeridaCategories : position == ROW_LINKS_HEADER ? R.string.MeridaLinks : position == ROW_PLAYER_CHATS_HEADER ? (MeridaSettings.playerMode.get() == MeridaPlayer.MODE_ONLY ? R.string.MeridaPlayerChosenOnly : R.string.MeridaPlayerChosenExcept) : R.string.MeridaSettingsGeneral
                     ));
@@ -961,7 +964,9 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 }
                 default: {
                     String text;
-                    if (position == ROW_VPN_INFO) {
+                    if (position >= ROW_NOTE_BASE) {
+                        text = LocaleController.getString(NOTES.get(position - ROW_NOTE_BASE));
+                    } else if (position == ROW_VPN_INFO) {
                         text = LocaleController.getString(R.string.MeridaVpnInfo);
                         final String error = MeridaVpn.getError();
                         if (error != null && !error.isEmpty() && MeridaSettings.vpnEnabled.get()) {
@@ -998,6 +1003,12 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
 
         @Override
         public int getItemViewType(int index) {
+            if (rows[index] >= ROW_NOTE_BASE) {
+                return TYPE_INFO;
+            }
+            if (rows[index] >= ROW_HDR_BASE) {
+                return TYPE_HEADER;
+            }
             if (rows[index] >= ROW_PLAYER_CHAT_BASE) {
                 return TYPE_VALUE;
             }
