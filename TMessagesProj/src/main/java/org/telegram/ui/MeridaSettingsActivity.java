@@ -109,6 +109,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_LINKS_HEADER = 52;
     private static final int ROW_LINK_CHANNEL = 53;
     private static final int ROW_LINK_BOT = 54;
+    private static final int ROW_HIDE_FOLDER_TABS = 55;
 
     /** Last speed test result in ms; -1 not run yet, -2 running, -3 failed. */
     private static int pingResult = -1;
@@ -164,7 +165,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             case PAGE_SPY:
                 return new int[]{ROW_SPY_HEADER, ROW_SPY_DELETED, ROW_SPY_INFO};
             case PAGE_LOOK:
-                return new int[]{ROW_LOOK_HEADER, ROW_SNOW_PREVIEW, ROW_SNOW, ROW_LOOK_INFO};
+                return new int[]{ROW_LOOK_HEADER, ROW_SNOW_PREVIEW, ROW_SNOW, ROW_HIDE_FOLDER_TABS, ROW_LOOK_INFO};
             case PAGE_GENERAL:
                 return new int[]{ROW_GENERAL_HEADER, ROW_HIDE_STORIES, ROW_SHOW_ID, ROW_TIME_WITH_SECONDS, ROW_ALLOW_SCREENSHOTS, ROW_SESSION_GUARD, ROW_STRIP_METADATA, ROW_WEBAPP_PRIVACY, ROW_GENERAL_INFO};
             default:
@@ -461,6 +462,13 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         if (position == ROW_PLAYER_ADVANCED || position == ROW_PLAYER_BASS || position == ROW_PLAYER_LOUDER) {
             MeridaPlayer.reapply();
         }
+        if (position == ROW_HIDE_FOLDER_TABS) {
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (UserConfig.getInstance(a).isClientActivated()) {
+                    NotificationCenter.getInstance(a).postNotificationName(NotificationCenter.dialogFiltersUpdated);
+                }
+            }
+        }
         if (position == ROW_HIDE_STORIES) {
             for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
                 if (UserConfig.getInstance(a).isClientActivated()) {
@@ -478,6 +486,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.hideStories;
             case ROW_SHOW_ID:
                 return MeridaSettings.showId;
+            case ROW_HIDE_FOLDER_TABS:
+                return MeridaSettings.hideFolderTabs;
             case ROW_TIME_WITH_SECONDS:
                 return MeridaSettings.timeWithSeconds;
             case ROW_GHOST:
@@ -531,6 +541,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaHideStories;
             case ROW_SHOW_ID:
                 return R.string.MeridaShowId;
+            case ROW_HIDE_FOLDER_TABS:
+                return R.string.MeridaHideFolderTabs;
             case ROW_GHOST:
                 return R.string.MeridaGhostMode;
             case ROW_GHOST_NO_READ:
@@ -689,7 +701,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     cell.setTextAndCheck(
                             LocaleController.getString(titleForRow(position)),
                             settingForRow(position).get(),
-                            position != ROW_WEBAPP_PRIVACY && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED && position != ROW_SNOW && position != ROW_PLAYER_PRELOAD
+                            position != ROW_WEBAPP_PRIVACY && position != ROW_SEND_SILENT && position != ROW_SPY_DELETED && position != ROW_HIDE_FOLDER_TABS && position != ROW_PLAYER_PRELOAD
                     );
                     // parts of ghost mode are greyed out while the master switch is off
                     cell.setEnabled(!isGhostPart(position) || MeridaSettings.ghostMode.get(), null);

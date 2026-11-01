@@ -11634,7 +11634,7 @@
     <string name="MeridaSettings">MeridaGram Settings</string>
     <string name="MeridaSettingsInfo">Features of MeridaGram</string>
     <string name="MeridaSettingsGeneral">General</string>
-    <string name="MeridaSettingsGeneralInfo">Seconds appear on messages after the chat is reopened. Screenshots are allowed in channels and groups that restrict copying. Secret chats, disappearing and paid media stay protected. «Remove photo location»: photos sent as files lose the shooting place, phone model and time. «Warn about new logins»: when a new device logs in, a window offers to end that login. «Hide phone from mini apps»: bot apps (tappers, shops) do not learn the phone maker and model and cannot set tracking cookies.</string>
+    <string name="MeridaSettingsGeneralInfo">«Show ID»: the ID is shown in profiles, and the message menu gets «Copy ID» of the sender. Seconds appear on messages after the chat is reopened. Screenshots are allowed in channels and groups that restrict copying. Secret chats, disappearing and paid media stay protected. «Remove photo location»: photos sent as files lose the shooting place, phone model and time. «Warn about new logins»: when a new device logs in, a window offers to end that login. «Hide phone from mini apps»: bot apps (tappers, shops) do not learn the phone maker and model and cannot set tracking cookies.</string>
     <string name="MeridaHideStories">Hide stories</string>
     <string name="MeridaGhostHeader">Ghost</string>
     <string name="MeridaGhostMode">Ghost mode</string>
@@ -11705,7 +11705,7 @@
     <string name="MeridaLinks">Links</string>
     <string name="MeridaLinkChannel">Channel</string>
     <string name="MeridaSnow">Snow</string>
-    <string name="MeridaSnowInfo">Above is how the snow looks. It falls on the chat list\'s top bar and on chat backgrounds any time of the year. Appears after MeridaGram restarts. In power saving mode there is no snow on chat backgrounds.</string>
+    <string name="MeridaSnowInfo">Above is how the snow looks. It falls on the chat list\'s top bar and on chat backgrounds any time of the year. Appears after MeridaGram restarts. In power saving mode there is no snow on chat backgrounds. «Hide folder tabs»: the chat list shows only «All chats», folders themselves are kept.</string>
     <string name="MeridaSpyHeader">Spy</string>
     <string name="MeridaSpySaveDeleted">Keep deleted messages</string>
     <string name="MeridaDeletedMark">🗑 deleted</string>
@@ -11717,7 +11717,10 @@
     <string name="MeridaGhostAutoOffline">Automatic «offline»</string>
     <string name="MeridaSendSilent">Send without sound</string>
     <string name="MeridaGhostInfo">Others don\'t see that you read their messages or stories, that you are typing or that you are online. «Automatic offline» makes you offline again right after you send a message. When you write to a chat yourself, Telegram marks that chat as read. «Send without sound» works without ghost mode too: your messages arrive silently.</string>
-    <string name="MeridaShowId">Show ID in profiles</string>
+    <string name="MeridaShowId">Show ID</string>
+    <string name="MeridaCopyId">Copy ID</string>
+    <string name="MeridaSenderIdCopied">Sender ID copied: %1$s</string>
+    <string name="MeridaHideFolderTabs">Hide folder tabs</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>
     <string name="MeridaLoginNoConnection">Could not reach Telegram. Check your connection and try again. Error:</string>

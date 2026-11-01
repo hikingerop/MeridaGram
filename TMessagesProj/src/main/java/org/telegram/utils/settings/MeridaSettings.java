@@ -9,6 +9,10 @@ public final class MeridaSettings {
     public static final BooleanSetting showId =
         BooleanSetting.of("merida_show_id", false);
 
+    /** Folder tabs are not shown above the chat list; only «All chats» stays. */
+    public static final BooleanSetting hideFolderTabs =
+        BooleanSetting.of("merida_hide_folder_tabs", false);
+
     public static final BooleanSetting timeWithSeconds =
         BooleanSetting.of("merida_time_with_seconds", false);
 

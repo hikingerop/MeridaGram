@@ -1320,6 +1320,7 @@ public class ChatActivity extends BaseFragment implements
     public final static int OPTION_VIEW_STATISTICS = 115;
     public final static int OPTION_WELCOME_REVERT = 116;
     public final static int OPTION_SEND_MONEY = 117;
+    public final static int OPTION_MERIDA_COPY_ID = 1000;
 
     private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
             NotificationCenter.messagesRead,
@@ -33729,6 +33730,14 @@ public class ChatActivity extends BaseFragment implements
                 presentFragment(fragment);
                 break;
             }
+            case OPTION_MERIDA_COPY_ID: {
+                final String id = String.valueOf(meridaSenderId(selectedObject));
+                AndroidUtilities.addToClipboard(id);
+                if (BulletinFactory.canShowBulletin(ChatActivity.this)) {
+                    BulletinFactory.of(ChatActivity.this).createCopyBulletin(LocaleController.formatString(R.string.MeridaSenderIdCopied, id)).show();
+                }
+                break;
+            }
             case OPTION_COPY: {
                 final TL_iv.RichMessage copyRichMessage = selectedObject.messageOwner != null ? selectedObject.messageOwner.rich_message : null;
                 if (selectedObject.isDice()) {
@@ -46795,11 +46804,33 @@ public class ChatActivity extends BaseFragment implements
             icons.add(sendMoneyIndex, R.drawable.ic_gram);
         }
 
+        if (org.telegram.utils.settings.MeridaSettings.showId.get() && meridaSenderId(selectedObject) != 0 && !selectedObject.isSponsored()) {
+            int copyIdIndex = options.indexOf(OPTION_DELETE);
+            if (copyIdIndex < 0) {
+                copyIdIndex = options.size();
+            }
+            items.add(copyIdIndex, getString(R.string.MeridaCopyId));
+            options.add(copyIdIndex, OPTION_MERIDA_COPY_ID);
+            icons.add(copyIdIndex, R.drawable.msg_copy);
+        }
+
         if (showWelcomeMessageRevertOption(primaryMessage)) {
             items.add(getString(R.string.WelcomeMessageRevert));
             options.add(OPTION_WELCOME_REVERT);
             icons.add(R.drawable.outline_revert_24);
         }
+    }
+
+    /** Who wrote the message: a user, or a channel/group posting as itself; 0 when unknown. */
+    private long meridaSenderId(MessageObject messageObject) {
+        if (messageObject == null || messageObject.messageOwner == null) {
+            return 0;
+        }
+        long id = messageObject.getFromChatId();
+        if (id == 0) {
+            id = messageObject.getDialogId();
+        }
+        return Math.abs(id);
     }
 
     private boolean showWelcomeMessageRevertOption(MessageObject messageObject) {
