@@ -66,6 +66,9 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    Этап 3 сделан: юзернейм (проверка contacts.resolveUsername — чужой нельзя), номер (только 888+8 цифр), рейтинг
    (по просьбе владельца, уровень 1–100, метка под значком StarRatingView); водяной знак MeridaVisual.watermark поверх текста
    в строках профиля usernameRow/phoneRow/numberRow; ссылки, QR и копирование — настоящие.
+   «Визуальный подарок» в чат (`merida/MeridaVisualSend.java`, ⋮ в чате, пока Визуал включён): уходит ОБЫЧНЫЙ текст,
+   где прямо написано «это не настоящий подарок» (+ строка #MeridaVisual); MeridaGram у обоих показывает карточку с меткой
+   ВИЗУАЛ. Поддельные «оплаты»/подарки без такого честного текста в чатах с людьми — не делать (подделка чека).
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).

@@ -1102,6 +1102,96 @@ public class ChatActivity extends BaseFragment implements
     }
 
     /**
+     * MeridaGram «Visual»: sends an ordinary text message that says it is not a real gift; MeridaGram shows it
+     * as a gift card with the «VISUAL» mark. Nothing is paid: stars, GRAM and Premium are not touched.
+     */
+    private void showMeridaVisualSendDialog() {
+        final Activity activity = getParentActivity();
+        if (activity == null) {
+            return;
+        }
+        final java.util.List<String> slugs = org.telegram.messenger.merida.MeridaVisualGifts.slugs();
+        final CharSequence[] items = {
+                LocaleController.getString(R.string.MeridaVisualSendNft),
+                LocaleController.getString(R.string.MeridaVisualStars),
+                "GRAM",
+                LocaleController.getString(R.string.TelegramPremium)
+        };
+        final AlertDialog.Builder builder = new AlertDialog.Builder(activity, themeDelegate);
+        builder.setTitle(LocaleController.getString(R.string.MeridaVisualSendMenu));
+        builder.setMessage(LocaleController.getString(R.string.MeridaVisualSendInfo));
+        builder.setItems(items, (dialog, which) -> {
+            if (which == 0) {
+                if (slugs.isEmpty()) {
+                    BulletinFactory.of(this).createSimpleBulletin(R.raw.chats_infotip, LocaleController.getString(R.string.MeridaVisualSendNoNft)).show();
+                    return;
+                }
+                final CharSequence[] gifts = new CharSequence[slugs.size()];
+                final org.telegram.tgnet.tl.TL_stars.TL_starGiftUnique[] loaded = new org.telegram.tgnet.tl.TL_stars.TL_starGiftUnique[slugs.size()];
+                for (int i = 0; i < slugs.size(); i++) {
+                    loaded[i] = org.telegram.messenger.merida.MeridaVisualGifts.load(slugs.get(i));
+                    gifts[i] = loaded[i] != null ? loaded[i].title + " #" + loaded[i].num : slugs.get(i);
+                }
+                final AlertDialog.Builder pick = new AlertDialog.Builder(activity, themeDelegate);
+                pick.setTitle(LocaleController.getString(R.string.MeridaVisualSendNft));
+                pick.setItems(gifts, (d2, i) -> {
+                    if (loaded[i] != null) {
+                        sendMeridaVisual(org.telegram.messenger.merida.MeridaVisualSend.nftItem(loaded[i].title, loaded[i].num, slugs.get(i)));
+                    }
+                });
+                showDialog(pick.create());
+            } else if (which == 3) {
+                final int[] months = {3, 6, 12};
+                final CharSequence[] names = new CharSequence[months.length];
+                for (int i = 0; i < months.length; i++) {
+                    names[i] = LocaleController.formatString(R.string.MeridaVisualSendPremium, months[i]);
+                }
+                final AlertDialog.Builder pick = new AlertDialog.Builder(activity, themeDelegate);
+                pick.setTitle(LocaleController.getString(R.string.TelegramPremium));
+                pick.setItems(names, (d2, i) -> sendMeridaVisual(org.telegram.messenger.merida.MeridaVisualSend.premiumItem(months[i])));
+                showDialog(pick.create());
+            } else {
+                final boolean stars = which == 1;
+                final LinearLayout layout = new LinearLayout(activity);
+                layout.setOrientation(LinearLayout.VERTICAL);
+                final EditTextBoldCursor input = new EditTextBoldCursor(activity);
+                input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+                input.setTextColor(getThemedColor(Theme.key_dialogTextBlack));
+                input.setHintTextColor(getThemedColor(Theme.key_dialogTextHint));
+                input.setHint("1000");
+                input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(9)});
+                input.setSingleLine(true);
+                input.setBackground(null);
+                input.setLineColors(getThemedColor(Theme.key_dialogInputField), getThemedColor(Theme.key_dialogInputFieldActivated), getThemedColor(Theme.key_text_RedBold));
+                input.setPadding(0, dp(8), 0, dp(8));
+                layout.addView(input, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 24, 4, 24, 4));
+                final AlertDialog.Builder ask = new AlertDialog.Builder(activity, themeDelegate);
+                ask.setTitle(stars ? LocaleController.getString(R.string.MeridaVisualStars) : "GRAM");
+                ask.setView(layout);
+                ask.setPositiveButton(LocaleController.getString(R.string.Send), (d2, w) -> {
+                    int value = 0;
+                    try {
+                        value = Integer.parseInt(input.getText() == null ? "0" : input.getText().toString().trim());
+                    } catch (NumberFormatException ignore) {
+                    }
+                    if (value > 0) {
+                        sendMeridaVisual(stars ? org.telegram.messenger.merida.MeridaVisualSend.starsItem(value) : org.telegram.messenger.merida.MeridaVisualSend.gramsItem(value));
+                    }
+                });
+                ask.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+                showDialog(ask.create());
+            }
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        showDialog(builder.create());
+    }
+
+    private void sendMeridaVisual(String item) {
+        getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of(org.telegram.messenger.merida.MeridaVisualSend.build(item), dialog_id));
+    }
+
+    /**
      * MeridaGram: encryption over Telegram for this chat. Both people enter the same password (agreed in
      * person); text messages then travel as ciphertext that only MeridaGram with this password can read.
      */
@@ -1743,6 +1833,7 @@ public class ChatActivity extends BaseFragment implements
 
     private final static int search = 40;
     private final static int merida_crypto = 7701;
+    private final static int merida_visual_send = 7702;
 
     private final static int topic_close = 60;
     private final static int open_forum = 61;
@@ -4069,6 +4160,8 @@ public class ChatActivity extends BaseFragment implements
                     getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/settings", dialog_id, null, null, null, false, null, null, null, true, 0, 0, null, false));
                 } else if (id == merida_crypto) {
                     showMeridaCryptoDialog();
+                } else if (id == merida_visual_send) {
+                    showMeridaVisualSendDialog();
                 } else if (id == search) {
                     openSearchWithText(isSupportedTags() ? "" : null);
                 } else if (id == translate) {
@@ -4529,6 +4622,9 @@ public class ChatActivity extends BaseFragment implements
             if (ChatObject.isBoostSupported(currentChat) && (getUserConfig().isPremium() || ChatObject.isBoosted(chatInfo) || ChatObject.hasAdminRights(currentChat))) {
                 RLottieDrawable drawable = new RLottieDrawable(R.raw.boosts, dp(24), dp(24));
                 headerItem.lazilyAddSubItem(boost_group, drawable, LocaleController.getString(ChatObject.isChannelAndNotMegaGroup(currentChat) ? R.string.BoostingBoostChannelMenu : R.string.BoostingBoostGroupMenu));
+            }
+            if (currentEncryptedChat == null && org.telegram.messenger.merida.MeridaVisual.on()) {
+                headerItem.lazilyAddSubItem(merida_visual_send, R.drawable.msg_gift_premium, LocaleController.getString(R.string.MeridaVisualSendMenu));
             }
             if (currentEncryptedChat == null && org.telegram.messenger.merida.MeridaCrypto.isFeatureOn()) {
                 headerItem.lazilyAddSubItem(merida_crypto, R.drawable.msg_secret, LocaleController.getString(R.string.MeridaCryptoMenu));
