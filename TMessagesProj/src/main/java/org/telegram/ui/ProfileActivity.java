@@ -4625,6 +4625,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 presentFragment(new ChangeUsernameActivity());
             } else if (position == bioRow) {
                 presentFragment(new UserInfoActivity());
+            } else if (position == numberRow && meridaOpenVisualCollectible(position)) {
+                // MeridaGram «Visual»: the visual +888 number's window is shown
             } else if (position == numberRow) {
                 presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER));
             } else if (position == setAvatarRow) {
@@ -7343,7 +7345,26 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         presentFragment(fragment);
     }
 
+    /** MeridaGram «Visual»: your visual username / +888 number opens a Fragment-like window with the VISUAL mark. */
+    private boolean meridaOpenVisualCollectible(int position) {
+        if (userId == 0 || userId != getUserConfig().getClientUserId() || !org.telegram.messenger.merida.MeridaVisual.on()) {
+            return false;
+        }
+        if (position == usernameRow && org.telegram.messenger.merida.MeridaVisual.usernameOn()) {
+            MeridaVisualSheets.showCollectible(this, false, MeridaSettings.visualUsername.get());
+            return true;
+        }
+        if ((position == phoneRow || position == numberRow) && org.telegram.messenger.merida.MeridaVisual.numberOn()) {
+            MeridaVisualSheets.showCollectible(this, true, MeridaSettings.visualNumber.get());
+            return true;
+        }
+        return false;
+    }
+
     private boolean processOnClickOrPress(final int position, final View view, final float x, final float y) {
+        if (meridaOpenVisualCollectible(position)) {
+            return true;
+        }
         if (position == meridaIdRow) {
             AndroidUtilities.addToClipboard(String.valueOf(userId != 0 ? userId : chatId));
             BulletinFactory.of(this).createCopyBulletin(getString(R.string.MeridaIdCopied)).show();

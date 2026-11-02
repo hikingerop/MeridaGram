@@ -12063,4 +12063,6 @@
     <string name="MeridaVCreateSeveralHint">Hold the arrow to create several</string>
     <string name="MeridaVGiftAdded">Gift added ✓</string>
     <string name="MeridaVGiftsAddedN">Gifts added: %1$d ✓</string>
+    <string name="MeridaVUpgrade">Upgrade</string>
+    <string name="MeridaVCollectibleNote">VISUAL: shown only on this phone, nothing was bought.</string>
 </resources>

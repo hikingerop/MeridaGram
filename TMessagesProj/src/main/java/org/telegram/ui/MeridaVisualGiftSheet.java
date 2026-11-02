@@ -58,6 +58,11 @@ public final class MeridaVisualGiftSheet {
     }
 
     public static void show(BaseFragment fragment, TL_stars.SavedStarGift saved, Runnable onChanged) {
+        show(fragment, saved, onChanged, false);
+    }
+
+    /** celebrate: just upgraded — confetti and «Gift upgraded» over the window. */
+    public static void show(BaseFragment fragment, TL_stars.SavedStarGift saved, Runnable onChanged, boolean celebrate) {
         if (fragment == null || fragment.getParentActivity() == null || saved == null || saved.gift == null) {
             return;
         }
@@ -146,6 +151,13 @@ public final class MeridaVisualGiftSheet {
                 changed.run();
             });
         }
+        final boolean upgradable = key != null && MeridaVisualUpgradeSheet.canUpgrade(gift);
+        if (upgradable) {
+            addHeaderButton(buttons, R.drawable.menu_feature_unique, s(R.string.MeridaVUpgrade), () -> {
+                sheet.dismiss();
+                MeridaVisualUpgradeSheet.show(fragment, key, onChanged);
+            });
+        }
         if (key != null) {
             final boolean hidden = MeridaVisualGifts.isHidden(key);
             addHeaderButton(buttons, R.drawable.menu_hide_gift, s(hidden ? R.string.MeridaVShow : R.string.MeridaVHide), () -> {
@@ -204,8 +216,13 @@ public final class MeridaVisualGiftSheet {
         note.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
         note.setGravity(Gravity.CENTER);
         body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
-        final TextView ok = MeridaVisualUi.bigButton(context, s(R.string.OK));
-        ok.setOnClickListener(v -> sheet.dismiss());
+        final TextView ok = MeridaVisualUi.bigButton(context, upgradable ? "⬆ " + s(R.string.MeridaVUpgrade) : s(R.string.OK));
+        ok.setOnClickListener(v -> {
+            sheet.dismiss();
+            if (upgradable) {
+                MeridaVisualUpgradeSheet.show(fragment, key, onChanged);
+            }
+        });
         body.addView(ok, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 52, 0, 14, 0, 0));
         root.addView(body);
 
@@ -240,8 +257,25 @@ public final class MeridaVisualGiftSheet {
 
         final ScrollView scroll = new ScrollView(context);
         scroll.addView(root);
-        sheet.setCustomView(scroll);
+        final FrameLayout container = new FrameLayout(context);
+        container.addView(scroll, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        final org.telegram.ui.Components.FireworksOverlay fireworks = new org.telegram.ui.Components.FireworksOverlay(context);
+        container.addView(fireworks, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        sheet.setCustomView(container);
         sheet.show();
+        if (celebrate) {
+            // like Telegram after an upgrade: confetti and «Gift upgraded»
+            AndroidUtilities.runOnUIThread(() -> {
+                fireworks.start(true);
+                final String product = gift.title + (unique ? " #" + LocaleController.formatNumber(((TL_stars.TL_starGiftUnique) gift).num, ',') : "");
+                try {
+                    org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), null)
+                            .createSimpleBulletin(R.raw.gift_upgrade, s(R.string.Gift2UpgradedTitle), AndroidUtilities.replaceTags(LocaleController.formatString(R.string.Gift2UpgradedText, product)))
+                            .show();
+                } catch (Throwable ignore) {
+                }
+            }, 250);
+        }
     }
 
     private static void notifyStatus(int account) {

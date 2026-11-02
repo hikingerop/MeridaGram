@@ -431,8 +431,15 @@ final class MeridaVisualSheets {
                     list.add(username);
                     saveUsernames(list);
                     MeridaSettings.visualUsername.set(username);
+                    setUsernameMeta(username, 108, System.currentTimeMillis());
                     rebuild[0].run();
                     refresh(fragment);
+                    askText(fragment, s(R.string.MeridaVNumberPrice), "10.8", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL, priceText -> {
+                        try {
+                            setUsernameMeta(username, (int) Math.round(Double.parseDouble(priceText.replace(',', '.')) * 10), System.currentTimeMillis());
+                        } catch (Exception ignore) {
+                        }
+                    });
                 } else {
                     toast(fragment, s(result == MeridaVisual.CHECK_TAKEN ? R.string.MeridaVisualUsernameTaken
                             : result == MeridaVisual.CHECK_INVALID ? R.string.MeridaVisualUsernameInvalid : R.string.MeridaVisualUsernameError));
@@ -529,6 +536,132 @@ final class MeridaVisualSheets {
             return true;
         });
         return card;
+    }
+
+    // ---- collectible username / number window (like Telegram's Fragment window) -----------------------
+
+    private static android.content.SharedPreferences meta() {
+        return org.telegram.messenger.ApplicationLoader.applicationContext.getSharedPreferences("merida_visual_meta", Context.MODE_PRIVATE);
+    }
+
+    /** Price (tenths of TON) and time «bought» of a visual username; shown in its Fragment-like window. */
+    static void setUsernameMeta(String username, int tonTenths, long time) {
+        meta().edit().putString("u_" + username.toLowerCase(), tonTenths + "|" + time).apply();
+    }
+
+    static long[] usernameMeta(String username) {
+        final String v = meta().getString("u_" + username.toLowerCase(), null);
+        if (v != null) {
+            try {
+                final String[] p = v.split("\\|");
+                return new long[]{Long.parseLong(p[0]), Long.parseLong(p[1])};
+            } catch (Exception ignore) {
+            }
+        }
+        return new long[]{108, System.currentTimeMillis()};
+    }
+
+    /**
+     * The window shown when you tap your visual username or +888 number in your profile, laid out like Telegram's
+     * «collectible username / number» window, with the orange VISUAL mark and your name watermarked.
+     */
+    static void showCollectible(BaseFragment fragment, boolean phone, String name) {
+        final Context context = fragment.getParentActivity();
+        if (context == null || name == null) {
+            return;
+        }
+        final long tenths;
+        final long time;
+        if (phone) {
+            final Num n = find(numbers(), name);
+            tenths = n != null ? n.tonTenths : 0;
+            time = n != null && n.time > 0 ? n.time : System.currentTimeMillis();
+        } else {
+            final long[] m = usernameMeta(name);
+            tenths = m[0];
+            time = m[1];
+        }
+        final BottomSheet sheet = new BottomSheet(context, false);
+        sheet.setBackgroundColor(MeridaVisualUi.SHEET_BG);
+        sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
+        final LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(AndroidUtilities.dp(16), 0, AndroidUtilities.dp(16), AndroidUtilities.dp(8));
+
+        final FrameLayout circle = new FrameLayout(context);
+        circle.setBackground(Theme.createCircleDrawable(AndroidUtilities.dp(80), Theme.getColor(Theme.key_featuredStickers_addButton)));
+        layout.addView(circle, LayoutHelper.createLinear(80, 80, Gravity.CENTER_HORIZONTAL, 0, 16, 0, 16));
+        final org.telegram.ui.Components.RLottieImageView icon = new org.telegram.ui.Components.RLottieImageView(context);
+        icon.setScaleType(ImageView.ScaleType.CENTER);
+        final int sz = phone ? 78 : 70;
+        icon.setAnimation(phone ? R.raw.fragment : R.raw.fragment_username, sz, sz);
+        icon.playAnimation();
+        icon.setColorFilter(new android.graphics.PorterDuffColorFilter(0xFFFFFFFF, android.graphics.PorterDuff.Mode.SRC_IN));
+        if (phone) {
+            icon.setTranslationY(AndroidUtilities.dp(2));
+        } else {
+            icon.setScaleX(0.86f);
+            icon.setScaleY(0.86f);
+        }
+        circle.addView(icon, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+        final String shown = phone ? MeridaVisual.formatNumber888(name) : "@" + name;
+        final android.text.SpannableStringBuilder title = new android.text.SpannableStringBuilder(AndroidUtilities.replaceTags(
+                LocaleController.formatString(phone ? R.string.FragmentPhoneTitle : R.string.FragmentUsernameTitle, shown)));
+        title.append(' ').append(MeridaVisual.mark());
+        final TextView header = label(context, title, 0xFFFFFFFF, 16, true);
+        header.setGravity(Gravity.CENTER);
+        layout.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 26, 0, 26, 0));
+
+        final FrameLayout chip = new FrameLayout(context);
+        chip.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(28), AndroidUtilities.dp(28), 0xFF2C2C2E));
+        final org.telegram.tgnet.TLRPC.User me = org.telegram.messenger.UserConfig.getInstance(fragment.getCurrentAccount()).getCurrentUser();
+        final org.telegram.ui.Components.BackupImageView avatar = new org.telegram.ui.Components.BackupImageView(context);
+        avatar.setRoundRadius(AndroidUtilities.dp(28));
+        if (me != null) {
+            final org.telegram.ui.Components.AvatarDrawable ad = new org.telegram.ui.Components.AvatarDrawable();
+            ad.setInfo(fragment.getCurrentAccount(), me);
+            avatar.setForUserOrChat(me, ad);
+        }
+        chip.addView(avatar, LayoutHelper.createFrame(28, 28, Gravity.LEFT | Gravity.TOP));
+        final String myName = me != null ? org.telegram.messenger.UserObject.getUserName(me) : "";
+        final TextView chipText = label(context, MeridaVisual.watermark(myName.isEmpty() ? "—" : myName), 0xFFFFFFFF, 13, false);
+        chipText.setSingleLine(true);
+        chip.addView(chipText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.LEFT, 37, 0, 10, 0));
+        layout.addView(chip, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 28, Gravity.CENTER_HORIZONTAL, 42, 10, 42, 18));
+
+        final double ton = tenths / 10.0;
+        final String crypto = "TON " + (tenths % 10 == 0 ? String.valueOf(tenths / 10) : String.valueOf(ton));
+        final double rate = tonUsdRate(fragment);
+        final String money = rate > 0 && tenths > 0 ? "(" + usd(ton * rate) + ")" : "";
+        final String message = LocaleController.formatString(phone ? R.string.FragmentPhoneMessage : R.string.FragmentUsernameMessage,
+                LocaleController.formatShortDateTime(time / 1000), crypto, money);
+        final android.text.SpannableString tonIcon = new android.text.SpannableString("TON");
+        final org.telegram.ui.Components.ColoredImageSpan span = new org.telegram.ui.Components.ColoredImageSpan(R.drawable.mini_gram_16);
+        span.recolorDrawable = false;
+        span.setWidth(AndroidUtilities.dp(13));
+        tonIcon.setSpan(span, 0, tonIcon.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        final CharSequence messageText = AndroidUtilities.replaceCharSequence("TON", AndroidUtilities.replaceTags(message), tonIcon);
+        final TextView description = label(context, messageText, 0xFFFFFFFF, 14, false);
+        description.setGravity(Gravity.CENTER);
+        layout.addView(description, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 6));
+        final TextView note = label(context, s(R.string.MeridaVCollectibleNote), 0xFF8E8E93, 12, false);
+        note.setGravity(Gravity.CENTER);
+        layout.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 16));
+
+        final org.telegram.ui.Stories.recorder.ButtonWithCounterView more = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, null).setRound();
+        more.setText(s(R.string.FragmentUsernameOpen), false);
+        more.setOnClickListener(v -> Browser.openUrl(context, phone ? "https://fragment.com/numbers" : "https://fragment.com/username/" + name));
+        layout.addView(more, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 6, 0, 6, 0));
+        final org.telegram.ui.Stories.recorder.ButtonWithCounterView copy = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, null).setRound().setNeutral();
+        copy.setText(s(phone ? R.string.FragmentPhoneCopy : R.string.FragmentUsernameCopy), false);
+        copy.setOnClickListener(v -> {
+            AndroidUtilities.addToClipboard(phone ? shown : "https://t.me/" + name);
+            sheet.dismiss();
+        });
+        layout.addView(copy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 6, 6, 6, 0));
+        sheet.setCustomView(layout);
+        sheet.show();
     }
 
     // ---- +888 numbers --------------------------------------------------------------------------------

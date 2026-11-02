@@ -696,4 +696,6 @@
     <string name="MeridaVCreateSeveralHint">Удерживайте стрелку — создать несколько</string>
     <string name="MeridaVGiftAdded">Подарок добавлен ✓</string>
     <string name="MeridaVGiftsAddedN">Добавлено подарков: %1$d ✓</string>
+    <string name="MeridaVUpgrade">Улучшить</string>
+    <string name="MeridaVCollectibleNote">ВИЗУАЛ: видно только на этом телефоне, на самом деле ничего не куплено.</string>
 </resources>
