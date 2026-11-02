@@ -1703,6 +1703,9 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             StarsIntroActivity.showTransactionSheet(getContext(), currentAccount, currentMessageObject.messageOwner.date, currentMessageObject.messageOwner.from_id, currentMessageObject.messageOwner.peer_id, (TLRPC.TL_messageActionPrizeStars) currentMessageObject.messageOwner.action, avatarStoryParams.resourcesProvider);
         } else if (currentMessageObject.messageOwner.action instanceof TLRPC.TL_messageActionGiftTon) {
             StarsIntroActivity.showTransactionSheet(getContext(), currentAccount, currentMessageObject.messageOwner.date, currentMessageObject.messageOwner.from_id, currentMessageObject.messageOwner.peer_id, (TLRPC.TL_messageActionGiftTon) currentMessageObject.messageOwner.action, avatarStoryParams.resourcesProvider);
+        } else if (currentMessageObject.meridaVisualCard) {
+            // MeridaGram «Visual»: our own window (Telegram's would ask the server about a gift it does not have)
+            org.telegram.messenger.merida.MeridaVisualChat.openCard(currentMessageObject);
         } else if (currentMessageObject.messageOwner.action instanceof TLRPC.TL_messageActionStarGift) {
             final TLRPC.TL_messageActionStarGift action = (TLRPC.TL_messageActionStarGift) currentMessageObject.messageOwner.action;
             if (action.forceIn) return;
@@ -1710,8 +1713,6 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             new StarGiftSheet(getContext(), currentAccount, currentMessageObject.getDialogId(), themeDelegate)
                 .set(currentMessageObject)
                 .show();
-        } else if (currentMessageObject.meridaVisualCard) {
-            org.telegram.messenger.merida.MeridaVisualChat.openCard(currentMessageObject);
         } else if (currentMessageObject.messageOwner.action instanceof TLRPC.TL_messageActionStarGiftUnique) {
             final TLRPC.TL_messageActionStarGiftUnique action = (TLRPC.TL_messageActionStarGiftUnique) currentMessageObject.messageOwner.action;
             if (action.gift.burned) {
@@ -2385,6 +2386,9 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                             sb.append(action.gift.title).append(" #").append(formatNumber(action.gift_num, ','));
                         } else {
                             sb.append(getString(R.string.Gift2ActionSelfTitle));
+                        }
+                        if (messageObject.meridaVisualCard) {
+                            sb.append(' ').append(org.telegram.messenger.merida.MeridaVisual.mark());
                         }
                     } else {
                         sb.append(LocaleController.getString(action.prepaid_upgrade ? R.string.Gift2ActionUpgradeTitle : R.string.Gift2ActionTitle)).append(" ");

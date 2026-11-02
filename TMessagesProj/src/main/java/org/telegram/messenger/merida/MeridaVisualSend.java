@@ -35,6 +35,11 @@ public final class MeridaVisualSend {
         return "🎁 " + LocaleController.formatString(R.string.MeridaVisualSendGift, MeridaVisual.formatNumber(stars));
     }
 
+    /** An ordinary visual gift bought for yourself: the line also carries its key, so this phone can draw its card. */
+    public static String savedGiftItem(long stars, String key) {
+        return giftItem(stars) + " · gift:" + key;
+    }
+
     public static String starsItem(int stars) {
         return "⭐ " + LocaleController.formatString(R.string.MeridaVisualSendStars, MeridaVisual.formatNumber(stars));
     }

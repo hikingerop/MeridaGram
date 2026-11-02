@@ -49,14 +49,20 @@ public final class MeridaVisualChat {
      * After a visual purchase of an NFT for yourself: the honest visual-gift message goes to your Saved Messages
      * (only you see it), which opens; on this phone it is drawn as Telegram's «Purchased gift» card with the mark.
      */
-    public static void afterPurchase(TL_stars.StarGift gift) {
-        if (!(gift instanceof TL_stars.TL_starGiftUnique)) return;
-        final TL_stars.TL_starGiftUnique u = (TL_stars.TL_starGiftUnique) gift;
+    public static void afterPurchase(TL_stars.StarGift gift, String key) {
+        if (gift == null) return;
         final int account = UserConfig.selectedAccount;
         final long self = UserConfig.getInstance(account).getClientUserId();
         org.telegram.messenger.AndroidUtilities.runOnUIThread(() -> {
             try {
-                final String text = MeridaVisualSend.build(MeridaVisualSend.nftItem(u.title, u.num, u.slug == null ? "" : u.slug));
+                final String item;
+                if (gift instanceof TL_stars.TL_starGiftUnique) {
+                    final TL_stars.TL_starGiftUnique u = (TL_stars.TL_starGiftUnique) gift;
+                    item = MeridaVisualSend.nftItem(u.title, u.num, u.slug == null ? "" : u.slug);
+                } else {
+                    item = MeridaVisualSend.savedGiftItem(MeridaVisualGifts.priceInStars(gift), key);
+                }
+                final String text = MeridaVisualSend.build(item);
                 org.telegram.messenger.SendMessagesHelper.getInstance(account).sendMessage(
                         org.telegram.messenger.SendMessagesHelper.SendMessageParams.of(text, self));
                 final org.telegram.ui.ActionBar.BaseFragment fragment = org.telegram.ui.LaunchActivity.getSafeLastFragment();
@@ -104,6 +110,11 @@ public final class MeridaVisualChat {
         final String[] lines = text.split("\n");
         if (lines.length < 3) return null;
         final String item = lines[1];
+        final int g = item.indexOf(" · gift:");
+        if (g >= 0) {
+            final String key = item.substring(g + " · gift:".length()).trim();
+            return MeridaVisualGifts.loadAny(key) != null ? key : null;
+        }
         final int at = item.indexOf(" · t.me/nft/");
         final int hash = item.lastIndexOf(" #", at < 0 ? item.length() : at);
         if (at < 0 || hash < 0) return null;
@@ -131,8 +142,9 @@ public final class MeridaVisualChat {
             final String key = keyOfText(m.message);
             if (key == null) return m;
             final TL_stars.StarGift stored = MeridaVisualGifts.loadAny(key);
-            if (!(stored instanceof TL_stars.TL_starGiftUnique)) return m;
-            final TL_stars.TL_starGiftUnique gift = (TL_stars.TL_starGiftUnique) stored;
+            if (stored == null) return m;
+            final long self = UserConfig.getInstance(account).getClientUserId();
+            final long dialogId = MessageObject.getDialogId(m);
 
             final TLRPC.TL_messageService s = new TLRPC.TL_messageService();
             s.id = m.id;
@@ -148,10 +160,20 @@ public final class MeridaVisualChat {
             s.dialog_id = m.dialog_id;
             s.send_state = m.send_state;
 
+            if (!(stored instanceof TL_stars.TL_starGiftUnique)) {
+                // an ordinary visual gift bought for yourself: Telegram's «Saved gift» card in Saved Messages
+                if (dialogId != self) return m;
+                final TLRPC.TL_messageActionStarGift og = new TLRPC.TL_messageActionStarGift();
+                og.gift = stored;
+                og.saved = true;
+                og.can_upgrade = false;
+                og.convert_stars = 0;
+                s.action = og;
+                return s;
+            }
+            final TL_stars.TL_starGiftUnique gift = (TL_stars.TL_starGiftUnique) stored;
             final TLRPC.TL_messageActionStarGiftUnique a = new TLRPC.TL_messageActionStarGiftUnique();
             a.gift = gift;
-            final long self = UserConfig.getInstance(account).getClientUserId();
-            final long dialogId = MessageObject.getDialogId(m);
             final long value = MeridaVisualGifts.valueInStars(gift);
             if (dialogId == self && value > 0) {
                 // «You bought a gift for N stars» in Saved Messages

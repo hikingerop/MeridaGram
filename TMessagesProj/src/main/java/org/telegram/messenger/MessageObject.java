@@ -5111,6 +5111,9 @@ public class MessageObject {
                         SpannableStringBuilder sb = SpannableStringBuilder.valueOf(messageText);
                         messageText = sb.replace(i, i + 3, formatPluralStringComma("Gift2StarsCount", (int) stars));
                     }
+                    if (meridaVisualCard && messageText != null) {
+                        messageText = new SpannableStringBuilder(messageText).append(' ').append(org.telegram.messenger.merida.MeridaVisual.mark());
+                    }
                 } else if (messageOwner.action instanceof TLRPC.TL_messageActionStarGiftUnique) {
                     TLRPC.TL_messageActionStarGiftUnique action = (TLRPC.TL_messageActionStarGiftUnique) messageOwner.action;
                     TLRPC.User user = getUser(users, sUsers, getDialogId());

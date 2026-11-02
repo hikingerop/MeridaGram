@@ -260,7 +260,7 @@ public final class MeridaVisualGifts {
         }
         org.telegram.utils.settings.MeridaSettings.visualStars.set((int) (balance - price));
         // like Telegram: the purchase shows up in Saved Messages as a gift card (with the VISUAL mark), with confetti
-        MeridaVisualChat.afterPurchase(gift);
+        MeridaVisualChat.afterPurchase(gift, key);
         return org.telegram.messenger.LocaleController.formatString(org.telegram.messenger.R.string.MeridaVisualBought, MeridaVisual.formatNumber(price));
     }
 
