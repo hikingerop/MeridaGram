@@ -12061,4 +12061,6 @@
     <string name="MeridaVNftSaved">NFT saved ✓</string>
     <string name="MeridaVNftSavedN">NFTs saved: %1$d ✓</string>
     <string name="MeridaVCreateSeveralHint">Hold the arrow to create several</string>
+    <string name="MeridaVGiftAdded">Gift added ✓</string>
+    <string name="MeridaVGiftsAddedN">Gifts added: %1$d ✓</string>
 </resources>

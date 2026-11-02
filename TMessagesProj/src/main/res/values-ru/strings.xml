@@ -694,4 +694,6 @@
     <string name="MeridaVNftSaved">NFT сохранён ✓</string>
     <string name="MeridaVNftSavedN">Сохранено NFT: %1$d ✓</string>
     <string name="MeridaVCreateSeveralHint">Удерживайте стрелку — создать несколько</string>
+    <string name="MeridaVGiftAdded">Подарок добавлен ✓</string>
+    <string name="MeridaVGiftsAddedN">Добавлено подарков: %1$d ✓</string>
 </resources>

@@ -102,6 +102,8 @@ public class MeridaNftConstructorActivity extends BaseFragment {
     private TL_stars.starGiftAttributeBackdrop backdrop;
     private TL_stars.starGiftAttributePattern pattern;
     private int tab = TAB_MODELS;
+    /** Until this time, newly bound tiles play the appear animation. */
+    private long appearUntil;
 
     @Override
     public View createView(Context context) {
@@ -219,6 +221,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 }
             }, 1500);
         }
+        appearUntil = System.currentTimeMillis() + 700;
         adapter.notifyDataSetChanged();
         listView.scrollToPosition(0);
     }
@@ -342,6 +345,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         }
         listView.setPadding(0, 0, 0, AndroidUtilities.dp(96));
         updateTabBar();
+        appearUntil = System.currentTimeMillis() + 700;
         adapter.notifyDataSetChanged();
         listView.scrollToPosition(0);
     }
@@ -394,17 +398,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             Toast.makeText(getContext(), LocaleController.getString(R.string.MeridaVisualBuyFailed), Toast.LENGTH_LONG).show();
             return;
         }
-        final String text = stored == 1 ? LocaleController.getString(R.string.MeridaVNftSaved) : LocaleController.formatString(R.string.MeridaVNftSavedN, stored);
-        final BaseFragment previous = getParentLayout() != null ? getParentLayout().getBackgroundFragment() : null;
-        finishFragment();
-        if (previous != null) {
-            AndroidUtilities.runOnUIThread(() -> {
-                try {
-                    org.telegram.ui.Components.BulletinFactory.of(previous).createSimpleBulletin(R.raw.contact_check, text).show();
-                } catch (Throwable ignore) {
-                }
-            }, 350);
-        }
+        closeWithBulletin(stored == 1 ? LocaleController.getString(R.string.MeridaVNftSaved) : LocaleController.formatString(R.string.MeridaVNftSavedN, stored));
     }
 
     private void updateMultiplier() {
@@ -451,18 +445,29 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         final int count = multiplier;
         final boolean spend = MeridaSettings.visualSpendStars.get();
         final long total = spend ? g.stars * count : 0;
-        final String message = LocaleController.formatString(R.string.MeridaVBuyConfirm, count, g.title != null ? g.title : LocaleController.getString(R.string.MeridaVisualGiftTitle),
-                MeridaVisual.formatNumber(total)) + (spend ? "" : "\n" + LocaleController.getString(R.string.MeridaVFreeNote));
-        MeridaVisualActivity.confirm(this, LocaleController.getString(R.string.MeridaVBuyTitle), message, LocaleController.getString(R.string.MeridaVBuy), () -> {
-            if (total > MeridaSettings.visualStars.get()) {
-                Toast.makeText(getContext(), LocaleController.formatString(R.string.MeridaVisualBuyNoStars, MeridaVisual.formatNumber(total), MeridaVisual.formatNumber(MeridaSettings.visualStars.get())), Toast.LENGTH_LONG).show();
-                return;
-            }
-            final int stored = MeridaVisualGifts.storeMany("g" + g.id, g, count);
-            MeridaSettings.visualStars.set((int) Math.max(0, MeridaSettings.visualStars.get() - (spend ? g.stars * stored : 0)));
-            addBalanceView();
-            Toast.makeText(getContext(), LocaleController.formatString(R.string.MeridaVBoughtN, stored), Toast.LENGTH_LONG).show();
-        });
+        if (total > MeridaSettings.visualStars.get()) {
+            org.telegram.ui.Components.BulletinFactory.of(this).createSimpleBulletin(R.raw.error,
+                    LocaleController.formatString(R.string.MeridaVisualBuyNoStars, MeridaVisual.formatNumber(total), MeridaVisual.formatNumber(MeridaSettings.visualStars.get()))).show();
+            return;
+        }
+        // like Chimera: no question, the gift is added, the catalog closes and «Gift added ✓» shows below
+        final int stored = MeridaVisualGifts.storeMany("g" + g.id, g, count);
+        MeridaSettings.visualStars.set((int) Math.max(0, MeridaSettings.visualStars.get() - (spend ? g.stars * stored : 0)));
+        closeWithBulletin(stored == 1 ? LocaleController.getString(R.string.MeridaVGiftAdded) : LocaleController.formatString(R.string.MeridaVGiftsAddedN, stored));
+    }
+
+    /** Closes this screen and shows a bulletin with an animated icon on the screen below (Chimera's «… added ✓»). */
+    private void closeWithBulletin(String text) {
+        final BaseFragment previous = getParentLayout() != null ? getParentLayout().getBackgroundFragment() : null;
+        finishFragment();
+        if (previous != null) {
+            AndroidUtilities.runOnUIThread(() -> {
+                try {
+                    org.telegram.ui.Components.BulletinFactory.of(previous).createSimpleBulletin(R.raw.chats_infotip, text).show();
+                } catch (Throwable ignore) {
+                }
+            }, 320);
+        }
     }
 
     /** A visual auction: one bid, a countdown of a few seconds, then the gifts are yours (only here). */
@@ -569,6 +574,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             item.setOnClickListener(v -> {
                 tab = t;
                 updateTabBar();
+                appearUntil = System.currentTimeMillis() + 600;
                 adapter.notifyDataSetChanged();
                 listView.scrollToPosition(0);
             });
@@ -775,6 +781,16 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         }
 
         boolean modelTile;
+
+        /** Pressed: the tile shrinks a little, like Chimera's gift tiles. */
+        @Override
+        public void setPressed(boolean pressed) {
+            if (pressed != isPressed()) {
+                animate().scaleX(pressed ? 0.94f : 1f).scaleY(pressed ? 0.94f : 1f).setDuration(pressed ? 120 : 220)
+                        .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_QUINT).start();
+            }
+            super.setPressed(pressed);
+        }
 
         /** Sizes follow the tile width, like Chimera: the gift on top, the price pill below it, never overlapping. */
         @Override
@@ -1019,7 +1035,19 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.statusBarHeight + AndroidUtilities.dp(380), MeasureSpec.EXACTLY));
         }
 
+        private TL_stars.StarGiftAttribute lastModel, lastBackdrop, lastPattern;
+
         void bind() {
+            final boolean changed = lastModel != null && (lastModel != model || lastBackdrop != backdrop || lastPattern != pattern);
+            lastModel = model;
+            lastBackdrop = backdrop;
+            lastPattern = pattern;
+            if (changed) {
+                modelImage.setScaleX(0.8f);
+                modelImage.setScaleY(0.8f);
+                modelImage.animate().scaleX(1f).scaleY(1f).setDuration(380)
+                        .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_BACK).start();
+            }
             card.setBackdrop(backdrop);
             card.setPattern(pattern);
             setDocument(modelImage, model.document, collection);
@@ -1101,6 +1129,20 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             final int type = holder.getItemViewType();
+            if (type == TYPE_TILE && appearUntil > System.currentTimeMillis()) {
+                // tiles fade and grow in one after another when a list opens
+                final View v = holder.itemView;
+                v.setAlpha(0f);
+                v.setScaleX(0.85f);
+                v.setScaleY(0.85f);
+                v.animate().alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(Math.min(position, 15) * 25L).setDuration(260)
+                        .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_BACK).start();
+            } else if (type == TYPE_TILE && holder.itemView.getAlpha() < 1f && !holder.itemView.isPressed()) {
+                holder.itemView.animate().cancel();
+                holder.itemView.setAlpha(1f);
+                holder.itemView.setScaleX(1f);
+                holder.itemView.setScaleY(1f);
+            }
             if (type == TYPE_HEADER) {
                 ((HeaderView) holder.itemView).bind();
             } else if (type == TYPE_COUNT) {
