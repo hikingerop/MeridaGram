@@ -16875,15 +16875,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private void showStarRatingBottomSheet(View ignoreView) {
-        if (ratingView != null && ratingView.meridaVisual) {
-            BulletinFactory.of(this).createSimpleBulletin(R.raw.chats_infotip, getString(R.string.MeridaVisualRatingInfo)).show();
-            return;
-        }
+        // MeridaGram «Visual»: your visual rating opens the same Telegram window (like Chimera), marked VISUAL
+        final boolean meridaVisualRating = ratingView != null && ratingView.meridaVisual;
         final Context context = getContext();
         final TLRPC.UserFull userFull = getUserInfo();
-        if (userFull == null || userFull.stars_rating == null) {
+        if (userFull == null || !meridaVisualRating && userFull.stars_rating == null) {
             return;
         }
+        final TL_stars.Tl_starsRating meridaRating = meridaVisualRating ? org.telegram.messenger.merida.MeridaVisual.visualRating() : userFull.stars_rating;
+        final TL_stars.Tl_starsRating meridaPending = meridaVisualRating ? null : userFull.stars_my_pending_rating;
 
         BottomSheet.Builder b = new BottomSheet.Builder(getContext());
         Runnable dismiss = b.getDismissRunnable();
@@ -16897,12 +16897,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         {
             limitPreviewView = new LimitPreviewView(getContext(), R.drawable.filled_rating_crown, 0, 0, resourcesProvider);
             limitPreviewView.setHideNegativeValues(getDialogId() != UserConfig.getInstance(currentAccount).getClientUserId());
-            limitPreviewView.setStarRating(userFull.stars_rating);
+            limitPreviewView.setStarRating(meridaRating);
             limitPreviewView.setTranslationY(-dp(14));
             linearLayout.addView(limitPreviewView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 0, 20, 0, 10));
         }
 
-        if (userFull.stars_my_pending_rating != null) {
+        if (meridaPending != null) {
             final FrameLayout textLayout = new FrameLayout(context);
             linearLayout.addView(textLayout, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 40, -12, 40, 20));
 
@@ -16945,14 +16945,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             final boolean isSelf = getDialogId() == UserConfig.getInstance(currentAccount).getClientUserId();
 
-            final long dcurrent = userFull.stars_rating.stars;
-            final long dpoints = userFull.stars_my_pending_rating != null ? userFull.stars_my_pending_rating.stars - userFull.stars_rating.stars : 0;
+            final long dcurrent = meridaRating.stars;
+            final long dpoints = meridaPending != null ? meridaPending.stars - meridaRating.stars : 0;
             final long debt = -dcurrent - dpoints;
             final int days = Math.max(1, (userFull.stars_my_pending_rating_date - ConnectionsManager.getInstance(currentAccount).getCurrentTime()) / (24 * 60 * 60));
-            final long points = userFull.stars_my_pending_rating.stars - userFull.stars_rating.stars;
+            final long points = meridaPending.stars - meridaRating.stars;
 
             SpannableStringBuilder sb;
-            if (userFull.stars_rating.stars < 0 && !isSelf || isSelf && debt > 0) {
+            if (meridaRating.stars < 0 && !isSelf || isSelf && debt > 0) {
                 textView[0].setTextColor(Theme.getColor(Theme.key_text_RedBold));
                 if (isSelf) {
                     textView[0].setText(AndroidUtilities.replaceTags(formatPluralStringComma("StarRatingLevelNegativeYou", (int) debt)));
@@ -16967,11 +16967,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 ));
                 sb.append(" ");
                 sb.append(AndroidUtilities.replaceArrows(AndroidUtilities.premiumText(getString(R.string.StarRatingFuturePendingPointsPreview), () -> {
-                    limitPreviewView.animateStarRating(userFull.stars_rating, userFull.stars_my_pending_rating);
+                    limitPreviewView.animateStarRating(meridaRating, meridaPending);
                     update.run(true);
                 }), true));
                 textView[0].setOnClickListener(v -> {
-                    limitPreviewView.animateStarRating(userFull.stars_rating, userFull.stars_my_pending_rating);
+                    limitPreviewView.animateStarRating(meridaRating, meridaPending);
                     update.run(true);
                 });
                 textView[0].setText(sb);
@@ -16984,11 +16984,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             ));
             sb.append(" ");
             sb.append(AndroidUtilities.replaceArrows(AndroidUtilities.premiumText(getString(R.string.StarRatingFuturePendingPointsPreviewBack), () -> {
-                limitPreviewView.animateStarRating(userFull.stars_my_pending_rating, userFull.stars_rating);
+                limitPreviewView.animateStarRating(meridaPending, meridaRating);
                 update.run(false);
             }), true));
             textView[1].setOnClickListener(v -> {
-                limitPreviewView.animateStarRating(userFull.stars_my_pending_rating, userFull.stars_rating);
+                limitPreviewView.animateStarRating(meridaPending, meridaRating);
                 update.run(false);
             });
             textView[1].setText(sb);
@@ -16997,7 +16997,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         final TextView titleView = new TextView(context);
         titleView.setTypeface(AndroidUtilities.bold());
         titleView.setGravity(Gravity.CENTER);
-        titleView.setText(getString(R.string.StarRatingTitle));
+        titleView.setText(meridaVisualRating ? new SpannableStringBuilder(getString(R.string.StarRatingTitle)).append(' ').append(org.telegram.messenger.merida.MeridaVisual.mark()) : getString(R.string.StarRatingTitle));
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         linearLayout.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 20, 0, 20, 6));
