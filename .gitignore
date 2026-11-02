@@ -20,3 +20,4 @@ TMessagesProj/libs/libv2ray-classes.jar
 # Python bytecode from local checks
 __pycache__/
 *.pyc
+out/
