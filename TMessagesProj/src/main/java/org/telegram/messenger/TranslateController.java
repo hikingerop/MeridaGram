@@ -91,7 +91,7 @@ public class TranslateController extends BaseController {
     }
 
     public boolean isFeatureAvailable() {
-        return isChatTranslateEnabled() && UserConfig.getInstance(currentAccount).isPremium();
+        return isChatTranslateEnabled() && org.telegram.messenger.merida.MeridaTranslate.allowed(currentAccount);
     }
 
     public boolean isFeatureAvailable(long dialogId) {
@@ -100,7 +100,7 @@ public class TranslateController extends BaseController {
         }
         final TLRPC.Chat chat = getMessagesController().getChat(-dialogId);
         return (
-            UserConfig.getInstance(currentAccount).isPremium() ||
+            org.telegram.messenger.merida.MeridaTranslate.allowed(currentAccount) ||
             chat != null && chat.autotranslation
         );
     }
@@ -1103,7 +1103,8 @@ public class TranslateController extends BaseController {
                 }
 
                 final String method = getMessagesController().translationsAutoEnabled;
-                if ("alternative".equals(method) || "system".equals(method)) {
+                // MeridaGram: without Premium the free built-in translator is used, Telegram's server is not asked
+                if ("alternative".equals(method) || "system".equals(method) || !isTranscription && org.telegram.messenger.merida.MeridaTranslate.free(currentAccount)) {
                     final String toLanguage = pendingTranslation1.language;
                     for (int i = 0; i < pendingTranslation1.messageIds.size(); ++i) {
                         final int id = pendingTranslation1.messageIds.get(i);
@@ -1774,7 +1775,7 @@ public class TranslateController extends BaseController {
     }
 
     private boolean isLanguageRestricted(String lng) {
-        if (getUserConfig().isPremium()) {
+        if (org.telegram.messenger.merida.MeridaTranslate.allowed(currentAccount)) {
             return RestrictedLanguagesSelectActivity.getRestrictedLanguages().contains(lng);
         }
         try {

@@ -126,6 +126,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_SECURITY_HEADER = 63;
     private static final int ROW_SECURITY_INFO = 64;
     private static final int ROW_COPY_ID_MENU = 65;
+    private static final int ROW_FREE_TRANSLATE = 84;
     private static final int ROW_PLAYER_SLEEP = 66;
     private static final int ROW_SECURITY_GAP = 67;
     private static final int ROW_SPY_TRANSLUCENT = 68;
@@ -332,6 +333,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             case PAGE_GENERAL:
                 return new int[]{
                         hdr(R.string.MeridaHdrId), ROW_SHOW_ID, ROW_COPY_ID_MENU, note(R.string.MeridaInfoId),
+                        hdr(R.string.MeridaHdrTranslate), ROW_FREE_TRANSLATE, note(R.string.MeridaInfoTranslate),
                         hdr(R.string.MeridaHdrScreenshots), ROW_ALLOW_SCREENSHOTS, note(R.string.MeridaInfoScreenshots),
                         hdr(R.string.MeridaHdrNotifications), ROW_BACKGROUND, note(R.string.MeridaInfoBackground)};
             default:
@@ -1086,6 +1088,16 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         if (position == ROW_CRYPTO_ENABLED) {
             refreshCryptoPage();
         }
+        if (position == ROW_FREE_TRANSLATE && MeridaSettings.freeTranslate.get()) {
+            // turn on Telegram's own «Translate» in the message menu and the chat translation bar too
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (UserConfig.getInstance(a).isClientActivated()) {
+                    final org.telegram.messenger.TranslateController tc = org.telegram.messenger.MessagesController.getInstance(a).getTranslateController();
+                    tc.setContextTranslateEnabled(true);
+                    tc.setChatTranslateEnabled(true);
+                }
+            }
+        }
         if (position == ROW_HIDE_FOLDER_TABS) {
             for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
                 if (UserConfig.getInstance(a).isClientActivated()) {
@@ -1112,6 +1124,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.showId;
             case ROW_COPY_ID_MENU:
                 return MeridaSettings.copyIdMenu;
+            case ROW_FREE_TRANSLATE:
+                return MeridaSettings.freeTranslate;
             case ROW_CRYPTO_ENABLED:
                 return MeridaSettings.cryptoEnabled;
             case ROW_HIDE_FOLDER_TABS:
@@ -1178,6 +1192,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaSubSeconds;
             case ROW_COPY_ID_MENU:
                 return R.string.MeridaSubCopyId;
+            case ROW_FREE_TRANSLATE:
+                return R.string.MeridaSubTranslate;
             case ROW_GHOST_AUTO_OFFLINE:
                 return R.string.MeridaSubAutoOffline;
             case ROW_GHOST_STATUS:
@@ -1209,6 +1225,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaShowId;
             case ROW_COPY_ID_MENU:
                 return R.string.MeridaCopyIdMenu;
+            case ROW_FREE_TRANSLATE:
+                return R.string.MeridaFreeTranslate;
             case ROW_CRYPTO_ENABLED:
                 return R.string.MeridaCryptoFeature;
             case ROW_HIDE_FOLDER_TABS:

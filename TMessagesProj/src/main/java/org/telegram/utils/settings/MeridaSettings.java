@@ -13,6 +13,10 @@ public final class MeridaSettings {
     public static final BooleanSetting copyIdMenu =
         BooleanSetting.of("merida_copy_id_menu", false);
 
+    /** «Chat translation»: Telegram's translate bar and message «Translate» without Premium (free translator). */
+    public static final BooleanSetting freeTranslate =
+        BooleanSetting.of("merida_free_translate", false);
+
     /**
      * Encryption over Telegram (MeridaCrypto). While off, the chat menu has no «MeridaGram encryption»
      * and new messages go out as usual; see MeridaCrypto.isFeatureOn for phones that used it before.

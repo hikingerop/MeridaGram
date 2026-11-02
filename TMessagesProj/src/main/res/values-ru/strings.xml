@@ -399,6 +399,10 @@
     <string name="MeridaInfoChatList">Снег появится после перезапуска MeridaGram; в режиме экономии энергии на фоне чатов его нет. «Скрыть вкладки папок» оставляет только «Все чаты» — сами папки не удаляются.</string>
     <string name="MeridaHdrMessages">Сообщения</string>
     <string name="MeridaInfoSeconds">Секунды появятся после повторного открытия чата.</string>
+    <string name="MeridaHdrTranslate">Перевод</string>
+    <string name="MeridaFreeTranslate">Перевод чатов</string>
+    <string name="MeridaSubTranslate">Бесплатно, без Premium</string>
+    <string name="MeridaInfoTranslate">В чатах на другом языке сверху появится плашка «Перевести на русский»: нажмите — и весь чат покажется переведённым. В меню сообщения появится «Перевести». Без Premium тексты переводит бесплатный переводчик Google, встроенный в сам Telegram, а не Premium-переводчик Telegram.</string>
     <string name="MeridaHdrId">ID</string>
     <string name="MeridaInfoId">ID виден в профиле человека, группы или канала — нажмите на него, чтобы скопировать. «Скопировать ID» копирует ID автора сообщения.</string>
     <string name="MeridaHdrScreenshots">Скриншоты</string>

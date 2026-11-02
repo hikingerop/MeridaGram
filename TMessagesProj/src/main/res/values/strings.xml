@@ -11766,6 +11766,10 @@
     <string name="MeridaInfoChatList">Snow appears after MeridaGram restarts; in power saving mode there is none on chat backgrounds. «Hide folder tabs» leaves only «All chats», the folders themselves are kept.</string>
     <string name="MeridaHdrMessages">Messages</string>
     <string name="MeridaInfoSeconds">Seconds appear after you reopen the chat.</string>
+    <string name="MeridaHdrTranslate">Translation</string>
+    <string name="MeridaFreeTranslate">Chat translation</string>
+    <string name="MeridaSubTranslate">Free, without Premium</string>
+    <string name="MeridaInfoTranslate">A «Translate to English» bar appears at the top of chats in other languages: tap it and the whole chat is shown translated. «Translate» is also added to the message menu. Without Premium the texts go to the free Google translator built into Telegram, not to Telegram\'s Premium translator.</string>
     <string name="MeridaHdrId">ID</string>
     <string name="MeridaInfoId">The ID is shown in a user\'s, group\'s or channel\'s profile, tap it to copy. «Copy ID» copies the ID of the message\'s author.</string>
     <string name="MeridaHdrScreenshots">Screenshots</string>
