@@ -11880,6 +11880,16 @@
     <string name="MeridaNftModels">Models</string>
     <string name="MeridaNftBackdrops">Backdrops</string>
     <string name="MeridaNftPatterns">Patterns</string>
+    <string name="MeridaVisualOwner">Owner</string>
+    <string name="MeridaNftModel">Model</string>
+    <string name="MeridaNftPattern">Pattern</string>
+    <string name="MeridaNftBackdrop">Backdrop</string>
+    <string name="MeridaVisualGiftNote">Visual gift: only this phone shows it, Telegram does not have it.</string>
+    <string name="MeridaVisualGiftTitle">Visual gift</string>
+    <string name="MeridaVisualWear">Wear</string>
+    <string name="MeridaVisualTakeOff">Take off</string>
+    <string name="MeridaVisualRemoveGift">Remove</string>
+    <string name="MeridaVisualRealPage">Real page</string>
     <string name="MeridaHideFolderTabs">Hide folder tabs</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>

@@ -72,6 +72,9 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    «Визуальные покупки» (переключатель в Визуале): маркет NFT и «Купить подарок» себе — списывают визуальные звёзды и кладут
    подарок в визуал (MeridaVisualGifts.buyForSelf), другим — только честное сообщение. Баланс в окнах покупки — визуальный
    с меткой. Настоящие функции Premium не открываем (их проверяет сервер; «локальный Premium» — отказ).
+   Конструктор NFT (`ui/MeridaNftConstructorActivity.java`): каталог коллекций с ценами, Модели/Фоны/Узоры из
+   getResaleStarGifts(attributes). Окно визуального подарка (`ui/MeridaVisualGiftSheet.java`): владелец — ты, с водяным
+   знаком ВИЗУАЛ поверх имени, без «Купить»; «Надеть» — модель NFT как статус у своего имени с меткой (visualWorn).
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).

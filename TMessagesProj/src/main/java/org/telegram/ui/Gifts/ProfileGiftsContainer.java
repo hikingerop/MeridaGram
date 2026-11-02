@@ -659,11 +659,8 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
         public void onItemClick(UItem item, View view, int position, float x, float y) {
             if (list == null) return;
             if (item.object instanceof TL_stars.SavedStarGift && org.telegram.messenger.merida.MeridaVisualGifts.isVisual((TL_stars.SavedStarGift) item.object)) {
-                // a visual gift opens the real gift page, with its real owner
-                final String slug = org.telegram.messenger.merida.MeridaVisualGifts.slugOf((TL_stars.SavedStarGift) item.object);
-                if (slug != null) {
-                    org.telegram.messenger.browser.Browser.openUrl(getContext(), "https://t.me/nft/" + slug);
-                }
+                // a visual gift opens MeridaGram's own info window: owner you (watermarked), no «Buy»
+                org.telegram.ui.MeridaVisualGiftSheet.show(parent.fragment, (TL_stars.SavedStarGift) item.object, () -> list.invalidate(true));
                 return;
             }
             if (item.object instanceof TL_stars.SavedStarGift) {

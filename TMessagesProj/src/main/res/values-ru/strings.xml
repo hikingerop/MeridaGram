@@ -513,6 +513,16 @@
     <string name="MeridaNftModels">Модели</string>
     <string name="MeridaNftBackdrops">Фоны</string>
     <string name="MeridaNftPatterns">Узоры</string>
+    <string name="MeridaVisualOwner">Владелец</string>
+    <string name="MeridaNftModel">Модель</string>
+    <string name="MeridaNftPattern">Узор</string>
+    <string name="MeridaNftBackdrop">Фон</string>
+    <string name="MeridaVisualGiftNote">Визуальный подарок: виден только на этом телефоне, в Telegram его нет.</string>
+    <string name="MeridaVisualGiftTitle">Визуальный подарок</string>
+    <string name="MeridaVisualWear">Надеть</string>
+    <string name="MeridaVisualTakeOff">Снять</string>
+    <string name="MeridaVisualRemoveGift">Убрать</string>
+    <string name="MeridaVisualRealPage">Настоящая страница</string>
     <string name="MeridaHideFolderTabs">Скрыть вкладки папок</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>

@@ -33,6 +33,28 @@ public final class MeridaVisualGifts {
     private static final int MAX_GIFTS = 60;
     /** Gift objects made by this class, so the profile list can tell them from real ones. */
     private static final Set<TL_stars.SavedStarGift> made = Collections.newSetFromMap(new WeakHashMap<>());
+    private static final WeakHashMap<TL_stars.SavedStarGift, String> keys = new WeakHashMap<>();
+
+    /** The storage key of a visual gift shown in the profile, or null. */
+    public static String keyOf(TL_stars.SavedStarGift gift) {
+        synchronized (made) {
+            return keys.get(gift);
+        }
+    }
+
+    /** The model of the NFT worn as your visual status, or null. */
+    public static org.telegram.tgnet.TLRPC.Document wornModel() {
+        if (!MeridaVisual.on()) {
+            return null;
+        }
+        final String key = org.telegram.utils.settings.MeridaSettings.visualWorn.get();
+        final TL_stars.TL_starGiftUnique gift = key == null ? null : load(key);
+        if (gift == null) {
+            return null;
+        }
+        final TL_stars.starGiftAttributeModel model = org.telegram.ui.Stars.StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeModel.class);
+        return model == null ? null : model.document;
+    }
 
     private MeridaVisualGifts() {
     }
@@ -205,6 +227,7 @@ public final class MeridaVisualGifts {
             saved.name_hidden = true;
             synchronized (made) {
                 made.add(saved);
+                keys.put(saved, slug);
             }
             result.add(saved);
         }

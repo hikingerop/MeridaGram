@@ -51,6 +51,10 @@ public final class MeridaSettings {
     public static final BooleanSetting visualPurchases =
         BooleanSetting.of("merida_visual_purchases", false);
 
+    /** Key of the visual NFT worn as your status (MeridaVisualGifts), or null. */
+    public static final StringSetting visualWorn =
+        StringSetting.of("merida_visual_worn", null);
+
     public static final BooleanSetting visualPremium =
         BooleanSetting.of("merida_visual_premium", false);
 

@@ -11174,6 +11174,24 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private final Drawable[] meridaVisualPremium = new Drawable[2];
+    private final Drawable[] meridaWorn = new Drawable[2];
+    private final long[] meridaWornId = new long[2];
+
+    /** MeridaGram «Visual»: the NFT you wear as a visual status, with the «VISUAL» pill; null when none. */
+    private Drawable getMeridaWorn(int a) {
+        final TLRPC.Document model = org.telegram.messenger.merida.MeridaVisualGifts.wornModel();
+        if (model == null || nameTextView[a] == null) {
+            return null;
+        }
+        if (meridaWorn[a] == null || meridaWornId[a] != model.id) {
+            final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable status = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView[a], dp(24));
+            status.set(model, false);
+            status.attach();
+            meridaWorn[a] = org.telegram.messenger.merida.MeridaVisual.withMark(status);
+            meridaWornId[a] = model.id;
+        }
+        return meridaWorn[a];
+    }
 
     /** MeridaGram «Visual»: a Premium star with the «VISUAL» pill, only on your own profile. */
     private Drawable getMeridaVisualPremium(int a) {
@@ -11573,6 +11591,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         rightIconIsPremium = true;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(null, false, false, a));
                         nameTextViewRightDrawableContentDescription = LocaleController.getString(R.string.AccDescrPremium);
+                    } else if (user.self && getMeridaWorn(a) != null) {
+                        nameTextView[a].setRightDrawable(getMeridaWorn(a));
                     } else if (user.self && org.telegram.messenger.merida.MeridaVisual.premiumOn()) {
                         nameTextView[a].setRightDrawable(getMeridaVisualPremium(a));
                         nameTextViewRightDrawableContentDescription = null;
@@ -11596,6 +11616,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         rightIconIsStatus = false;
                         rightIconIsPremium = true;
                         nameTextView[a].setRightDrawable(getEmojiStatusDrawable(null, true, true, a));
+                    } else if (user.self && getMeridaWorn(a) != null) {
+                        nameTextView[a].setRightDrawable(getMeridaWorn(a));
                     } else if (user.self && org.telegram.messenger.merida.MeridaVisual.premiumOn()) {
                         nameTextView[a].setRightDrawable(getMeridaVisualPremium(a));
                     } else {
