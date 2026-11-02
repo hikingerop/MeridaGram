@@ -1229,6 +1229,9 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 chips.addView(chip, LayoutHelper.createLinear(0, 44, 1f, 4, 0, 4, 0));
             }
             chips.setClipChildren(false);
+            // the rarity pills stick out above the chips: let them be drawn outside the chips row
+            // (the header itself still clips to its rounded outline)
+            setClipChildren(false);
             addView(chips, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 52, Gravity.TOP, 8, 222, 8, 0));
         }
 
