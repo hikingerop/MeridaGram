@@ -12072,6 +12072,8 @@
     <string name="MeridaVUnlistTitle">Unlist %1$s</string>
     <string name="MeridaVUnlistText">Remove the gift from sale? (visual, only on this phone)</string>
     <string name="MeridaVSellPrice">Visual price in stars</string>
+    <string name="MeridaVNoCollections">You have no gift collections yet. Create one in your profile — a visual gift is added to it only on this phone.</string>
+    <string name="MeridaVPinnedLocal">Pinned only on this phone: a visual gift.</string>
     <string name="MeridaVTransferred">Sent as a visual gift message ✓</string>
     <string name="MeridaVDate">Date</string>
     <string name="MeridaVCost">Value</string>

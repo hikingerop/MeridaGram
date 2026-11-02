@@ -269,7 +269,7 @@ public final class MeridaVisualGifts {
         final List<String> slugs = slugs();
         slugs.remove(slug);
         saveSlugs(slugs);
-        prefs().edit().remove("gift_" + slug).remove("hidden_" + slug).remove("sale_" + slug).apply();
+        prefs().edit().remove("gift_" + slug).remove("hidden_" + slug).remove("sale_" + slug).remove("pinned_" + slug).remove("coll_" + slug).apply();
     }
 
     /** Visual «on sale» price in stars (0 — not on sale); shown on the card and in the gift window only here. */
@@ -346,15 +346,64 @@ public final class MeridaVisualGifts {
         return stored;
     }
 
-    /** The visual gifts as profile gift entries, newest first. */
+    /** «Pin» from the long-press menu: pinned visual gifts go first in your profile (only on this phone). */
+    public static boolean isPinned(String key) {
+        return key != null && prefs().getBoolean("pinned_" + key, false);
+    }
+
+    public static void setPinned(String key, boolean pinned) {
+        if (key != null) {
+            if (pinned) {
+                prefs().edit().putBoolean("pinned_" + key, true).apply();
+            } else {
+                prefs().edit().remove("pinned_" + key).apply();
+            }
+        }
+    }
+
+    /** Your real gift collections this visual gift is shown in (kept only on this phone, Telegram is not told). */
+    public static java.util.Set<Integer> collectionsOf(String key) {
+        final java.util.HashSet<Integer> result = new java.util.HashSet<>();
+        if (key == null) return result;
+        for (String id : prefs().getString("coll_" + key, "").split(",")) {
+            try {
+                if (!id.isEmpty()) result.add(Integer.parseInt(id));
+            } catch (NumberFormatException ignore) {
+            }
+        }
+        return result;
+    }
+
+    public static void setInCollection(String key, int collectionId, boolean in) {
+        if (key == null) return;
+        final java.util.Set<Integer> ids = collectionsOf(key);
+        if (in) ids.add(collectionId);
+        else ids.remove(collectionId);
+        if (ids.isEmpty()) {
+            prefs().edit().remove("coll_" + key).apply();
+        } else {
+            prefs().edit().putString("coll_" + key, android.text.TextUtils.join(",", ids)).apply();
+        }
+    }
+
+    /** The visual gifts as profile gift entries: pinned first, then newest first. */
     public static ArrayList<TL_stars.SavedStarGift> savedGifts() {
+        return savedGiftsIn(0);
+    }
+
+    /** The same for one of your gift collections (collectionId 0 — the whole profile). */
+    public static ArrayList<TL_stars.SavedStarGift> savedGiftsIn(int collectionId) {
         final ArrayList<TL_stars.SavedStarGift> result = new ArrayList<>();
         if (!MeridaVisual.on()) {
             return result;
         }
         final int now = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
+        int pinnedCount = 0;
         for (String slug : slugs()) {
             if (isHidden(slug)) {
+                continue;
+            }
+            if (collectionId != 0 && !collectionsOf(slug).contains(collectionId)) {
                 continue;
             }
             final TL_stars.StarGift gift = loadAny(slug);
@@ -367,11 +416,16 @@ public final class MeridaVisualGifts {
             saved.gift = gift;
             saved.date = now;
             saved.name_hidden = false; // no «anonymous sender» icon on the card
+            saved.pinned_to_top = collectionId == 0 && isPinned(slug);
             synchronized (made) {
                 made.add(saved);
                 keys.put(saved, slug);
             }
-            result.add(saved);
+            if (saved.pinned_to_top) {
+                result.add(pinnedCount++, saved);
+            } else {
+                result.add(saved);
+            }
         }
         return result;
     }

@@ -3742,6 +3742,12 @@ public class StarsController {
                         final ArrayList<TL_stars.SavedStarGift> visual = org.telegram.messenger.merida.MeridaVisualGifts.savedGifts();
                         gifts.addAll(0, visual);
                         totalCount += visual.size();
+                    } else if (first && craftingGiftId == 0 && isCollection && collectionId != 0
+                            && (dialogId == 0 || dialogId == UserConfig.getInstance(currentAccount).getClientUserId())) {
+                        // visual gifts you put into this collection (long-press → «Add to collection»), only on this phone
+                        final ArrayList<TL_stars.SavedStarGift> visual = org.telegram.messenger.merida.MeridaVisualGifts.savedGiftsIn(collectionId);
+                        gifts.addAll(0, visual);
+                        totalCount += visual.size();
                     }
                     chat_notifications_enabled = (rez.flags & 2) != 0 ? rez.chat_notifications_enabled : null;
                     endReached = gifts.size() > totalCount || lastOffset == null;

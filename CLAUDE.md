@@ -62,7 +62,7 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    текст баланса (StarsIntroActivity, TONIntroActivity, строки в SettingsActivity/ProfileActivity) и значок у своего имени.
    Этап 2 сделан: `merida/MeridaVisualGifts.java` — NFT по ссылке t.me/nft/… (getUniqueStarGift, хранится локально),
    вставляются первыми в StarsController.GiftsList своего профиля, лента ВИЗУАЛ (GiftSheet.GiftCell), нажатие открывает
-   настоящую страницу подарка, долгое нажатие отключено; счётчик вкладки «Подарки» учитывает визуальные (extraFor).
+   настоящую страницу подарка; счётчик вкладки «Подарки» учитывает визуальные (extraFor).
    Этап 3 сделан: юзернейм (проверка contacts.resolveUsername — чужой нельзя), номер (только 888+8 цифр), рейтинг
    (по просьбе владельца, уровень 1–100, метка под значком StarRatingView); водяной знак MeridaVisual.watermark поверх текста
    в строках профиля usernameRow/phoneRow/numberRow; ссылки, QR и копирование — настоящие.
@@ -93,6 +93,9 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    Прокрутка улучшения — `ui/MeridaGiftRoll.java`: перенос Telegram StarGiftSheet.Roller (покадрово, ~7 моделей/с, фоны
    наезжают с мягкими краями, значения таблицы крутятся барабаном, замедление). Окна подарка по высоте содержимого:
    слой конфетти — только через MeridaVisualUi.withOverlay (иначе BottomSheet растягивается на весь экран).
+   Долгое нажатие на визуальный подарок в профиле — меню как у Telegram (ProfileGiftsContainer.onVisualLongPress):
+   коллекция/закрепить/носить/ссылка/поделиться/скрыть/передать; коллекции и закрепление — только локально
+   (MeridaVisualGifts.setInCollection/setPinned, savedGiftsIn для вкладки коллекции), серверу ничего не шлём.
    По 5-минутному видео владельца (папка Google Drive «MeridaGram dook»): окно NFT — Передать (честное сообщение в чат через
    DialogsActivity) / Носить / Продать (визуальная цена, «В продаже за ⭐N», «Не продавать»; цена на карточке через resell_amount);
    юзернейм — большая карточка «Поставить в профиль / Изменить стоимость / Удалить»; «Стоимость и дата» (TON, $/€/₽ — курс

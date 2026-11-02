@@ -705,6 +705,8 @@
     <string name="MeridaVUnlistTitle">Отмена продажи %1$s</string>
     <string name="MeridaVUnlistText">Вы точно хотите снять подарок с продажи? (визуально, только на этом телефоне)</string>
     <string name="MeridaVSellPrice">Визуальная цена в звёздах</string>
+    <string name="MeridaVNoCollections">У тебя пока нет коллекций подарков. Создай её в профиле — визуальный подарок добавится в неё только на этом телефоне.</string>
+    <string name="MeridaVPinnedLocal">Закреплён только на этом телефоне: это визуальный подарок.</string>
     <string name="MeridaVTransferred">Отправлено сообщением «визуальный подарок» ✓</string>
     <string name="MeridaVDate">Дата</string>
     <string name="MeridaVCost">Стоимость</string>

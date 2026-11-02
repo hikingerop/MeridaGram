@@ -717,10 +717,110 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
             }
         }
 
+        /**
+         * MeridaGram «Visual»: the same long-press menu as Telegram's (collection, pin, wear, link, share, hide,
+         * transfer), but everything stays on this phone — Telegram gets no requests. «Transfer» sends the honest
+         * visual-gift message; the link and «Share» lead to the real NFT page with its real owner.
+         */
+        private boolean onVisualLongPress(TL_stars.SavedStarGift saved, View view) {
+            final String key = org.telegram.messenger.merida.MeridaVisualGifts.keyOf(saved);
+            if (key == null || !(view instanceof GiftSheet.GiftCell)) return false;
+            final Runnable changed = () -> {
+                if (list != null) list.invalidate(true);
+            };
+            final ItemOptions o = ItemOptions.makeOptions(parent.fragment, view, true);
+            parent.currentMenu = o;
+            if (parent.collections.isMine()) {
+                final ItemOptions so = o.makeSwipeback();
+                so.add(R.drawable.ic_ab_back, getString(R.string.Back), () -> o.closeSwipeback());
+                so.addGap();
+                final ScrollView collectionsScrollView = new ScrollView(getContext()) {
+                    @Override
+                    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                        super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(Math.min(dp(260), MeasureSpec.getSize(heightMeasureSpec)), MeasureSpec.getMode(heightMeasureSpec)));
+                    }
+                };
+                final LinearLayout collectionsLayout = new LinearLayout(getContext());
+                collectionsLayout.setOrientation(LinearLayout.VERTICAL);
+                collectionsScrollView.addView(collectionsLayout);
+                so.addView(collectionsScrollView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+                if (parent.collections.getCollections().isEmpty()) {
+                    so.addText(getString(R.string.MeridaVNoCollections), 13);
+                }
+                final java.util.Set<Integer> in = org.telegram.messenger.merida.MeridaVisualGifts.collectionsOf(key);
+                for (final TL_stars.TL_starGiftCollection collection : parent.collections.getCollections()) {
+                    final boolean contains = in.contains(collection.collection_id);
+                    final ActionBarMenuSubItem subitem = new ActionBarMenuSubItem(getContext(), 2, false, false, resourcesProvider);
+                    subitem.setChecked(contains);
+                    subitem.setPadding(dp(18), 0, dp(18), 0);
+                    subitem.setColors(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), Theme.getColor(Theme.key_actionBarDefaultSubmenuItemIcon, resourcesProvider));
+                    subitem.setSelectorColor(Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), .12f));
+                    subitem.setTextAndIcon(collection.title, R.drawable.msg_folders);
+                    subitem.setOnClickListener(v -> {
+                        org.telegram.messenger.merida.MeridaVisualGifts.setInCollection(key, collection.collection_id, !contains);
+                        final StarsController.GiftsList collectionList = parent.collections.getListById(collection.collection_id);
+                        if (collectionList != null) collectionList.invalidate(true);
+                        BulletinFactory.of(parent.fragment)
+                            .createSimpleMultiBulletin(saved.gift.getDocument(), AndroidUtilities.replaceTags(formatString(contains ? R.string.Gift2RemovedFromCollection : R.string.Gift2AddedToCollection, getGiftName(saved.gift), collection.title)))
+                            .show();
+                        o.dismiss();
+                    });
+                    collectionsLayout.addView(subitem, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+                }
+                o.add(R.drawable.msg_addfolder, getString(R.string.Gift2AddToCollection), () -> o.openSwipeback(so));
+                o.addGap();
+            }
+            final boolean unique = saved.gift instanceof TL_stars.TL_starGiftUnique;
+            if (unique) {
+                final boolean pinned = org.telegram.messenger.merida.MeridaVisualGifts.isPinned(key);
+                o.add(pinned ? R.drawable.msg_unpin : R.drawable.msg_pin, getString(pinned ? R.string.Gift2Unpin : R.string.Gift2Pin), () -> {
+                    org.telegram.messenger.merida.MeridaVisualGifts.setPinned(key, !pinned);
+                    if (pinned) {
+                        BulletinFactory.of(parent.fragment).createSimpleBulletin(R.raw.ic_unpin, getString(R.string.Gift2Unpinned)).show();
+                    } else {
+                        BulletinFactory.of(parent.fragment).createSimpleBulletin(R.raw.ic_pin, getString(R.string.Gift2PinnedTitle), getString(R.string.MeridaVPinnedLocal)).show();
+                    }
+                    changed.run();
+                    listView.scrollToPosition(0);
+                });
+                final boolean worn = key.equals(org.telegram.utils.settings.MeridaSettings.visualWorn.get());
+                o.add(worn ? R.drawable.menu_takeoff : R.drawable.menu_wear, getString(worn ? R.string.Gift2Unwear : R.string.Gift2Wear), () -> {
+                    org.telegram.utils.settings.MeridaSettings.visualWorn.set(worn ? null : key);
+                    NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_EMOJI_STATUS);
+                });
+                final String slug = org.telegram.messenger.merida.MeridaVisualGifts.slugOf(saved);
+                final String link = slug != null && !slug.isEmpty() ? MessagesController.getInstance(currentAccount).linkPrefix + "/nft/" + slug : null;
+                o.addIf(link != null, R.drawable.msg_link2, getString(R.string.CopyLink), () -> {
+                    AndroidUtilities.addToClipboard(link);
+                    BulletinFactory.of(parent.fragment).createCopyLinkBulletin(false).show();
+                });
+                o.addIf(link != null, R.drawable.msg_share, getString(R.string.ShareFile), () ->
+                    parent.fragment.showDialog(org.telegram.ui.Components.ShareAlert.createShareAlert(getContext(), null, link, false, link, false)));
+            }
+            o.add(R.drawable.menu_hide_gift, getString(R.string.Gift2HideGift), () -> {
+                org.telegram.messenger.merida.MeridaVisualGifts.setHidden(key, true);
+                changed.run();
+            });
+            if (unique) {
+                o.add(R.drawable.menu_transfer, getString(R.string.Gift2TransferOption), () ->
+                    org.telegram.ui.MeridaVisualGiftSheet.transfer(parent.fragment, (TL_stars.TL_starGiftUnique) saved.gift));
+            }
+            o.setGravity(Gravity.RIGHT);
+            o.setBlur(true);
+            o.allowMoveScrim();
+            final int min = Math.min(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y);
+            o.animateToSize(min - dp(32), (int) (min * .6f));
+            o.hideScrimUnder();
+            o.forceBottom(true);
+            o.show();
+            ((GiftSheet.GiftCell) view).imageView.getImageReceiver().startAnimation(true);
+            return true;
+        }
+
         public boolean onItemLongPress(UItem item, View view, int position, float x, float y) {
             if (list == null) return false;
             if (item.object instanceof TL_stars.SavedStarGift && org.telegram.messenger.merida.MeridaVisualGifts.isVisual((TL_stars.SavedStarGift) item.object)) {
-                return false;
+                return onVisualLongPress((TL_stars.SavedStarGift) item.object, view);
             }
             if (view instanceof GiftSheet.GiftCell && item.object instanceof TL_stars.SavedStarGift) {
                 final GiftSheet.GiftCell cell = (GiftSheet.GiftCell) view;

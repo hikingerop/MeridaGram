@@ -308,7 +308,7 @@ public final class MeridaVisualGiftSheet {
      * «Transfer»: choose a chat; it gets the honest visual-gift message (plain text saying it is not a real gift,
      * shown as a card with the VISUAL mark in MeridaGram). Nothing real is transferred.
      */
-    private static void transfer(BaseFragment fragment, TL_stars.TL_starGiftUnique gift) {
+    public static void transfer(BaseFragment fragment, TL_stars.TL_starGiftUnique gift) {
         final android.os.Bundle args = new android.os.Bundle();
         args.putBoolean("onlySelect", true);
         args.putInt("dialogsType", DialogsActivity.DIALOGS_TYPE_FORWARD);
