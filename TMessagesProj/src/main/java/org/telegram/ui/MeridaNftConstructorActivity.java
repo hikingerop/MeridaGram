@@ -123,7 +123,29 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         root.setBackgroundColor(PAGE);
         fragmentView = root;
 
-        listView = new RecyclerListView(context);
+        listView = new RecyclerListView(context) {
+            private final Paint pagePaint = new Paint();
+
+            @Override
+            protected void dispatchDraw(Canvas canvas) {
+                if (collection != null) {
+                    // like Chimera: the collection page is a sheet over the catalog — dark below its header
+                    pagePaint.setColor(PAGE);
+                    canvas.drawRect(0, sheetTop() + AndroidUtilities.dp(40), getWidth(), getHeight() + AndroidUtilities.dp(400), pagePaint);
+                }
+                super.dispatchDraw(canvas);
+            }
+
+            @Override
+            public boolean dispatchTouchEvent(android.view.MotionEvent e) {
+                if (collection != null && e.getActionMasked() == android.view.MotionEvent.ACTION_DOWN && e.getY() < sheetTop()) {
+                    closeConstructor();
+                    return false;
+                }
+                return super.dispatchTouchEvent(e);
+            }
+        };
+        listView.setItemAnimator(null);
         final GridLayoutManager layoutManager = new GridLayoutManager(context, 3);
         layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
@@ -171,7 +193,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
     public boolean onBackPressed(boolean invoked) {
         if (collection != null) {
             if (invoked) {
-                showCatalog();
+                closeConstructor();
             }
             return false;
         }
@@ -181,7 +203,15 @@ public class MeridaNftConstructorActivity extends BaseFragment {
     // ---- catalog -----------------------------------------------------------------------------------
 
     private void showCatalog() {
+        final boolean back = collection != null;
         collection = null;
+        listView.animate().cancel();
+        listView.setTranslationY(0);
+        if (sheetShade != null) {
+            sheetShade.setVisibility(View.GONE);
+            sheetShot.setImageBitmap(null);
+            sheetShot.setVisibility(View.GONE);
+        }
         actionBar.setVisibility(View.VISIBLE);
         tabBar.setVisibility(View.GONE);
         if (multiplierButton != null) {
@@ -221,9 +251,41 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 }
             }, 1500);
         }
-        appearUntil = System.currentTimeMillis() + 700;
+        appearUntil = back ? 0 : System.currentTimeMillis() + 700;
         adapter.notifyDataSetChanged();
-        listView.scrollToPosition(0);
+        if (back && catalogState != null) {
+            listView.getLayoutManager().onRestoreInstanceState(catalogState);
+        } else {
+            listView.scrollToPosition(0);
+        }
+    }
+
+    private android.os.Parcelable catalogState;
+    private ImageView sheetShot;
+    private View sheetShade;
+    private boolean closing;
+
+    /** Top of the collection sheet in the list (the header's top), or 0 once it is scrolled away. */
+    private float sheetTop() {
+        if (listView == null) return 0;
+        final RecyclerView.ViewHolder h = listView.findViewHolderForAdapterPosition(0);
+        if (h != null && h.itemView instanceof HeaderView) {
+            return h.itemView.getTop();
+        }
+        return listView.getChildCount() > 0 ? -1 : listView.getPaddingTop();
+    }
+
+    /** Like Chimera: the sheet slides down and the catalog is back where it was. */
+    private void closeConstructor() {
+        if (closing || collection == null) return;
+        closing = true;
+        listView.animate().translationY(root.getHeight() - Math.max(0, sheetTop())).setDuration(260)
+                .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_IN).withEndAction(() -> {
+                    closing = false;
+                    showCatalog();
+                }).start();
+        if (sheetShade != null) sheetShade.animate().alpha(0f).setDuration(260).start();
+        tabBar.animate().translationY(AndroidUtilities.dp(120)).setDuration(220).start();
     }
 
     private TextView balanceView;
@@ -325,6 +387,29 @@ public class MeridaNftConstructorActivity extends BaseFragment {
     }
 
     private void showConstructor() {
+        // a still picture of the catalog stays behind, dimmed, like the menu behind Chimera's sheet
+        catalogState = listView.getLayoutManager().onSaveInstanceState();
+        if (sheetShot == null) {
+            sheetShot = new ImageView(getContext());
+            sheetShot.setScaleType(ImageView.ScaleType.FIT_XY);
+            root.addView(sheetShot, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+            sheetShade = new View(getContext());
+            sheetShade.setBackgroundColor(0x80000000);
+            root.addView(sheetShade, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        }
+        try {
+            if (root.getWidth() > 0 && root.getHeight() > 0) {
+                final android.graphics.Bitmap shot = android.graphics.Bitmap.createBitmap(root.getWidth(), root.getHeight(), android.graphics.Bitmap.Config.ARGB_8888);
+                root.draw(new Canvas(shot));
+                sheetShot.setImageBitmap(shot);
+            }
+        } catch (Throwable ignore) {
+            sheetShot.setImageBitmap(null);
+        }
+        sheetShot.setVisibility(View.VISIBLE);
+        sheetShade.setVisibility(View.VISIBLE);
+        sheetShade.setAlpha(0f);
+        sheetShade.animate().alpha(1f).setDuration(300).start();
         model = models.get(0);
         backdrop = backdrops.get(0);
         pattern = patterns.get(0);
@@ -345,11 +430,16 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         if (balanceView != null) {
             balanceView.setVisibility(View.GONE);
         }
-        listView.setPadding(0, 0, 0, AndroidUtilities.dp(96));
+        // the sheet starts lower down; scrolling the list lifts it to the top, like Chimera
+        listView.setPadding(0, (int) (root.getHeight() * 0.24f), 0, AndroidUtilities.dp(96));
         updateTabBar();
-        appearUntil = System.currentTimeMillis() + 700;
+        appearUntil = System.currentTimeMillis() + 900;
         adapter.notifyDataSetChanged();
         listView.scrollToPosition(0);
+        listView.setTranslationY(root.getHeight());
+        listView.animate().translationY(0).setDuration(420).setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_QUINT).start();
+        tabBar.setTranslationY(AndroidUtilities.dp(120));
+        tabBar.animate().translationY(0).setStartDelay(120).setDuration(360).setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_QUINT).start();
     }
 
     private void randomize() {
@@ -358,7 +448,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         backdrop = backdrops.get(r.nextInt(backdrops.size()));
         pattern = patterns.get(r.nextInt(patterns.size()));
         randomTraits = true;
-        adapter.notifyDataSetChanged();
+        refreshSelection();
     }
 
     /** Rarest first, as in Telegram's list of traits. */
@@ -543,7 +633,19 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         } else {
             pattern = patterns.get(i);
         }
-        adapter.notifyDataSetChanged();
+        refreshSelection();
+    }
+
+    /** Like Chimera: the header changes smoothly and the selection frame moves, nothing is rebuilt. */
+    private void refreshSelection() {
+        for (int c = 0; c < listView.getChildCount(); c++) {
+            final View v = listView.getChildAt(c);
+            if (v instanceof HeaderView) {
+                ((HeaderView) v).bind();
+            } else if (v instanceof TileView) {
+                ((TileView) v).refreshSelected();
+            }
+        }
     }
 
     // ---- floating tab bar ----------------------------------------------------------------------------
@@ -805,6 +907,25 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         final RectF rect = new RectF();
         boolean selected;
         int borderColor;
+        /** What this tile shows (a model / backdrop / pattern / collection), to know if it is the chosen one. */
+        Object bound;
+        /** The selection frame fades and settles in like Chimera's instead of jumping. */
+        final org.telegram.ui.Components.AnimatedFloat selectedAnim = new org.telegram.ui.Components.AnimatedFloat(this, 0, 320, org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_QUINT);
+
+        void bindTo(Object attr) {
+            final boolean same = bound == attr;
+            bound = attr;
+            if (!same) selectedAnim.force(selected);
+        }
+
+        void refreshSelected() {
+            if (collection == null || bound == null) return;
+            final boolean now = bound == model || bound == backdrop || bound == pattern;
+            if (now != selected) {
+                selected = now;
+                invalidate();
+            }
+        }
 
         TileView(Context context) {
             super(context);
@@ -874,11 +995,14 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         @Override
         protected void onDraw(@NonNull Canvas canvas) {
             super.onDraw(canvas);
-            if (selected) {
-                final float inset = AndroidUtilities.dp(1.25f);
+            final float a = selectedAnim.set(selected);
+            if (a > 0) {
+                final float inset = AndroidUtilities.dp(1.25f) + AndroidUtilities.dp(5) * (1f - a);
                 rect.set(inset, inset, getWidth() - inset, getHeight() - inset);
                 border.setColor(borderColor);
-                canvas.drawRoundRect(rect, AndroidUtilities.dp(16), AndroidUtilities.dp(16), border);
+                border.setAlpha((int) (0xFF * a));
+                final float r = AndroidUtilities.dp(16) - AndroidUtilities.dp(4) * (1f - a);
+                canvas.drawRoundRect(rect, r, r, border);
             }
         }
 
@@ -908,6 +1032,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             }
             selected = g.require_premium;
             borderColor = GOLD;
+            bindTo(g);
             if (mode == MODE_GIFTS) {
                 if (g.sold_out) {
                     ribbon.set(LocaleController.getString(R.string.MeridaVSold), SOLD);
@@ -932,6 +1057,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             name.setVisibility(VISIBLE);
             selected = m == model;
             borderColor = BLUE;
+            bindTo(m);
             final String rn = rarityName(m);
             if (rn != null) {
                 rarityTop.setText(rn);
@@ -958,6 +1084,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             name.setVisibility(VISIBLE);
             selected = b == backdrop;
             borderColor = 0xFFFFFFFF;
+            bindTo(b);
             setRarity(rarityText(b), 0x33000000, 0xFFFFFFFF);
             invalidate();
         }
@@ -976,6 +1103,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             name.setVisibility(VISIBLE);
             selected = p == pattern;
             borderColor = 0xFFFFFFFF;
+            bindTo(p);
             setRarity(rarityText(p), 0x33000000, 0xFFFFFFFF);
             invalidate();
         }
@@ -992,10 +1120,15 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         }
     }
 
-    /** The collection page header: backdrop with pattern, the model, title and the three chips. */
+    /**
+     * The collection sheet's header, like Chimera's: rounded top, backdrop glow and pattern around the model,
+     * title, «random / chosen traits» and the three chips. A new backdrop cross-fades, the pattern swaps
+     * smoothly, the old model fades out while the new one grows in.
+     */
     private class HeaderView extends FrameLayout {
-        final GiftSheet.CardBackground card;
-        final BackupImageView modelImage;
+        final MeridaGiftRoll.HeaderBackground background;
+        final BackupImageView[] modelImage = new BackupImageView[2];
+        int currentImage;
         final TextView title;
         final TextView subtitle;
         final TextView num;
@@ -1005,48 +1138,56 @@ public class MeridaNftConstructorActivity extends BaseFragment {
 
         HeaderView(Context context) {
             super(context);
-            card = new GiftSheet.CardBackground(this, getResourceProvider(), false);
-            card.setPadding(false);
-            card.setRoundRadius(AndroidUtilities.dp(26));
-            setBackground(card);
-            final float top = AndroidUtilities.statusBarHeight / AndroidUtilities.density;
+            background = new MeridaGiftRoll.HeaderBackground(this, 22 + 68);
+            setBackground(background);
+            setOutlineProvider(new android.view.ViewOutlineProvider() {
+                @Override
+                public void getOutline(View view, android.graphics.Outline outline) {
+                    // only the top corners are round: the dark sheet continues below
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight() + AndroidUtilities.dp(18), AndroidUtilities.dp(18));
+                }
+            });
+            setClipToOutline(true);
 
             final ImageView back = roundButton(context, R.drawable.ic_ab_back);
-            back.setOnClickListener(v -> showCatalog());
-            addView(back, LayoutHelper.createFrame(46, 46, Gravity.TOP | Gravity.LEFT, 14, top + 14, 0, 0));
-            num = pill(context, 0xFFFFFFFF, 0x33000000, 16);
+            back.setOnClickListener(v -> closeConstructor());
+            addView(back, LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.LEFT, 10, 10, 0, 0));
+            num = pill(context, 0xFFFFFFFF, 0x33000000, 13);
             num.setOnClickListener(v -> MeridaVisualSheets.askNumber(MeridaNftConstructorActivity.this, LocaleController.getString(R.string.MeridaVNftNumber), number, n -> {
                 number = Math.max(1, n);
-                adapter.notifyItemChanged(0);
+                bind();
             }));
-            addView(num, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.TOP | Gravity.LEFT, 70, top + 17, 0, 0));
+            addView(num, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 26, Gravity.TOP | Gravity.LEFT, 52, 15, 0, 0));
             final ImageView send = roundButton(context, R.drawable.msg_send);
             // the arrow puts this NFT into your profile at once (like Chimera)
             send.setOnClickListener(v -> addToVisual(1));
-            addView(send, LayoutHelper.createFrame(46, 46, Gravity.TOP | Gravity.RIGHT, 0, top + 14, 14, 0));
-            priceView = pill(context, 0xFFFFFFFF, 0x33000000, 16);
-            priceView.setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
-            addView(priceView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.TOP | Gravity.RIGHT, 0, top + 17, 68, 0));
+            addView(send, LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.RIGHT, 0, 10, 10, 0));
+            priceView = pill(context, 0xFFFFFFFF, 0x33000000, 13);
+            priceView.setPadding(AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10), 0);
+            addView(priceView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 26, Gravity.TOP | Gravity.RIGHT, 0, 15, 52, 0));
             // the round button under the arrow: «create several NFTs»
             final ImageView dice = roundButton(context, R.drawable.outline_craft);
             dice.setOnClickListener(v -> askCount(LocaleController.getString(R.string.MeridaVCreateSeveral), MeridaNftConstructorActivity.this::addToVisual));
-            addView(dice, LayoutHelper.createFrame(56, 56, Gravity.TOP | Gravity.RIGHT, 0, top + 76, 14, 0));
+            addView(dice, LayoutHelper.createFrame(40, 40, Gravity.TOP | Gravity.RIGHT, 0, 58, 10, 0));
 
-            modelImage = new BackupImageView(context);
-            addView(modelImage, LayoutHelper.createFrame(170, 170, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, top + 40, 0, 0));
+            for (int i = 0; i < 2; i++) {
+                modelImage[i] = new BackupImageView(context);
+                addView(modelImage[i], 0, LayoutHelper.createFrame(136, 136, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 22, 0, 0));
+            }
+            modelImage[1].setAlpha(0f);
             title = new TextView(context);
             title.setTextColor(0xFFFFFFFF);
-            title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 27);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
             title.setTypeface(AndroidUtilities.bold());
             title.setGravity(Gravity.CENTER);
             title.setSingleLine(true);
             title.setEllipsize(TextUtils.TruncateAt.END);
-            addView(title, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, top + 214, 16, 0));
+            addView(title, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, 166, 16, 0));
             subtitle = new TextView(context);
             subtitle.setTextColor(0xB3FFFFFF);
-            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             subtitle.setGravity(Gravity.CENTER);
-            addView(subtitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, top + 252, 16, 0));
+            addView(subtitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, 193, 16, 0));
 
             final LinearLayout chips = new LinearLayout(context);
             chips.setOrientation(LinearLayout.HORIZONTAL);
@@ -1054,7 +1195,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             for (int i = 0; i < 3; i++) {
                 final FrameLayout chip = new FrameLayout(context);
                 final GradientDrawable bg = new GradientDrawable();
-                bg.setCornerRadius(AndroidUtilities.dp(14));
+                bg.setCornerRadius(AndroidUtilities.dp(12));
                 bg.setColor(0x1F000000);
                 chip.setBackground(bg);
                 final LinearLayout texts = new LinearLayout(context);
@@ -1062,7 +1203,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 texts.setGravity(Gravity.CENTER);
                 chipName[i] = new TextView(context);
                 chipName[i].setTextColor(0xFFFFFFFF);
-                chipName[i].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+                chipName[i].setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
                 chipName[i].setTypeface(AndroidUtilities.bold());
                 chipName[i].setSingleLine(true);
                 chipName[i].setEllipsize(TextUtils.TruncateAt.END);
@@ -1071,47 +1212,63 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 final TextView label = new TextView(context);
                 label.setText(LocaleController.getString(labels[i]));
                 label.setTextColor(0x99FFFFFF);
-                label.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+                label.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
                 label.setGravity(Gravity.CENTER);
                 texts.addView(label, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-                chip.addView(texts, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER, 6, 8, 6, 6));
-                chipRarity[i] = pill(context, 0xFF0F3F44, 0x66FFFFFF, 13);
-                chip.addView(chipRarity[i], LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 22, Gravity.TOP | Gravity.RIGHT, 0, -11, 6, 0));
+                chip.addView(texts, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER, 4, 5, 4, 4));
+                chipRarity[i] = pill(context, 0xFF0F3F44, 0x66FFFFFF, 10);
+                chip.addView(chipRarity[i], LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 16, Gravity.TOP | Gravity.RIGHT, 0, -8, 4, 0));
                 chip.setClipChildren(false);
                 final int t = i;
                 chip.setOnClickListener(v -> {
                     tab = t;
                     updateTabBar();
+                    appearUntil = System.currentTimeMillis() + 600;
                     adapter.notifyDataSetChanged();
                 });
-                chips.addView(chip, LayoutHelper.createLinear(0, 60, 1f, 5, 0, 5, 0));
+                chips.addView(chip, LayoutHelper.createLinear(0, 44, 1f, 4, 0, 4, 0));
             }
             chips.setClipChildren(false);
-            setClipChildren(false);
-            addView(chips, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 72, Gravity.TOP, 9, top + 292, 9, 0));
+            addView(chips, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 52, Gravity.TOP, 8, 222, 8, 0));
         }
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.statusBarHeight + AndroidUtilities.dp(380), MeasureSpec.EXACTLY));
+            super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(284), MeasureSpec.EXACTLY));
         }
 
         private TL_stars.StarGiftAttribute lastModel, lastBackdrop, lastPattern;
+        private TL_stars.StarGift boundCollection;
+        private final String[] lastChip = new String[3];
 
         void bind() {
-            final boolean changed = lastModel != null && (lastModel != model || lastBackdrop != backdrop || lastPattern != pattern);
+            final boolean first = lastModel == null || boundCollection != collection;
+            boundCollection = collection;
+            final boolean modelChanged = !first && lastModel != model;
+            final boolean backdropChanged = !first && lastBackdrop != backdrop;
+            final boolean patternChanged = !first && lastPattern != pattern;
+            if (first || backdropChanged) background.setBackdrop(backdrop, backdropChanged);
+            if (first || patternChanged) background.setPattern(pattern, patternChanged);
+            if (first) {
+                setDocument(modelImage[currentImage], model.document, collection);
+            } else if (modelChanged) {
+                // cross-fade: the old model fades and shrinks, the new one grows in
+                final BackupImageView old = modelImage[currentImage];
+                currentImage = 1 - currentImage;
+                final BackupImageView now = modelImage[currentImage];
+                setDocument(now, model.document, collection);
+                old.animate().cancel();
+                now.animate().cancel();
+                old.animate().alpha(0f).scaleX(0.8f).scaleY(0.8f).setDuration(220).start();
+                now.setAlpha(0f);
+                now.setScaleX(0.8f);
+                now.setScaleY(0.8f);
+                now.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(380)
+                        .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_BACK).start();
+            }
             lastModel = model;
             lastBackdrop = backdrop;
             lastPattern = pattern;
-            if (changed) {
-                modelImage.setScaleX(0.8f);
-                modelImage.setScaleY(0.8f);
-                modelImage.animate().scaleX(1f).scaleY(1f).setDuration(380)
-                        .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_BACK).start();
-            }
-            card.setBackdrop(backdrop);
-            card.setPattern(pattern);
-            setDocument(modelImage, model.document, collection);
             title.setText(collection.title != null ? collection.title : "NFT");
             subtitle.setText(LocaleController.getString(randomTraits ? R.string.MeridaVRandomTraits : R.string.MeridaNftChosen));
             num.setText("#" + number);
@@ -1124,7 +1281,14 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             priceView.setVisibility(p == null ? GONE : VISIBLE);
             final TL_stars.StarGiftAttribute[] parts = {model, backdrop, pattern};
             for (int i = 0; i < 3; i++) {
-                chipName[i].setText(parts[i].name);
+                final String name = parts[i].name;
+                if (!first && lastChip[i] != null && !lastChip[i].equals(name)) {
+                    // the chip's text changes with a short fade, like Chimera's
+                    chipName[i].setAlpha(0.2f);
+                    chipName[i].animate().alpha(1f).setDuration(260).start();
+                }
+                lastChip[i] = name;
+                chipName[i].setText(name);
                 final String r = rarityText(parts[i]);
                 final String rn = r != null ? r : rarityName(parts[i]);
                 chipRarity[i].setText(rn == null ? "" : rn);
