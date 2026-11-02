@@ -11890,6 +11890,17 @@
     <string name="MeridaVisualTakeOff">Take off</string>
     <string name="MeridaVisualRemoveGift">Remove</string>
     <string name="MeridaVisualRealPage">Real page</string>
+    <string name="MeridaNftCatalog">NFT catalog</string>
+    <string name="MeridaNftBalance">Balance</string>
+    <string name="MeridaNftRare">rare</string>
+    <string name="MeridaNftToProfile">+ To profile</string>
+    <string name="MeridaNftChosen">Chosen traits</string>
+    <string name="MeridaNftChipModel">model</string>
+    <string name="MeridaNftChipBackdrop">backdrop</string>
+    <string name="MeridaNftChipPattern">pattern</string>
+    <string name="MeridaNftCountModels">This collection has %1$d unique models</string>
+    <string name="MeridaNftCountBackdrops">This collection has %1$d unique backdrops</string>
+    <string name="MeridaNftCountPatterns">This collection has %1$d unique patterns</string>
     <string name="MeridaHideFolderTabs">Hide folder tabs</string>
     <string name="MeridaTimeWithSeconds">Show time with seconds</string>
     <string name="MeridaIdCopied">ID copied to clipboard.</string>

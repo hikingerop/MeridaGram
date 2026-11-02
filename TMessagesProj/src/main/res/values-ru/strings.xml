@@ -523,6 +523,17 @@
     <string name="MeridaVisualTakeOff">Снять</string>
     <string name="MeridaVisualRemoveGift">Убрать</string>
     <string name="MeridaVisualRealPage">Настоящая страница</string>
+    <string name="MeridaNftCatalog">Каталог NFT</string>
+    <string name="MeridaNftBalance">Баланс</string>
+    <string name="MeridaNftRare">редкий</string>
+    <string name="MeridaNftToProfile">+ В профиль</string>
+    <string name="MeridaNftChosen">Выбранные характеристики</string>
+    <string name="MeridaNftChipModel">модель</string>
+    <string name="MeridaNftChipBackdrop">фон</string>
+    <string name="MeridaNftChipPattern">узор</string>
+    <string name="MeridaNftCountModels">В этой коллекции %1$d уникальных моделей</string>
+    <string name="MeridaNftCountBackdrops">В этой коллекции %1$d уникальных фонов</string>
+    <string name="MeridaNftCountPatterns">В этой коллекции %1$d уникальных узоров</string>
     <string name="MeridaHideFolderTabs">Скрыть вкладки папок</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
