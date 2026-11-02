@@ -81,6 +81,7 @@ final class MeridaGiftRoll {
             attr = model;
             mine = true;
             receiver = new ImageReceiver(parent);
+            receiver.setLayerNum(4 | 6656); // like Telegram's roll: plays at full speed inside the sheet
             StarsIntroActivity.setGiftImage(receiver, model.document, 160);
         }
 

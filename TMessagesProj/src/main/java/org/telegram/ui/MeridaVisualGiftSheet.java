@@ -93,6 +93,9 @@ public final class MeridaVisualGiftSheet {
         final int textColor = backdrop != null ? backdrop.text_color | 0xFF000000 : 0xFF8E8E93;
 
         final BackupImageView image = new BackupImageView(context);
+        // like Telegram's gift window: the model belongs to this sheet's layer, so it plays at full speed
+        // (otherwise the sheet opening pauses / throttles «heavy» animations under it)
+        image.setLayerNum(4 | 6656);
         final TLRPC.Document doc = model != null ? model.document : gift.sticker;
         if (doc != null) {
             final TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(doc.thumbs, AndroidUtilities.dp(160));

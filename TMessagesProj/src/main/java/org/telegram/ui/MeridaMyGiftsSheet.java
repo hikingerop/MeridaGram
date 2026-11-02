@@ -294,6 +294,7 @@ final class MeridaMyGiftsSheet {
     private View tile(Context context, Item it) {
         final FrameLayout frame = new FrameLayout(context);
         final GiftSheet.GiftCell cell = new GiftSheet.GiftCell(context, fragment.getCurrentAccount(), fragment.getResourceProvider());
+        cell.setImageLayer(7); // full-speed animation inside the sheet, like Telegram's gift sheets
         cell.setStarsGift(it.saved, true, false);
         if (it.hidden) {
             cell.setAlpha(0.5f);
@@ -344,6 +345,7 @@ final class MeridaMyGiftsSheet {
         final LinearLayout top = new LinearLayout(context);
         top.setOrientation(LinearLayout.HORIZONTAL);
         final GiftSheet.GiftCell cell = new GiftSheet.GiftCell(context, fragment.getCurrentAccount(), fragment.getResourceProvider());
+        cell.setImageLayer(7); // full-speed animation inside the sheet, like Telegram's gift sheets
         cell.setStarsGift(it.saved, true, false);
         top.addView(cell, LayoutHelper.createLinear(104, LayoutHelper.WRAP_CONTENT, 0, 0, 12, 0));
         final LinearLayout right = new LinearLayout(context);

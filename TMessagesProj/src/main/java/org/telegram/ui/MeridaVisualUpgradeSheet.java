@@ -153,6 +153,7 @@ final class MeridaVisualUpgradeSheet {
             background = new MeridaGiftRoll.HeaderBackground(header, 22 + 80);
             header.setBackground(background);
             image = new BackupImageView(context);
+            image.setLayerNum(4 | 6656); // full speed inside the sheet, like Telegram's gift window
             header.addView(image, LayoutHelper.createFrame(160, 160, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 22, 0, 0));
             stickers = new MeridaGiftRoll.StickersView(context);
             header.addView(stickers, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 160, Gravity.TOP, 0, 22, 0, 0));
