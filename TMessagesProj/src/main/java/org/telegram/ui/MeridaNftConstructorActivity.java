@@ -380,6 +380,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         return u;
     }
 
+    /** Saves the chosen NFT(s) to your visual gifts, closes the constructor and says «NFT saved ✓», like Chimera. */
     private void addToVisual(int count) {
         if (!MeridaVisual.on()) {
             Toast.makeText(getContext(), LocaleController.getString(R.string.MeridaNftConstructorTurnOn), Toast.LENGTH_LONG).show();
@@ -387,9 +388,21 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         }
         final TL_stars.TL_starGiftUnique gift = buildGift();
         final int stored = MeridaVisualGifts.storeMany("c" + collection.id, gift, count);
-        Toast.makeText(getContext(), stored > 0
-                ? LocaleController.formatString(R.string.MeridaVCreated, stored, collection.title + " · " + model.name)
-                : LocaleController.getString(R.string.MeridaVisualBuyFailed), Toast.LENGTH_LONG).show();
+        if (stored <= 0) {
+            Toast.makeText(getContext(), LocaleController.getString(R.string.MeridaVisualBuyFailed), Toast.LENGTH_LONG).show();
+            return;
+        }
+        final String text = stored == 1 ? LocaleController.getString(R.string.MeridaVNftSaved) : LocaleController.formatString(R.string.MeridaVNftSavedN, stored);
+        final BaseFragment previous = getParentLayout() != null ? getParentLayout().getBackgroundFragment() : null;
+        finishFragment();
+        if (previous != null) {
+            AndroidUtilities.runOnUIThread(() -> {
+                try {
+                    org.telegram.ui.Components.BulletinFactory.of(previous).createSimpleBulletin(R.raw.contact_check, text).show();
+                } catch (Throwable ignore) {
+                }
+            }, 350);
+        }
     }
 
     private void updateMultiplier() {
@@ -928,7 +941,12 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             }));
             addView(num, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.TOP | Gravity.LEFT, 70, top + 17, 0, 0));
             final ImageView send = roundButton(context, R.drawable.msg_send);
-            send.setOnClickListener(v -> askCount(LocaleController.getString(R.string.MeridaVCreateSeveral), MeridaNftConstructorActivity.this::addToVisual));
+            // tap: put this NFT into your profile at once; hold: «create several NFTs»
+            send.setOnClickListener(v -> addToVisual(1));
+            send.setOnLongClickListener(v -> {
+                askCount(LocaleController.getString(R.string.MeridaVCreateSeveral), MeridaNftConstructorActivity.this::addToVisual);
+                return true;
+            });
             addView(send, LayoutHelper.createFrame(46, 46, Gravity.TOP | Gravity.RIGHT, 0, top + 14, 14, 0));
             priceView = pill(context, 0xFFFFFFFF, 0x33000000, 16);
             priceView.setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);

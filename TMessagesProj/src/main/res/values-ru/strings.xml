@@ -691,4 +691,7 @@
     <string name="MeridaVGiftHiddenNote">Подарок скрыт из профиля.</string>
     <string name="MeridaVReplaceOriginal">Заменять оригинальный: %1$s</string>
     <string name="MeridaVAlso">а также</string>
+    <string name="MeridaVNftSaved">NFT сохранён ✓</string>
+    <string name="MeridaVNftSavedN">Сохранено NFT: %1$d ✓</string>
+    <string name="MeridaVCreateSeveralHint">Удерживайте стрелку — создать несколько</string>
 </resources>

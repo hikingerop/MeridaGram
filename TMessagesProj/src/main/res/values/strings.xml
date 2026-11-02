@@ -12058,4 +12058,7 @@
     <string name="MeridaVGiftHiddenNote">The gift is hidden from your profile.</string>
     <string name="MeridaVReplaceOriginal">Replace original: %1$s</string>
     <string name="MeridaVAlso">also</string>
+    <string name="MeridaVNftSaved">NFT saved ✓</string>
+    <string name="MeridaVNftSavedN">NFTs saved: %1$d ✓</string>
+    <string name="MeridaVCreateSeveralHint">Hold the arrow to create several</string>
 </resources>
