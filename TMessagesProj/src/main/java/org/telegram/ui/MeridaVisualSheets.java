@@ -297,22 +297,25 @@ final class MeridaVisualSheets {
         final Sheet sh = new Sheet(fragment, s(R.string.MeridaVBalance), "");
         sh.addClose();
 
-        final TextView starsValue = label(context, "", 0xFFFFFFFF, 34, true);
+        // like Chimera: the numbers are typed right in place with the keyboard
+        final EditTextBoldCursor starsValue = amountField(context);
         final TextView starsUsd = label(context, "", 0xFF8E8E93, 16, false);
-        final TextView gramsValue = label(context, "", 0xFFFFFFFF, 34, true);
+        final EditTextBoldCursor gramsValue = amountField(context);
         final TextView gramsUsd = label(context, "", 0xFF8E8E93, 16, false);
         final Runnable update = () -> {
-            starsValue.setText(String.valueOf(stars[0]));
-            gramsValue.setText(String.valueOf(grams[0]));
+            setIfDifferent(starsValue, stars[0]);
+            setIfDifferent(gramsValue, grams[0]);
             starsUsd.setText("≈ " + usd(starsUsd(fragment, stars[0])));
             final double rate = tonUsdRate(fragment);
             gramsUsd.setText(rate > 0 ? "≈ " + usd(grams[0] * rate) + " · " + LocaleController.formatString(R.string.MeridaVTonRate, String.format(java.util.Locale.US, "%.2f", rate)) : "");
             sh.setSubtitle(stars[0] + " Stars · " + grams[0] + " GRAM");
         };
 
-        sh.body.addView(balanceCard(fragment, context, "⭐", starsValue, "Stars", starsUsd, new int[]{100, 1000, 10000}, stars, update),
+        watchAmount(starsValue, stars, update);
+        watchAmount(gramsValue, grams, update);
+        sh.body.addView(balanceCard(fragment, context, "★", starsValue, "Stars", starsUsd, new int[]{100, 1000, 10000}, stars, update),
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
-        sh.body.addView(balanceCard(fragment, context, "💎", gramsValue, "GRAM", gramsUsd, new int[]{1, 10, 100}, grams, update),
+        sh.body.addView(balanceCard(fragment, context, "", gramsValue, "GRAM", gramsUsd, new int[]{1, 10, 100}, grams, update),
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));
         final TextView note = label(context, s(R.string.MeridaVBalanceNote), 0xFF8E8E93, 14, false);
         sh.body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 2, 14, 2, 8));
@@ -331,12 +334,66 @@ final class MeridaVisualSheets {
             MeridaSettings.visualStars.set((int) Math.min(Integer.MAX_VALUE, stars[0]));
             MeridaSettings.visualGrams.set((int) Math.min(Integer.MAX_VALUE, grams[0]));
             MeridaSettings.visualSpendStars.set(spend[0]);
+            AndroidUtilities.hideKeyboard(starsValue);
             sh.sheet.dismiss();
             refresh(fragment);
+            try {
+                org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.chats_infotip, s(R.string.MeridaVBalanceUpdated)).show();
+            } catch (Throwable ignore) {
+            }
         });
         sh.body.addView(save, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 56, 0, 16, 0, 0));
         update.run();
         sh.show(fragment);
+    }
+
+    private static EditTextBoldCursor amountField(Context context) {
+        final EditTextBoldCursor field = new EditTextBoldCursor(context);
+        field.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 34);
+        field.setTextColor(0xFFFFFFFF);
+        field.setTypeface(AndroidUtilities.bold());
+        field.setBackground(null);
+        field.setPadding(0, 0, 0, 0);
+        field.setCursorColor(0xFFFFFFFF);
+        field.setCursorSize(AndroidUtilities.dp(30));
+        field.setInputType(InputType.TYPE_CLASS_NUMBER);
+        field.setSingleLine(true);
+        field.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
+        return field;
+    }
+
+    private static void setIfDifferent(EditTextBoldCursor field, long value) {
+        final String now = field.getText() == null ? "" : field.getText().toString();
+        long current;
+        try {
+            current = now.isEmpty() ? -1 : Long.parseLong(now);
+        } catch (Exception e) {
+            current = -1;
+        }
+        if (current != value && !(now.isEmpty() && field.hasFocus() && value == 0)) {
+            field.setText(String.valueOf(value));
+            field.setSelection(field.length());
+        }
+    }
+
+    private static void watchAmount(EditTextBoldCursor field, long[] holder, Runnable update) {
+        field.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence a, int b, int c, int d) {}
+            @Override public void onTextChanged(CharSequence a, int b, int c, int d) {}
+            @Override
+            public void afterTextChanged(android.text.Editable e) {
+                long v;
+                try {
+                    v = e.length() == 0 ? 0 : Math.min(Integer.MAX_VALUE, Long.parseLong(e.toString()));
+                } catch (Exception ex) {
+                    v = holder[0];
+                }
+                if (v != holder[0]) {
+                    holder[0] = v;
+                    update.run();
+                }
+            }
+        });
     }
 
     private static View balanceCard(BaseFragment fragment, Context context, String icon, TextView value, String unit, TextView usd, int[] steps, long[] holder, Runnable update) {
@@ -347,10 +404,7 @@ final class MeridaVisualSheets {
         top.addView(label(context, icon, 0xFF3E9BFF, 24, false), LayoutHelper.createLinear(40, LayoutHelper.WRAP_CONTENT));
         top.addView(value, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, 4, 0, 0, 0));
         top.addView(label(context, unit, 0xFF8E8E93, 18, false));
-        value.setOnClickListener(v -> askNumber(fragment, unit, (int) Math.min(Integer.MAX_VALUE, holder[0]), n -> {
-            holder[0] = Math.max(0, n);
-            update.run();
-        }));
+
         card.addView(top);
         card.addView(usd, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 8, 0, 0));
         final LinearLayout buttons = new LinearLayout(context);
@@ -434,12 +488,7 @@ final class MeridaVisualSheets {
                     setUsernameMeta(username, 108, System.currentTimeMillis());
                     rebuild[0].run();
                     refresh(fragment);
-                    askText(fragment, s(R.string.MeridaVNumberPrice), "10.8", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL, priceText -> {
-                        try {
-                            setUsernameMeta(username, (int) Math.round(Double.parseDouble(priceText.replace(',', '.')) * 10), System.currentTimeMillis());
-                        } catch (Exception ignore) {
-                        }
-                    });
+                    showCostDate(fragment, "@" + username, false, username, 108, System.currentTimeMillis(), (tenths, time) -> setUsernameMeta(username, tenths, time));
                 } else {
                     toast(fragment, s(result == MeridaVisual.CHECK_TAKEN ? R.string.MeridaVisualUsernameTaken
                             : result == MeridaVisual.CHECK_INVALID ? R.string.MeridaVisualUsernameInvalid : R.string.MeridaVisualUsernameError));
@@ -474,11 +523,21 @@ final class MeridaVisualSheets {
                     grid.addView(line, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
                 }
                 final String u = list.get(i);
-                line.addView(usernameCard(context, u, PILL_COLORS[i % PILL_COLORS.length], u.equals(active), () -> {
+                final int color = PILL_COLORS[i % PILL_COLORS.length];
+                line.addView(usernameCard(context, u, color, u.equals(active), () -> showUsernamePreview(fragment, u, color, () -> {
                     MeridaSettings.visualUsername.set(u);
                     rebuild[0].run();
                     refresh(fragment);
-                }, () -> MeridaVisualActivity.confirm(fragment, "@" + u, s(R.string.MeridaVDeleteQ), s(R.string.Delete), () -> {
+                }, () -> {
+                    final List<String> l = usernames();
+                    l.remove(u);
+                    saveUsernames(l);
+                    if (u.equals(MeridaSettings.visualUsername.get())) {
+                        MeridaSettings.visualUsername.set(l.isEmpty() ? null : l.get(0));
+                    }
+                    rebuild[0].run();
+                    refresh(fragment);
+                }), () -> MeridaVisualActivity.confirm(fragment, "@" + u, s(R.string.MeridaVDeleteQ), s(R.string.Delete), () -> {
                     final List<String> l = usernames();
                     l.remove(u);
                     saveUsernames(l);
@@ -498,18 +557,23 @@ final class MeridaVisualSheets {
     }
 
     private static View usernameCard(Context context, String username, int color, boolean active, Runnable click, Runnable longClick) {
+        return usernameCard(context, username, color, active, click, longClick, 1f);
+    }
+
+    /** k scales the whole card (the big preview uses ~1.7). */
+    private static View usernameCard(Context context, String username, int color, boolean active, Runnable click, Runnable longClick, float k) {
         final LinearLayout card = new LinearLayout(context);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setGravity(Gravity.CENTER_HORIZONTAL);
+        card.setGravity(Gravity.CENTER);
         final GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{0xFF2A3644, 0xFF1A1F26});
-        bg.setCornerRadius(AndroidUtilities.dp(22));
+        bg.setCornerRadius(AndroidUtilities.dp(22 * k));
         if (active) {
             bg.setStroke(AndroidUtilities.dp(2), MeridaVisualUi.BLUE);
         }
         card.setBackground(bg);
-        card.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(20), AndroidUtilities.dp(8), AndroidUtilities.dp(14));
+        card.setPadding(AndroidUtilities.dp(8 * k), AndroidUtilities.dp(20 * k), AndroidUtilities.dp(8 * k), AndroidUtilities.dp(14 * k));
         final FrameLayout logoFrame = new FrameLayout(context);
-        logoFrame.setBackground(MeridaVisualUi.round(0xFFFFFFFF, 22));
+        logoFrame.setBackground(MeridaVisualUi.round(0xFFFFFFFF, 22 * k));
         final FrameLayout circle = new FrameLayout(context);
         final GradientDrawable blue = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{0xFF37AEE2, 0xFF1E96C8});
         blue.setShape(GradientDrawable.OVAL);
@@ -518,24 +582,286 @@ final class MeridaVisualSheets {
         plane.setImageResource(R.drawable.msg_send);
         plane.setScaleType(ImageView.ScaleType.FIT_CENTER);
         plane.setColorFilter(new android.graphics.PorterDuffColorFilter(0xFFFFFFFF, android.graphics.PorterDuff.Mode.SRC_IN));
-        circle.addView(plane, LayoutHelper.createFrame(28, 28, Gravity.CENTER, 0, 0, 2, 0));
-        logoFrame.addView(circle, LayoutHelper.createFrame(52, 52, Gravity.CENTER));
-        card.addView(logoFrame, LayoutHelper.createLinear(72, 72));
-        final TextView pill = label(context, "@ " + username, 0xFFFFFFFF, 20, true);
+        circle.addView(plane, LayoutHelper.createFrame((int) (28 * k), (int) (28 * k), Gravity.CENTER, 0, 0, 2 * k, 0));
+        logoFrame.addView(circle, LayoutHelper.createFrame((int) (52 * k), (int) (52 * k), Gravity.CENTER));
+        card.addView(logoFrame, LayoutHelper.createLinear((int) (72 * k), (int) (72 * k)));
+        final TextView pill = label(context, "@ " + username, 0xFFFFFFFF, 20 * k, true);
         pill.setSingleLine(true);
         pill.setEllipsize(TextUtils.TruncateAt.END);
         pill.setGravity(Gravity.CENTER);
-        pill.setPadding(AndroidUtilities.dp(12), AndroidUtilities.dp(4), AndroidUtilities.dp(12), AndroidUtilities.dp(4));
-        pill.setBackground(MeridaVisualUi.round(color, 12));
-        card.addView(pill, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 16, 0, 0));
-        final TextView link = label(context, username.toLowerCase() + ".t.me", 0xFF9AA4AE, 13, false);
-        card.addView(link, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
+        pill.setPadding(AndroidUtilities.dp(12 * k), AndroidUtilities.dp(4 * k), AndroidUtilities.dp(12 * k), AndroidUtilities.dp(4 * k));
+        pill.setBackground(MeridaVisualUi.round(color, 12 * k));
+        card.addView(pill, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, (int) (16 * k), 0, 0));
+        final TextView link = label(context, username.toLowerCase() + ".t.me", 0xFF9AA4AE, 13 * k, false);
+        card.addView(link, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, (int) (6 * k), 0, 0));
         card.setOnClickListener(v -> click.run());
         card.setOnLongClickListener(v -> {
             longClick.run();
             return true;
         });
         return card;
+    }
+
+    // ---- username preview (Chimera: a big card with «Put in profile / Change price / Delete») -----------
+
+    static void showUsernamePreview(BaseFragment fragment, String username, int color, Runnable wear, Runnable delete) {
+        final Context context = fragment.getParentActivity();
+        if (context == null) return;
+        final android.app.Dialog dialog = new android.app.Dialog(context, R.style.TransparentDialog);
+        final FrameLayout root = new FrameLayout(context);
+        root.setBackgroundColor(0xB3000000);
+        root.setOnClickListener(v -> dialog.dismiss());
+        final LinearLayout column = new LinearLayout(context);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.setGravity(Gravity.CENTER_HORIZONTAL);
+        column.setClickable(true);
+        final View card = usernameCard(context, username, color, false, () -> { }, () -> { }, 1.75f);
+        column.addView(card, LayoutHelper.createLinear(310, 310));
+        final TextView name = label(context, "@" + username, 0xFFFFFFFF, 18, true);
+        name.setGravity(Gravity.CENTER);
+        column.addView(name, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 12, 0, 0));
+        final long[] meta = usernameMeta(username);
+        final TextView info = label(context, priceLine(fragment, meta[0]) + "\n" + LocaleController.formatString(R.string.MeridaVBought, dateText(meta[1])), 0xFFFFFFFF, 14, false);
+        info.setGravity(Gravity.CENTER);
+        column.addView(info, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 14));
+        final TextView put = MeridaVisualUi.bigButton(context, s(R.string.MeridaVPutInProfile));
+        put.setOnClickListener(v -> {
+            dialog.dismiss();
+            wear.run();
+        });
+        column.addView(put, LayoutHelper.createLinear(310, 48));
+        final TextView price = label(context, s(R.string.MeridaVChangePrice), 0xFFFFFFFF, 15, true);
+        price.setGravity(Gravity.CENTER);
+        price.setOnClickListener(v -> {
+            dialog.dismiss();
+            showCostDate(fragment, "@" + username, false, username, (int) meta[0], meta[1], (tenths, time) -> setUsernameMeta(username, tenths, time));
+        });
+        column.addView(price, LayoutHelper.createLinear(310, 48, 0, 8, 0, 0));
+        final TextView del = label(context, s(R.string.Delete), 0xFFFFFFFF, 15, true);
+        del.setGravity(Gravity.CENTER);
+        del.setOnClickListener(v -> {
+            dialog.dismiss();
+            delete.run();
+        });
+        column.addView(del, LayoutHelper.createLinear(310, 48));
+        root.addView(column, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER));
+        dialog.setContentView(root);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+        column.setScaleX(0.9f);
+        column.setScaleY(0.9f);
+        column.setAlpha(0f);
+        column.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(220).setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_BACK).start();
+        dialog.show();
+    }
+
+    /** «TON 10.8 · ≈ $32.4» */
+    static String priceLine(BaseFragment fragment, long tenths) {
+        final double ton = tenths / 10.0;
+        final StringBuilder sb = new StringBuilder("TON ").append(tenths % 10 == 0 ? String.valueOf(tenths / 10) : String.valueOf(ton));
+        final String money = money(fragment, ton);
+        if (money != null) sb.append(" · ≈ ").append(money);
+        return sb.toString();
+    }
+
+    // ---- currencies (for «≈ $ / € / ₽»): the TON rate from Telegram, USD→EUR/RUB from a public rates service --
+
+    private static final String[] CURRENCIES = {"USD", "EUR", "RUB"};
+    private static final String[] SIGNS = {"$", "€", "₽"};
+
+    static int currency() {
+        return Math.max(0, Math.min(2, meta().getInt("currency", 0)));
+    }
+
+    static double usdTo(int currency) {
+        if (currency == 0) return 1;
+        final float r = meta().getFloat("rate_" + CURRENCIES[currency], 0);
+        if (System.currentTimeMillis() - meta().getLong("rates_time", 0) > 12L * 3600 * 1000) {
+            loadRates();
+        }
+        return r;
+    }
+
+    private static boolean ratesLoading;
+
+    private static void loadRates() {
+        if (ratesLoading) return;
+        ratesLoading = true;
+        org.telegram.messenger.Utilities.globalQueue.postRunnable(() -> {
+            try {
+                final java.net.HttpURLConnection c = (java.net.HttpURLConnection) new java.net.URL("https://open.er-api.com/v6/latest/USD").openConnection();
+                c.setConnectTimeout(8000);
+                c.setReadTimeout(8000);
+                final java.io.InputStream in = c.getInputStream();
+                final java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                final byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                in.close();
+                final org.json.JSONObject rates = new org.json.JSONObject(out.toString("UTF-8")).getJSONObject("rates");
+                meta().edit().putFloat("rate_EUR", (float) rates.getDouble("EUR")).putFloat("rate_RUB", (float) rates.getDouble("RUB"))
+                        .putLong("rates_time", System.currentTimeMillis()).apply();
+            } catch (Throwable ignore) {
+            }
+            ratesLoading = false;
+        });
+    }
+
+    /** ≈ money for an amount of TON in the chosen currency, or null when the rate is unknown. */
+    static String money(BaseFragment fragment, double ton) {
+        final double rate = tonUsdRate(fragment);
+        final int cur = currency();
+        final double k = usdTo(cur);
+        if (rate <= 0 || k <= 0) {
+            return rate > 0 ? usd(ton * rate) : null;
+        }
+        final double v = ton * rate * k;
+        return SIGNS[cur] + (v >= 100 ? String.format(java.util.Locale.US, "%.2f", v) : String.format(java.util.Locale.US, "%.2f", v));
+    }
+
+    interface CostDateResult {
+        void done(int tonTenths, long time);
+    }
+
+    /**
+     * «Price and date» like Chimera: the price in TON with ≈ in $ / € / ₽, the purchase date on three wheels,
+     * a summary line, «Save» and «Like on Fragment» (opens the real Fragment page).
+     */
+    static void showCostDate(BaseFragment fragment, CharSequence subtitle, boolean phone, String name, int tonTenths, long time, CostDateResult result) {
+        final Context context = fragment.getParentActivity();
+        if (context == null) return;
+        final Sheet sh = new Sheet(fragment, s(R.string.MeridaVCostDate), subtitle);
+        sh.addClose();
+        final java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTimeInMillis(time > 0 ? time : System.currentTimeMillis());
+        final int[] tenths = {Math.max(0, tonTenths)};
+
+        final LinearLayout card = blackCard(context);
+        final LinearLayout top = new LinearLayout(context);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        final EditTextBoldCursor amount = new EditTextBoldCursor(context);
+        amount.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 26);
+        amount.setTextColor(0xFFFFFFFF);
+        amount.setBackground(null);
+        amount.setPadding(AndroidUtilities.dp(18), 0, 0, 0);
+        amount.setCursorColor(0xFFFFFFFF);
+        amount.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        amount.setSingleLine(true);
+        amount.setText(tenths[0] % 10 == 0 ? String.valueOf(tenths[0] / 10) : String.valueOf(tenths[0] / 10.0));
+        top.addView(amount, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
+        top.addView(label(context, "TON", 0xFF8E8E93, 17, false));
+        card.addView(top);
+        final TextView approx = label(context, "", 0xFF8E8E93, 15, false);
+        card.addView(approx, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
+        sh.body.addView(card, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
+
+        final LinearLayout chips = new LinearLayout(context);
+        chips.setOrientation(LinearLayout.HORIZONTAL);
+        final TextView[] chip = new TextView[3];
+        sh.body.addView(chips, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 40, 0, 12, 0, 0));
+        sh.body.addView(label(context, s(R.string.MeridaVPurchaseDate), 0xFF8E8E93, 15, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));
+
+        final LinearLayout wheels = new LinearLayout(context);
+        wheels.setOrientation(LinearLayout.HORIZONTAL);
+        final org.telegram.ui.Components.NumberPicker day = new org.telegram.ui.Components.NumberPicker(context, 18);
+        final org.telegram.ui.Components.NumberPicker month = new org.telegram.ui.Components.NumberPicker(context, 18);
+        final org.telegram.ui.Components.NumberPicker year = new org.telegram.ui.Components.NumberPicker(context, 18);
+        // standalone month names («Ноябрь», not «ноября»)
+        final String[] months = new String[12];
+        final java.text.SimpleDateFormat monthFormat = new java.text.SimpleDateFormat("LLLL", LocaleController.getInstance().getCurrentLocale());
+        final java.util.Calendar mc = java.util.Calendar.getInstance();
+        for (int i = 0; i < 12; i++) {
+            mc.set(2020, i, 1);
+            months[i] = monthFormat.format(mc.getTime());
+        }
+        day.setMinValue(1);
+        day.setMaxValue(31);
+        day.setFormatter(v -> String.format(java.util.Locale.US, "%02d", v));
+        month.setMinValue(0);
+        month.setMaxValue(11);
+        month.setFormatter(v -> {
+            final String m = v < months.length ? months[v] : String.valueOf(v + 1);
+            return m.isEmpty() ? m : Character.toUpperCase(m.charAt(0)) + m.substring(1);
+        });
+        year.setMinValue(2015);
+        year.setMaxValue(cal.get(java.util.Calendar.YEAR) + 5);
+        for (org.telegram.ui.Components.NumberPicker p : new org.telegram.ui.Components.NumberPicker[]{day, month, year}) {
+            p.setTextColor(0xFFFFFFFF);
+            p.setSelectorColor(MeridaVisualUi.BLUE);
+        }
+        day.setValue(cal.get(java.util.Calendar.DAY_OF_MONTH));
+        month.setValue(cal.get(java.util.Calendar.MONTH));
+        year.setValue(cal.get(java.util.Calendar.YEAR));
+        wheels.addView(day, LayoutHelper.createLinear(0, 150, 0.6f));
+        wheels.addView(month, LayoutHelper.createLinear(0, 150, 1.2f));
+        wheels.addView(year, LayoutHelper.createLinear(0, 150, 0.8f));
+        sh.body.addView(wheels, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 150, 0, 4, 0, 0));
+        final TextView summary = label(context, "", 0xFF8E8E93, 14, false);
+        summary.setGravity(Gravity.CENTER);
+        sh.body.addView(summary, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
+
+        final Runnable update = () -> {
+            try {
+                tenths[0] = (int) Math.round(Double.parseDouble(amount.getText().toString().replace(',', '.')) * 10);
+            } catch (Exception e) {
+                tenths[0] = 0;
+            }
+            final double ton = tenths[0] / 10.0;
+            final double rate = tonUsdRate(fragment);
+            final int cur = currency();
+            final double k = usdTo(cur);
+            final String m = money(fragment, ton);
+            approx.setText(m == null ? "" : "≈ " + m + (rate > 0 ? " · " + LocaleController.formatString(R.string.MeridaVTonRate,
+                    String.format(java.util.Locale.US, "%.3f", rate * (k > 0 ? k : 1))).replace("$", k > 0 ? SIGNS[cur] : "$") : ""));
+            for (int i = 0; i < 3; i++) {
+                final boolean sel = i == cur;
+                chip[i].setTextColor(sel ? 0xFFFFFFFF : 0xFFAAAAAA);
+                chip[i].setBackground(MeridaVisualUi.round(sel ? 0xFF2F8FE8 : 0xFF000000, 20));
+            }
+            day.setMaxValue(new java.util.GregorianCalendar(year.getValue(), month.getValue(), 1).getActualMaximum(java.util.Calendar.DAY_OF_MONTH));
+            cal.set(year.getValue(), month.getValue(), Math.min(day.getValue(), day.getMaxValue()));
+            summary.setText(LocaleController.formatString(R.string.MeridaVBoughtFor, dateText(cal.getTimeInMillis()), priceLine(fragment, tenths[0]).replace(" · ≈ ", " (").concat(m == null ? "" : ")")));
+        };
+        for (int i = 0; i < 3; i++) {
+            final int c = i;
+            chip[i] = label(context, SIGNS[i] + " " + CURRENCIES[i], 0xFFFFFFFF, 15, false);
+            chip[i].setGravity(Gravity.CENTER);
+            chip[i].setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
+            chip[i].setOnClickListener(v -> {
+                meta().edit().putInt("currency", c).apply();
+                update.run();
+            });
+            chips.addView(chip[i], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 40, 0, 0, 8, 0));
+        }
+        amount.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence a, int b, int c, int d) {}
+            @Override public void onTextChanged(CharSequence a, int b, int c, int d) {}
+            @Override public void afterTextChanged(android.text.Editable e) { update.run(); }
+        });
+        final org.telegram.ui.Components.NumberPicker.OnValueChangeListener changed = (picker, o, n) -> update.run();
+        day.setOnValueChangedListener(changed);
+        month.setOnValueChangedListener(changed);
+        year.setOnValueChangedListener(changed);
+        update.run();
+        loadRates();
+
+        final TextView save = MeridaVisualUi.bigButton(context, s(R.string.Save));
+        save.setOnClickListener(v -> {
+            update.run();
+            result.done(tenths[0], cal.getTimeInMillis());
+            sh.sheet.dismiss();
+            refresh(fragment);
+        });
+        sh.body.addView(save, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 52, 0, 12, 0, 0));
+        final TextView fragmentButton = MeridaVisualUi.pillButton(context, s(R.string.MeridaVLikeFragment), false);
+        fragmentButton.setTextColor(0xFFFFFFFF);
+        fragmentButton.setTypeface(AndroidUtilities.bold());
+        fragmentButton.setBackground(MeridaVisualUi.round(0xFF1A1A1A, 30));
+        fragmentButton.setOnClickListener(v -> Browser.openUrl(context, phone ? "https://fragment.com/numbers" : "https://fragment.com/username/" + name));
+        sh.body.addView(fragmentButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 52, 0, 8, 0, 0));
+        sh.show(fragment);
     }
 
     // ---- collectible username / number window (like Telegram's Fragment window) -----------------------
@@ -773,7 +1099,7 @@ final class MeridaVisualSheets {
         rebuild[0] = () -> {
             final List<Num> list = numbers();
             final String active = MeridaSettings.visualNumber.get();
-            sh.setSubtitle((MeridaSettings.visualNumberShow.get() && active != null ? s(R.string.MeridaVInProfile) + " · " : "")
+            sh.setSubtitle((MeridaSettings.visualNumberShow.get() && active != null ? s(R.string.MeridaVInProfile) : s(R.string.MeridaVHiddenWord)) + " · "
                     + LocaleController.formatString(R.string.MeridaVSavedCount, list.size()));
             current.removeAllViews();
             final Num cur = active == null ? null : find(list, active);
@@ -786,7 +1112,10 @@ final class MeridaVisualSheets {
             card.addView(phone, LayoutHelper.createLinear(32, 32, 0, 0, 16, 0));
             final LinearLayout texts = new LinearLayout(context);
             texts.setOrientation(LinearLayout.VERTICAL);
-            texts.addView(label(context, cur == null ? s(R.string.MeridaVNotChosen) : MeridaVisual.formatNumber888(cur.digits), 0xFFFFFFFF, 24, true));
+            texts.addView(label(context, cur == null ? s(R.string.MeridaVNoNumber) : MeridaVisual.formatNumber888(cur.digits), 0xFFFFFFFF, 24, true));
+            if (cur == null) {
+                texts.addView(label(context, s(R.string.MeridaVAddNumberHint), 0xFF8E8E93, 15, false));
+            }
             if (cur != null) {
                 final String d = numberDetails(fragment, cur);
                 if (!d.isEmpty()) {
@@ -798,6 +1127,9 @@ final class MeridaVisualSheets {
             current.addView(card);
 
             saved.removeAllViews();
+            if (list.isEmpty()) {
+                saved.addView(label(context, s(R.string.MeridaVNoNumbersYet), 0xFF8E8E93, 15, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 8));
+            }
             for (Num n : list) {
                 final LinearLayout item = blackCard(context);
                 item.setOrientation(LinearLayout.HORIZONTAL);
@@ -840,40 +1172,50 @@ final class MeridaVisualSheets {
         sh.show(fragment);
     }
 
-    /** Add (n == null) or edit a number: the number itself, then its price in TON. */
+    /** Add (n == null): the number, then «Price and date». Edit: «Price and date» of that number. */
     private static void editNumber(BaseFragment fragment, Num n, Runnable done) {
-        askText(fragment, s(R.string.MeridaVNumberExample), n == null ? "+888 " : MeridaVisual.formatNumber888(n.digits), InputType.TYPE_CLASS_PHONE, text -> {
+        if (n != null) {
+            showCostDate(fragment, MeridaVisual.formatNumber888(n.digits), true, n.digits, n.tonTenths, n.time, (tenths, time) -> {
+                final List<Num> list = numbers();
+                final Num target = find(list, n.digits);
+                if (target != null) {
+                    target.tonTenths = tenths;
+                    target.time = time;
+                    saveNumbers(list);
+                }
+                done.run();
+            });
+            return;
+        }
+        askText(fragment, s(R.string.MeridaVNumberExample), "+888 ", InputType.TYPE_CLASS_PHONE, text -> {
             final String digits = text.replaceAll("[^0-9]", "");
             if (!MeridaVisual.isAnonymousNumber(digits)) {
                 toast(fragment, s(R.string.MeridaVisualNumberOnly888));
                 return;
             }
-            final String priceNow = n != null && n.tonTenths > 0 ? String.valueOf(n.tonTenths / 10.0) : "10.8";
-            askText(fragment, s(R.string.MeridaVNumberPrice), priceNow, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL, priceText -> {
-                int tenths = 0;
-                try {
-                    tenths = (int) Math.round(Double.parseDouble(priceText.replace(',', '.')) * 10);
-                } catch (Exception ignore) {
-                }
-                final List<Num> list = numbers();
-                Num target = n == null ? null : find(list, n.digits);
-                if (target == null) {
-                    target = find(list, digits);
-                }
-                if (target == null) {
-                    target = new Num();
-                    target.time = System.currentTimeMillis();
-                    list.add(0, target);
-                }
-                final boolean wasActive = n != null && n.digits.equals(MeridaSettings.visualNumber.get());
+            final List<Num> list = numbers();
+            Num target = find(list, digits);
+            if (target == null) {
+                target = new Num();
                 target.digits = digits;
-                target.tonTenths = Math.max(0, tenths);
-                saveNumbers(list);
-                if (n == null || wasActive || MeridaSettings.visualNumber.get() == null) {
-                    MeridaSettings.visualNumber.set(digits);
+                target.tonTenths = 108;
+                target.time = System.currentTimeMillis();
+                list.add(0, target);
+            }
+            saveNumbers(list);
+            MeridaSettings.visualNumber.set(digits);
+            done.run();
+            refresh(fragment);
+            final Num added = target;
+            showCostDate(fragment, MeridaVisual.formatNumber888(digits), true, digits, added.tonTenths, added.time, (tenths, time) -> {
+                final List<Num> l = numbers();
+                final Num t = find(l, digits);
+                if (t != null) {
+                    t.tonTenths = tenths;
+                    t.time = time;
+                    saveNumbers(l);
                 }
                 done.run();
-                refresh(fragment);
             });
         });
     }

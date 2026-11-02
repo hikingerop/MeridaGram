@@ -126,52 +126,66 @@ public final class MeridaVisualGiftSheet {
         title.setGravity(Gravity.CENTER);
         header.addView(title, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, 210, 16, 0));
         final TextView subtitle = new TextView(context);
-        subtitle.setText(model != null ? model.name : gift.stars > 0 ? LocaleController.formatString(R.string.MeridaVisualSendGift, MeridaVisual.formatNumber(gift.stars)) : "");
+        final long salePrice = key != null ? MeridaVisualGifts.salePrice(key) : 0;
+        if (salePrice > 0) {
+            // like Telegram: «On sale for ⭐ N» in a pill under the name
+            subtitle.setText(org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(LocaleController.formatString(R.string.MeridaVOnSaleFor, LocaleController.formatNumber(salePrice, ',')), .8f));
+            subtitle.setPadding(AndroidUtilities.dp(10), AndroidUtilities.dp(2), AndroidUtilities.dp(10), AndroidUtilities.dp(2));
+            subtitle.setBackground(MeridaVisualUi.round(0x33000000, 12));
+            subtitle.setTextColor(0xFFFFFFFF);
+        } else {
+            subtitle.setText(model != null ? model.name : gift.stars > 0 ? LocaleController.formatString(R.string.MeridaVisualSendGift, MeridaVisual.formatNumber(gift.stars)) : "");
+        }
         subtitle.setTextColor(textColor);
         subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         subtitle.setGravity(Gravity.CENTER);
-        header.addView(subtitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, 246, 16, 0));
+        header.addView(subtitle, LayoutHelper.createFrame(salePrice > 0 ? LayoutHelper.WRAP_CONTENT : LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 16, 246, 16, 0));
 
         final LinearLayout buttons = new LinearLayout(context);
         buttons.setOrientation(LinearLayout.HORIZONTAL);
         header.addView(buttons, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 64, Gravity.TOP, 12, 284, 12, 16));
         final FrameLayout headerWrap = new FrameLayout(context);
-        headerWrap.addView(header, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 364));
+        headerWrap.addView(header, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, unique ? 364 : 290));
         root.addView(headerWrap);
 
         final Runnable changed = () -> {
             sheet.dismiss();
             if (onChanged != null) onChanged.run();
         };
+        final boolean upgradable = key != null && MeridaVisualUpgradeSheet.canUpgrade(gift);
         if (unique && key != null) {
+            // like Telegram's gift window: Transfer / Wear / Sell
+            addHeaderButton(buttons, R.drawable.filled_gift_transfer, s(R.string.Gift2ActionTransfer), () -> {
+                sheet.dismiss();
+                transfer(fragment, (TL_stars.TL_starGiftUnique) gift);
+            });
             final boolean worn = key.equals(MeridaSettings.visualWorn.get());
             addHeaderButton(buttons, worn ? R.drawable.filled_crown_off : R.drawable.filled_crown_on, s(worn ? R.string.Gift2ActionWearOff : R.string.Gift2ActionWear), () -> {
                 MeridaSettings.visualWorn.set(worn ? null : key);
                 notifyStatus(account);
                 changed.run();
             });
-        }
-        final boolean upgradable = key != null && MeridaVisualUpgradeSheet.canUpgrade(gift);
-        if (upgradable) {
-            addHeaderButton(buttons, R.drawable.menu_feature_unique, s(R.string.MeridaVUpgrade), () -> {
-                sheet.dismiss();
-                MeridaVisualUpgradeSheet.show(fragment, key, onChanged);
-            });
-        }
-        if (key != null) {
-            final boolean hidden = MeridaVisualGifts.isHidden(key);
-            addHeaderButton(buttons, R.drawable.menu_hide_gift, s(hidden ? R.string.MeridaVShow : R.string.MeridaVHide), () -> {
-                MeridaVisualGifts.setHidden(key, !hidden);
-                changed.run();
-            });
-            addHeaderButton(buttons, R.drawable.msg_delete, s(R.string.MeridaVisualRemoveGift), () -> {
-                MeridaVisualGifts.remove(key);
-                if (key.equals(MeridaSettings.visualWorn.get())) {
-                    MeridaSettings.visualWorn.set(null);
-                    notifyStatus(account);
-                }
-                changed.run();
-            });
+            if (salePrice > 0) {
+                addHeaderButton(buttons, R.drawable.filled_gift_sell_off, s(R.string.MeridaVUnlist), () -> {
+                    final AlertDialog.Builder b = new AlertDialog.Builder(context);
+                    b.setTitle(LocaleController.formatString(R.string.MeridaVUnlistTitle, gift.title + " #" + ((TL_stars.TL_starGiftUnique) gift).num));
+                    b.setMessage(s(R.string.MeridaVUnlistText));
+                    b.setPositiveButton(s(R.string.MeridaVUnlist), (d, w) -> {
+                        MeridaVisualGifts.setSalePrice(key, 0);
+                        changed.run();
+                    });
+                    b.setNegativeButton(s(R.string.Cancel), null);
+                    b.show();
+                });
+            } else {
+                addHeaderButton(buttons, R.drawable.filled_gift_sell_on, s(R.string.MeridaVSell), () -> MeridaVisualSheets.askNumber(fragment, s(R.string.MeridaVSellPrice),
+                        (int) Math.max(1, MeridaVisualGifts.priceInStars(gift)), value -> {
+                            if (value > 0) {
+                                MeridaVisualGifts.setSalePrice(key, value);
+                                changed.run();
+                            }
+                        }));
+            }
         }
 
         // ---- table
@@ -180,6 +194,13 @@ public final class MeridaVisualGiftSheet {
         body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(14));
         final TableView table = new TableView(context, fragment.getResourceProvider());
         table.addRow(s(R.string.Gift2Owner), ownerView(context, account));
+        final long addedAt = key != null ? MeridaVisualGifts.addedAt(key) : 0;
+        if (!unique && addedAt > 0) {
+            table.addRow(s(R.string.MeridaVDate), LocaleController.formatDateTime(addedAt / 1000, true));
+        }
+        if (!unique && gift.stars > 0) {
+            table.addRow(s(R.string.MeridaVCost), org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain("⭐️ " + LocaleController.formatNumber(gift.stars, ','), .8f));
+        }
         if (model != null) StarGiftSheet.addAttributeRow(table, model);
         if (pattern != null) StarGiftSheet.addAttributeRow(table, pattern);
         if (backdrop != null) StarGiftSheet.addAttributeRow(table, backdrop);
@@ -187,7 +208,7 @@ public final class MeridaVisualGiftSheet {
             table.addRow(s(R.string.Gift2Quantity), LocaleController.formatPluralStringComma("Gift2QuantityIssued1", gift.availability_issued)
                     + LocaleController.formatPluralStringComma("Gift2QuantityIssued2", gift.availability_total));
         }
-        final long price = MeridaVisualGifts.priceInStars(gift);
+        final long price = unique ? MeridaVisualGifts.priceInStars(gift) : 0;
         if (price > 0) {
             table.addRow(s(R.string.Gift2Value), MeridaVisualSheets.localPrice(fragment, price).replace("≈ ", "~"));
         }
@@ -230,6 +251,14 @@ public final class MeridaVisualGiftSheet {
         more.setOnClickListener(v -> {
             final java.util.ArrayList<CharSequence> items = new java.util.ArrayList<>();
             final java.util.ArrayList<Runnable> actions = new java.util.ArrayList<>();
+            if (key != null) {
+                final boolean hiddenNow = MeridaVisualGifts.isHidden(key);
+                items.add(s(hiddenNow ? R.string.MeridaVShowInProfileAction : R.string.MeridaVHideFromProfile));
+                actions.add(() -> {
+                    MeridaVisualGifts.setHidden(key, !hiddenNow);
+                    changed.run();
+                });
+            }
             if (slug != null && !slug.isEmpty()) {
                 items.add(s(R.string.CopyLink));
                 actions.add(() -> AndroidUtilities.addToClipboard("https://t.me/nft/" + slug));
@@ -276,6 +305,36 @@ public final class MeridaVisualGiftSheet {
                 }
             }, 250);
         }
+    }
+
+    /**
+     * «Transfer»: choose a chat; it gets the honest visual-gift message (plain text saying it is not a real gift,
+     * shown as a card with the VISUAL mark in MeridaGram). Nothing real is transferred.
+     */
+    private static void transfer(BaseFragment fragment, TL_stars.TL_starGiftUnique gift) {
+        final android.os.Bundle args = new android.os.Bundle();
+        args.putBoolean("onlySelect", true);
+        args.putInt("dialogsType", DialogsActivity.DIALOGS_TYPE_FORWARD);
+        args.putInt("messagesCount", 1);
+        final DialogsActivity picker = new DialogsActivity(args);
+        picker.setDelegate((dialogsFragment, dids, message, param, notify, scheduleDate, scheduleRepeatPeriod, topicsFragment) -> {
+            final String text = org.telegram.messenger.merida.MeridaVisualSend.build(
+                    org.telegram.messenger.merida.MeridaVisualSend.nftItem(gift.title, gift.num, gift.slug == null ? "" : gift.slug));
+            final int account = dialogsFragment.getCurrentAccount();
+            for (org.telegram.messenger.MessagesStorage.TopicKey key : dids) {
+                org.telegram.messenger.SendMessagesHelper.getInstance(account).sendMessage(
+                        org.telegram.messenger.SendMessagesHelper.SendMessageParams.of(text, key.dialogId));
+            }
+            dialogsFragment.finishFragment();
+            AndroidUtilities.runOnUIThread(() -> {
+                try {
+                    org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.contact_check, s(R.string.MeridaVTransferred)).show();
+                } catch (Throwable ignore) {
+                }
+            }, 350);
+            return true;
+        });
+        fragment.presentFragment(picker);
     }
 
     private static void notifyStatus(int account) {

@@ -102,6 +102,10 @@ public final class MeridaSettings {
     public static final BooleanSetting visualCraftAlways =
         BooleanSetting.of("merida_visual_craft_always", true);
 
+    /** Visual craft success chance in percent; -1 — from the chosen gifts. */
+    public static final IntSetting visualCraftChance =
+        IntSetting.of("merida_visual_craft_chance", -1);
+
     /** Visual auction: seconds until it ends and gifts given for one bid. */
     public static final IntSetting visualAuctionSeconds =
         IntSetting.of("merida_visual_auction_seconds", 5);

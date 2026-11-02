@@ -171,7 +171,7 @@ final class MeridaMyGiftsSheet {
     private boolean matches(Item it) {
         if (filter == FILTER_PROFILE && it.hidden) return false;
         if (filter == FILTER_HIDDEN && !it.hidden) return false;
-        if (filter == FILTER_SALE) return false;
+        if (filter == FILTER_SALE && MeridaVisualGifts.salePrice(it.key) <= 0) return false;
         if (query.isEmpty()) return true;
         final TL_stars.StarGift g = it.saved.gift;
         final StringBuilder hay = new StringBuilder();
@@ -211,7 +211,8 @@ final class MeridaMyGiftsSheet {
         stats.setOrientation(LinearLayout.HORIZONTAL);
         stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVInProfileN, inProfile), MeridaVisualUi.BLUE, 16, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
         stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVHiddenN, hidden), 0xFF8E8E93, 16, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
-        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVOnSaleN, 0), 0xFF8E8E93, 16, false));
+        final int onSale = MeridaVisualGifts.onSaleCount();
+        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVOnSaleN, onSale), 0xFF8E8E93, 16, false));
         summary.addView(stats, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
 
         chips.removeAllViews();
@@ -230,7 +231,7 @@ final class MeridaMyGiftsSheet {
         addChip(context, LocaleController.formatString(R.string.MeridaVFilterAll, all.size()), filter == FILTER_ALL, true, () -> { filter = FILTER_ALL; rebuild(); });
         addChip(context, LocaleController.formatString(R.string.MeridaVFilterProfile, inProfile), filter == FILTER_PROFILE, inProfile > 0, () -> { filter = FILTER_PROFILE; rebuild(); });
         addChip(context, LocaleController.formatString(R.string.MeridaVFilterHidden, hidden), filter == FILTER_HIDDEN, hidden > 0, () -> { filter = FILTER_HIDDEN; rebuild(); });
-        addChip(context, LocaleController.formatString(R.string.MeridaVFilterSale, 0), filter == FILTER_SALE, false, () -> { });
+        addChip(context, LocaleController.formatString(R.string.MeridaVFilterSale, onSale), filter == FILTER_SALE, onSale > 0, () -> { filter = FILTER_SALE; rebuild(); });
 
         selectionBar.removeAllViews();
         selectionBar.setVisibility(selecting ? View.VISIBLE : View.GONE);
@@ -418,7 +419,8 @@ final class MeridaMyGiftsSheet {
             MeridaVisualSheets.toast(fragment, s(R.string.MeridaVCraftNeed2));
             return;
         }
-        final int chance = Math.min(100, 25 * nfts.size());
+        final int fixed = MeridaSettings.visualCraftChance.get();
+        final int chance = fixed >= 0 ? Math.min(100, fixed) : Math.min(100, 25 * nfts.size());
         final boolean always = MeridaSettings.visualCraftAlways.get();
         final String message = LocaleController.formatString(R.string.MeridaVCraftConfirm, nfts.size(), always ? 100 : chance)
                 + (always ? "\n" + s(R.string.MeridaVCraftAlwaysOn) : "");

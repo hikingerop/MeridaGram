@@ -151,6 +151,11 @@ public class MeridaVisualActivity extends BaseFragment {
         final Context context = getContext();
         content.addView(headerView(context), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
+        if (MeridaVisual.on()) {
+            org.telegram.messenger.merida.MeridaVisualBackup.snapshot(30 * 60 * 1000L);
+        }
+        // like Chimera: no master switch on this screen; it only shows while «Visual» is off
+        if (!MeridaVisual.on()) {
         content.addView(MeridaVisualUi.header(context, s(R.string.MeridaHdrVisual)));
         final LinearLayout onCard = MeridaVisualUi.card(context);
         final MeridaVisualUi.Row[] onRow = new MeridaVisualUi.Row[1];
@@ -162,19 +167,21 @@ public class MeridaVisualActivity extends BaseFragment {
         });
         onCard.addView(onRow[0]);
         addCard(onCard);
+        }
 
         content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVTitle)));
         final LinearLayout card = MeridaVisualUi.card(context);
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_diamond, s(R.string.MeridaVMyGifts), myGiftsSubtitle(), true,
                 v -> { if (needOn()) new MeridaMyGiftsSheet(this).show(); }));
-        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_gear, s(R.string.MeridaVNftProfile), s(R.string.MeridaVNftProfileSub), true,
+        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_gear, s(R.string.MeridaVNftProfile), nftProfileSubtitle(), true,
                 v -> presentFragment(new MeridaVisualActivity(PAGE_PROFILE))));
+        // like Chimera's «Local Premium» row: a tap turns it on/off and says so below
         final MeridaVisualUi.Row[] premium = new MeridaVisualUi.Row[1];
-        premium[0] = MeridaVisualUi.switchRow(context, R.drawable.merida_v_premium, s(R.string.MeridaVPremium), premiumSubtitle(), MeridaSettings.visualPremium.get(), true, v -> {
+        premium[0] = MeridaVisualUi.row(context, R.drawable.merida_v_premium, s(R.string.MeridaVPremium), premiumSubtitle(), true, v -> {
             MeridaSettings.visualPremium.set(!MeridaSettings.visualPremium.get());
-            premium[0].setChecked(MeridaSettings.visualPremium.get());
             premium[0].setSubtitle(premiumSubtitle());
             notifyProfile();
+            bulletin(s(MeridaSettings.visualPremium.get() ? R.string.MeridaVPremiumTurnedOn : R.string.MeridaVPremiumTurnedOff));
         });
         card.addView(premium[0]);
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_wallet, s(R.string.MeridaVBalance), balanceSubtitle(), true,
@@ -187,7 +194,7 @@ public class MeridaVisualActivity extends BaseFragment {
                 v -> presentFragment(new MeridaVisualActivity(PAGE_INTEGRATIONS))));
         addCard(card);
 
-        content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVExtra)));
+        content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVCatalogs)));
         final LinearLayout extra = MeridaVisualUi.card(context);
         extra.addView(MeridaVisualUi.row(context, R.drawable.merida_v_diamond, s(R.string.MeridaNftCatalog), s(R.string.MeridaVNftCatalogSub), true,
                 v -> { if (needOn()) presentFragment(new MeridaNftConstructorActivity()); }));
@@ -202,6 +209,13 @@ public class MeridaVisualActivity extends BaseFragment {
         });
         extra.addView(purchases[0]);
         addCard(extra);
+
+        content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVExtra)));
+        final LinearLayout more = MeridaVisualUi.card(context);
+        more.addView(MeridaVisualUi.row(context, R.drawable.msg_shareout, s(R.string.MeridaVBackup), backupSubtitle(), true, v -> showBackups()));
+        more.addView(MeridaVisualUi.row(context, R.drawable.msg_help, s(R.string.MeridaVHelp), s(R.string.MeridaVHelpSub), false,
+                v -> org.telegram.messenger.browser.Browser.openUrl(getParentActivity(), "https://t.me/MeridaGram")));
+        addCard(more);
         content.addView(MeridaVisualUi.note(context, s(R.string.MeridaInfoVisual)));
     }
 
@@ -268,6 +282,68 @@ public class MeridaVisualActivity extends BaseFragment {
         return ordinary > 0 ? nft + " NFT · " + LocaleController.formatString(R.string.MeridaVOrdinaryCount, ordinary) : nft + " NFT";
     }
 
+    private void bulletin(CharSequence text) {
+        try {
+            org.telegram.ui.Components.BulletinFactory.of(this).createSimpleBulletin(R.raw.chats_infotip, text).show();
+        } catch (Throwable ignore) {
+        }
+    }
+
+    /** «Premium · Username · Number · Rating» — only what is set, like Chimera. */
+    private String nftProfileSubtitle() {
+        final java.util.ArrayList<String> parts = new java.util.ArrayList<>();
+        if (MeridaSettings.visualPremium.get()) parts.add("Premium");
+        final String u = MeridaSettings.visualUsername.get();
+        if (u != null && !u.isEmpty()) parts.add("Username");
+        final String n = MeridaSettings.visualNumber.get();
+        if (n != null && !n.isEmpty()) parts.add("Number");
+        if (MeridaSettings.visualRating.get() > 0) parts.add(s(R.string.MeridaVisualRating));
+        return parts.isEmpty() ? s(R.string.MeridaVNftProfileSub) : android.text.TextUtils.join(" · ", parts);
+    }
+
+    private String backupSubtitle() {
+        final java.util.List<java.io.File> list = org.telegram.messenger.merida.MeridaVisualBackup.list();
+        if (list.isEmpty()) {
+            return s(R.string.MeridaVNoBackups);
+        }
+        return LocaleController.formatString(R.string.MeridaVBackupsN, list.size(),
+                LocaleController.getInstance().getFormatterDay().format(org.telegram.messenger.merida.MeridaVisualBackup.time(list.get(0))));
+    }
+
+    /** «Backup»: make a copy now or bring back one of the copies. */
+    private void showBackups() {
+        if (getParentActivity() == null) return;
+        final java.util.List<java.io.File> list = org.telegram.messenger.merida.MeridaVisualBackup.list();
+        final CharSequence[] items = new CharSequence[list.size() + 1];
+        items[0] = s(R.string.MeridaVBackupNow);
+        for (int i = 0; i < list.size(); i++) {
+            final java.io.File f = list.get(i);
+            items[i + 1] = LocaleController.formatDateTime(org.telegram.messenger.merida.MeridaVisualBackup.time(f) / 1000, true)
+                    + " · " + LocaleController.formatString(R.string.MeridaVGiftsN, org.telegram.messenger.merida.MeridaVisualBackup.giftCount(f));
+        }
+        final AlertDialog.Builder b = new AlertDialog.Builder(getParentActivity());
+        b.setTitle(s(R.string.MeridaVBackup));
+        b.setItems(items, (d, which) -> {
+            if (which == 0) {
+                org.telegram.messenger.merida.MeridaVisualBackup.snapshot(0);
+                rebuild();
+                bulletin(s(R.string.MeridaVBackupDone));
+                return;
+            }
+            final java.io.File f = list.get(which - 1);
+            confirm(this, s(R.string.MeridaVBackupRestoreQ), items[which], s(R.string.MeridaVRestore), () -> {
+                org.telegram.messenger.merida.MeridaVisualBackup.snapshot(0);
+                if (org.telegram.messenger.merida.MeridaVisualBackup.restore(f)) {
+                    notifyProfile();
+                    rebuild();
+                    bulletin(s(R.string.MeridaVBackupRestored));
+                }
+            });
+        });
+        b.setNegativeButton(s(R.string.Cancel), null);
+        b.show();
+    }
+
     private String premiumSubtitle() {
         return s(MeridaSettings.visualPremium.get() ? R.string.MeridaVPremiumOn : R.string.MeridaVPremiumOff);
     }
@@ -314,7 +390,22 @@ public class MeridaVisualActivity extends BaseFragment {
         final Context context = getContext();
         content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVCraft)));
         final LinearLayout card = MeridaVisualUi.card(context);
-        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_dice, s(R.string.MeridaVCraftChance), s(R.string.MeridaVCraftChanceSub), true,
+        final int chance = MeridaSettings.visualCraftChance.get();
+        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_dice, s(R.string.MeridaVCraftChance),
+                chance < 0 ? s(R.string.MeridaVCraftChanceSub) : chance + "%", true,
+                v -> MeridaVisualSheets.askText(this, s(R.string.MeridaVCraft), String.valueOf(MeridaSettings.visualCraftChance.get()),
+                        android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED, text -> {
+                            int value;
+                            try {
+                                value = Integer.parseInt(text.trim());
+                            } catch (Exception e) {
+                                value = -1;
+                            }
+                            MeridaSettings.visualCraftChance.set(value < 0 ? -1 : Math.min(100, value));
+                            rebuild();
+                            bulletin(s(R.string.MeridaVSaved));
+                        })));
+        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_gift, s(R.string.MeridaVCraftOpen), s(R.string.MeridaVCraftPick), true,
                 v -> { if (needOn()) new MeridaMyGiftsSheet(this).showCraft(); }));
         final MeridaVisualUi.Row[] always = new MeridaVisualUi.Row[1];
         always[0] = MeridaVisualUi.switchRow(context, 0, s(R.string.MeridaVCraftAlways), null, MeridaSettings.visualCraftAlways.get(), false, v -> {

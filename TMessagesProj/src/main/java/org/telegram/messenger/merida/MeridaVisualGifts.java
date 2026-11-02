@@ -269,7 +269,52 @@ public final class MeridaVisualGifts {
         final List<String> slugs = slugs();
         slugs.remove(slug);
         saveSlugs(slugs);
-        prefs().edit().remove("gift_" + slug).remove("hidden_" + slug).apply();
+        prefs().edit().remove("gift_" + slug).remove("hidden_" + slug).remove("sale_" + slug).apply();
+    }
+
+    /** Visual «on sale» price in stars (0 — not on sale); shown on the card and in the gift window only here. */
+    public static long salePrice(String key) {
+        return key == null ? 0 : prefs().getLong("sale_" + key, 0);
+    }
+
+    public static void setSalePrice(String key, long stars) {
+        if (key != null) {
+            if (stars > 0) {
+                prefs().edit().putLong("sale_" + key, stars).apply();
+            } else {
+                prefs().edit().remove("sale_" + key).apply();
+            }
+        }
+    }
+
+    public static int onSaleCount() {
+        int n = 0;
+        for (String key : slugs()) {
+            if (salePrice(key) > 0) n++;
+        }
+        return n;
+    }
+
+    private static final Pattern TIME = Pattern.compile("(1\\d{12})");
+
+    /** When the gift was added (from its key), or 0. */
+    public static long addedAt(String key) {
+        if (key == null) return 0;
+        final Matcher m = TIME.matcher(key);
+        return m.find() ? Long.parseLong(m.group(1)) : 0;
+    }
+
+    /** The sale price as Telegram's «resell amount», so gift cards show the price pill. */
+    private static void applySale(String key, TL_stars.StarGift gift) {
+        final long price = salePrice(key);
+        if (price > 0) {
+            final TL_stars.TL_starsAmount amount = new TL_stars.TL_starsAmount();
+            amount.amount = price;
+            gift.resell_amount = new ArrayList<>();
+            gift.resell_amount.add(amount);
+        } else {
+            gift.resell_amount = null;
+        }
     }
 
     /** A hidden visual gift stays in «My gifts» but is not shown in your profile. */
@@ -316,7 +361,7 @@ public final class MeridaVisualGifts {
             if (gift == null) {
                 continue;
             }
-            gift.resell_amount = null; // never shown as «on sale» in your profile
+            applySale(slug, gift); // «on sale» only when you put it on visual sale
             gift.resale_ton_only = false;
             final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
             saved.gift = gift;
@@ -337,7 +382,7 @@ public final class MeridaVisualGifts {
         if (gift == null) {
             return null;
         }
-        gift.resell_amount = null;
+        applySale(key, gift);
         gift.resale_ton_only = false;
         final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
         saved.gift = gift;
