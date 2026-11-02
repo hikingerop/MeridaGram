@@ -34,7 +34,7 @@ import java.util.List;
 
 /**
  * MeridaGram «Visual» home, laid out like Chimera NFT's menu: a header with your NFT, then «My gifts»,
- * «NFT profile», «Premium badge», «Balance», «Craft», «Auctions», «Integrations». Everything here is shown
+ * «NFT profile», «Balance», «Craft», «Auctions», «Integrations». Everything here is shown
  * only on this phone and always carries the orange «VISUAL» mark; nothing is sent to Telegram.
  */
 public class MeridaVisualActivity extends BaseFragment {
@@ -175,15 +175,6 @@ public class MeridaVisualActivity extends BaseFragment {
                 v -> { if (needOn()) new MeridaMyGiftsSheet(this).show(); }));
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_gear, s(R.string.MeridaVNftProfile), nftProfileSubtitle(), true,
                 v -> presentFragment(new MeridaVisualActivity(PAGE_PROFILE))));
-        // like Chimera's «Local Premium» row: a tap turns it on/off and says so below
-        final MeridaVisualUi.Row[] premium = new MeridaVisualUi.Row[1];
-        premium[0] = MeridaVisualUi.row(context, R.drawable.merida_v_premium, s(R.string.MeridaVPremium), premiumSubtitle(), true, v -> {
-            MeridaSettings.visualPremium.set(!MeridaSettings.visualPremium.get());
-            premium[0].setSubtitle(premiumSubtitle());
-            notifyProfile();
-            bulletin(s(MeridaSettings.visualPremium.get() ? R.string.MeridaVPremiumTurnedOn : R.string.MeridaVPremiumTurnedOff));
-        });
-        card.addView(premium[0]);
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_wallet, s(R.string.MeridaVBalance), balanceSubtitle(), true,
                 v -> MeridaVisualSheets.showBalance(this)));
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_dice, s(R.string.MeridaVCraft), s(R.string.MeridaVCraftSub), true,
@@ -289,10 +280,9 @@ public class MeridaVisualActivity extends BaseFragment {
         }
     }
 
-    /** «Premium · Username · Number · Rating» — only what is set, like Chimera. */
+    /** «Username · Number · Rating» — only what is set, like Chimera. */
     private String nftProfileSubtitle() {
         final java.util.ArrayList<String> parts = new java.util.ArrayList<>();
-        if (MeridaSettings.visualPremium.get()) parts.add("Premium");
         final String u = MeridaSettings.visualUsername.get();
         if (u != null && !u.isEmpty()) parts.add("Username");
         final String n = MeridaSettings.visualNumber.get();
@@ -342,10 +332,6 @@ public class MeridaVisualActivity extends BaseFragment {
         });
         b.setNegativeButton(s(R.string.Cancel), null);
         b.show();
-    }
-
-    private String premiumSubtitle() {
-        return s(MeridaSettings.visualPremium.get() ? R.string.MeridaVPremiumOn : R.string.MeridaVPremiumOff);
     }
 
     static String balanceSubtitle() {

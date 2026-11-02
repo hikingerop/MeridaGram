@@ -50,8 +50,9 @@ public final class MeridaVisual {
         return on() && MeridaSettings.visualPurchases.get();
     }
 
+    /** The visual Premium badge was removed at the owner's request: never shown. */
     public static boolean premiumOn() {
-        return on() && MeridaSettings.visualPremium.get();
+        return false;
     }
 
     public static String formatNumber(long value) {
