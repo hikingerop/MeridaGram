@@ -163,7 +163,7 @@ public final class MeridaVisualGiftSheet {
         buttons.setOrientation(LinearLayout.HORIZONTAL);
         // Telegram paints the buttons in the backdrop's colour: edge mixed with the pattern colour
         buttons.setTag(backdrop != null ? androidx.core.graphics.ColorUtils.blendARGB(backdrop.edge_color | 0xFF000000, backdrop.pattern_color | 0xFF000000, .25f) : 0x10FFFFFF);
-        if (unique && key != null) {
+        if (unique && key != null && org.telegram.messenger.merida.MeridaVisualChat.transferredTo(key) == 0) {
             info.addView(buttons, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, 0, 15, 0, 0));
         }
         root.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
@@ -177,7 +177,7 @@ public final class MeridaVisualGiftSheet {
             // like Telegram's gift window: Transfer / Wear / Sell
             addHeaderButton(buttons, R.drawable.filled_gift_transfer, s(R.string.Gift2ActionTransfer), () -> {
                 sheet.dismiss();
-                transfer(fragment, (TL_stars.TL_starGiftUnique) gift);
+                transfer(fragment, key, (TL_stars.TL_starGiftUnique) gift);
             });
             final boolean worn = key.equals(MeridaSettings.visualWorn.get());
             addHeaderButton(buttons, worn ? R.drawable.filled_crown_off : R.drawable.filled_crown_on, s(worn ? R.string.Gift2ActionWearOff : R.string.Gift2ActionWear), () -> {
@@ -213,7 +213,8 @@ public final class MeridaVisualGiftSheet {
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(12));
         final TableView table = new TableView(context, fragment.getResourceProvider());
-        table.addRow(s(R.string.Gift2Owner), ownerView(context, account));
+        final long newOwner = key != null ? org.telegram.messenger.merida.MeridaVisualChat.transferredTo(key) : 0;
+        table.addRow(s(R.string.Gift2Owner), ownerView(context, account, newOwner));
         final long addedAt = key != null ? MeridaVisualGifts.addedAt(key) : 0;
         if (!unique && addedAt > 0) {
             table.addRow(s(R.string.MeridaVDate), LocaleController.formatDateTime(addedAt / 1000, true));
@@ -303,7 +304,7 @@ public final class MeridaVisualGiftSheet {
                     })
                     .addIf(unique && key != null, R.drawable.menu_transfer, s(R.string.Gift2TransferOption), () -> {
                         sheet.dismiss();
-                        transfer(fragment, (TL_stars.TL_starGiftUnique) gift);
+                        transfer(fragment, key, (TL_stars.TL_starGiftUnique) gift);
                     })
                     .addIf(key != null, R.drawable.msg_delete, s(R.string.MeridaVisualRemoveGift), true, () -> {
                         MeridaVisualGifts.remove(key);
@@ -346,31 +347,80 @@ public final class MeridaVisualGiftSheet {
      * shown as a card with the VISUAL mark in MeridaGram). Nothing real is transferred.
      */
     public static void transfer(BaseFragment fragment, TL_stars.TL_starGiftUnique gift) {
+        transfer(fragment, null, gift);
+    }
+
+    /**
+     * «Transfer», laid out like Telegram's: the «Transfer gift» picker (search, frequent contacts), then Telegram's
+     * own confirmation — the gift → arrow → avatar, «Transfer … to …?», the Model / Backdrop / Pattern / Value table —
+     * with the VISUAL mark. Then the chat opens: the honest visual-gift message goes there, and on this phone it is
+     * drawn as Telegram's gift card with the VISUAL ribbon, with confetti. The NFT leaves your profile and its window
+     * shows the new owner. Nothing real is transferred.
+     */
+    public static void transfer(BaseFragment fragment, String key, TL_stars.TL_starGiftUnique gift) {
         final Context context = fragment.getParentActivity();
         if (context == null) return;
         final int account = fragment.getCurrentAccount();
-        // the same «Transfer gift» picker as Telegram (search, frequent contacts), without «Send via Fragment»
         final org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet picker = new org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet(context, account, 0,
                 org.telegram.messenger.BirthdayController.getInstance(account).getState(), org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet.TYPE_TRANSFER, true, fragment.getResourceProvider());
         picker.setTitle(s(R.string.Gift2TransferShort));
         picker.setOnUserSelector(dialogId -> {
             if (dialogId == null || dialogId == 0) return;
+            final org.telegram.tgnet.TLObject obj = dialogId >= 0
+                    ? MessagesController.getInstance(account).getUser(dialogId)
+                    : MessagesController.getInstance(account).getChat(-dialogId);
             final String name = org.telegram.messenger.DialogObject.getShortName(account, dialogId);
+            final String giftName = (gift.title != null ? gift.title : "NFT") + " #" + LocaleController.formatNumber(gift.num, ',');
+
+            final LinearLayout top = new LinearLayout(context);
+            top.setOrientation(LinearLayout.VERTICAL);
+            top.addView(new StarGiftSheet.GiftTransferTopView(context, gift, obj), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 0, -4, 0, 0));
+            final TextView text = new TextView(context);
+            text.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, fragment.getResourceProvider()));
+            text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+            text.setText(new SpannableStringBuilder(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.Gift2TransferText, giftName, name)))
+                    .append(' ').append(MeridaVisual.mark()));
+            top.addView(text, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 24, 4, 24, 4));
+            final TableView table = new TableView(context, fragment.getResourceProvider());
+            final TL_stars.starGiftAttributeModel m = StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeModel.class);
+            final TL_stars.starGiftAttributeBackdrop bd = StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeBackdrop.class);
+            final TL_stars.starGiftAttributePattern pt = StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributePattern.class);
+            if (m != null) StarGiftSheet.addAttributeRow(table, m);
+            if (bd != null) StarGiftSheet.addAttributeRow(table, bd);
+            if (pt != null) StarGiftSheet.addAttributeRow(table, pt);
+            final long value = MeridaVisualGifts.valueInStars(gift);
+            final String valueText = value > 0 ? MeridaVisualSheets.localPrice(fragment, value) : null;
+            if (valueText != null) {
+                table.addRow(s(R.string.GiftValue2), valueText.replace("≈ ", "~"));
+            }
+            top.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 23, 16, 23, 4));
+            final TextView note = new TextView(context);
+            note.setText(s(R.string.MeridaVTransferNote));
+            note.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, fragment.getResourceProvider()));
+            note.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            note.setGravity(Gravity.CENTER);
+            top.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 24, 6, 24, 0));
+
             new AlertDialog.Builder(context, fragment.getResourceProvider())
-                    .setTitle(s(R.string.Gift2TransferShort))
-                    .setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.MeridaVTransferConfirm, name)))
-                    .setPositiveButton(s(R.string.Send), (d, w) -> {
-                        final String text = org.telegram.messenger.merida.MeridaVisualSend.build(
+                    .setView(top)
+                    .setPositiveButton(s(R.string.Gift2TransferDo), (d, w) -> {
+                        final String message = org.telegram.messenger.merida.MeridaVisualSend.build(
                                 org.telegram.messenger.merida.MeridaVisualSend.nftItem(gift.title, gift.num, gift.slug == null ? "" : gift.slug));
                         org.telegram.messenger.SendMessagesHelper.getInstance(account).sendMessage(
-                                org.telegram.messenger.SendMessagesHelper.SendMessageParams.of(text, dialogId));
-                        picker.dismiss();
-                        AndroidUtilities.runOnUIThread(() -> {
-                            try {
-                                org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.contact_check, s(R.string.MeridaVTransferred)).show();
-                            } catch (Throwable ignore) {
+                                org.telegram.messenger.SendMessagesHelper.SendMessageParams.of(message, dialogId));
+                        final String k = key != null ? key : org.telegram.messenger.merida.MeridaVisualChat.findKey(gift.title, gift.num, gift.slug);
+                        if (k != null) {
+                            // the NFT now «belongs» to them: it leaves your profile, its window shows the new owner
+                            org.telegram.messenger.merida.MeridaVisualChat.setTransferredTo(k, dialogId);
+                            MeridaVisualGifts.setHidden(k, true);
+                            if (k.equals(MeridaSettings.visualWorn.get())) {
+                                MeridaSettings.visualWorn.set(null);
+                                notifyStatus(account);
                             }
-                        }, 300);
+                        }
+                        picker.dismiss();
+                        // like Telegram: the chat with the new owner opens with the gift card
+                        AndroidUtilities.runOnUIThread(() -> fragment.presentFragment(ChatActivity.of(dialogId)), 200);
                     })
                     .setNegativeButton(s(R.string.Cancel), null)
                     .show();
@@ -409,10 +459,15 @@ public final class MeridaVisualGiftSheet {
 
     /** «Owner»: your avatar and name with «VISUAL» written over the name. */
     static View ownerView(Context context, int account) {
+        return ownerView(context, account, 0);
+    }
+
+    /** ownerId ≠ 0: after a visual «transfer» — that person, still with «VISUAL» over the name. */
+    static View ownerView(Context context, int account, long ownerId) {
         final LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        final TLRPC.User me = UserConfig.getInstance(account).getCurrentUser();
+        final TLRPC.User me = ownerId > 0 ? MessagesController.getInstance(account).getUser(ownerId) : UserConfig.getInstance(account).getCurrentUser();
         final BackupImageView avatar = new BackupImageView(context);
         avatar.setRoundRadius(AndroidUtilities.dp(12));
         if (me != null) {

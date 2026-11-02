@@ -396,6 +396,10 @@ public class MessageObject {
             " . "
     };
     public boolean isRepostPreview;
+    /** MeridaGram «Visual»: this own visual-NFT message is shown as Telegram's gift card (local copy, mark kept). */
+    public boolean meridaVisualCard;
+    /** The real stored message behind such a card (honest text), or null. */
+    public TLRPC.Message meridaOriginal;
     public boolean isRepostVideoPreview;
     public boolean business;
     public boolean forceAvatar;
@@ -1923,6 +1927,13 @@ public class MessageObject {
 
         currentAccount = accountNum;
         messageOwner = message;
+        // MeridaGram «Visual»: your own visual-NFT message drawn as Telegram's gift card (only on this phone)
+        final TLRPC.Message meridaCard = org.telegram.messenger.merida.MeridaVisualChat.asGiftCard(accountNum, message);
+        if (meridaCard != message) {
+            meridaOriginal = message;
+            messageOwner = meridaCard;
+            meridaVisualCard = true;
+        }
         replyMessageObject = replyToMessage;
         eventId = eid;
         wasUnread = !messageOwner.out && messageOwner.unread;
@@ -5190,6 +5201,10 @@ public class MessageObject {
                         } else {
                             messageText = replaceWithLink(AndroidUtilities.replaceTags(getString(isOutOwner() ? R.string.ActionUniqueGiftTransferOutbound : R.string.ActionUniqueGiftTransferInbound)), "un1", obj);
                         }
+                    }
+                    if (meridaVisualCard && messageText != null) {
+                        // the line above the card always says it is visual
+                        messageText = new SpannableStringBuilder(messageText).append(' ').append(org.telegram.messenger.merida.MeridaVisual.mark());
                     }
                 } else if (messageOwner.action instanceof TLRPC.TL_messageActionGiftStars) {
                     if (fromObject instanceof TLRPC.User && ((TLRPC.User) fromObject).self) {

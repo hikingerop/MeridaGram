@@ -803,7 +803,7 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
             });
             if (unique) {
                 o.add(R.drawable.menu_transfer, getString(R.string.Gift2TransferOption), () ->
-                    org.telegram.ui.MeridaVisualGiftSheet.transfer(parent.fragment, (TL_stars.TL_starGiftUnique) saved.gift));
+                    org.telegram.ui.MeridaVisualGiftSheet.transfer(parent.fragment, key, (TL_stars.TL_starGiftUnique) saved.gift));
             }
             o.setGravity(Gravity.RIGHT);
             o.setBlur(true);

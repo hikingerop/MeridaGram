@@ -22889,6 +22889,17 @@ public class ChatActivity extends BaseFragment implements
                 obj.messageOwner.id = newMsgId;
                 obj.messageOwner.send_state = MessageObject.MESSAGE_SEND_STATE_SENT;
                 obj.forceUpdate = mediaUpdated;
+                // MeridaGram «Visual»: once delivered, your visual-NFT message is drawn as the gift card
+                final TLRPC.Message meridaCard = org.telegram.messenger.merida.MeridaVisualChat.asGiftCard(currentAccount, obj.messageOwner);
+                if (meridaCard != obj.messageOwner) {
+                    obj.meridaOriginal = obj.messageOwner;
+                    obj.messageOwner = meridaCard;
+                    obj.meridaVisualCard = true;
+                    obj.setType();
+                    obj.updateMessageText();
+                    obj.forceUpdate = true;
+                    AndroidUtilities.runOnUIThread(() -> org.telegram.messenger.merida.MeridaVisualChat.celebrate(), 250);
+                }
                 addReplyMessageOwner(obj, msgId);
                 if (args.length >= 6) {
                     obj.applyMediaExistanceFlags((Integer) args[5]);

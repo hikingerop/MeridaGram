@@ -713,6 +713,7 @@
     <string name="MeridaVPinnedLocal">Закреплён только на этом телефоне: это визуальный подарок.</string>
     <string name="MeridaVTransferConfirm">Отправить **%1$s** сообщение о визуальном подарке? В нём прямо написано, что это не настоящий подарок — на самом деле ничего не передаётся.</string>
     <string name="MeridaVValueInfo">Визуальная оценка: ≈ %1$s ⭐ — цена такого NFT на маркете Telegram. Это только на этом телефоне: подарок не настоящий и ничего не стоит.</string>
+    <string name="MeridaVTransferNote">Визуальный подарок: получатель увидит сообщение, что подарок не настоящий. На самом деле ничего не передаётся.</string>
     <string name="MeridaVTransferred">Отправлено сообщением «визуальный подарок» ✓</string>
     <string name="MeridaVDate">Дата</string>
     <string name="MeridaVCost">Стоимость</string>

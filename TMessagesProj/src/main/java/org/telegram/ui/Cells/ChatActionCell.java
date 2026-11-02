@@ -1710,6 +1710,8 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
             new StarGiftSheet(getContext(), currentAccount, currentMessageObject.getDialogId(), themeDelegate)
                 .set(currentMessageObject)
                 .show();
+        } else if (currentMessageObject.meridaVisualCard) {
+            org.telegram.messenger.merida.MeridaVisualChat.openCard(currentMessageObject);
         } else if (currentMessageObject.messageOwner.action instanceof TLRPC.TL_messageActionStarGiftUnique) {
             final TLRPC.TL_messageActionStarGiftUnique action = (TLRPC.TL_messageActionStarGiftUnique) currentMessageObject.messageOwner.action;
             if (action.gift.burned) {

@@ -187,7 +187,12 @@ public class StarGiftUniqueActionLayout {
             }
             setGiftImage(imageReceiver, model.document, 110);
         }
-        if (burned = gift.burned) {
+        if (messageObject.meridaVisualCard) {
+            // MeridaGram «Visual»: the corner ribbon says VISUAL, in the mark's orange
+            burned = false;
+            ribbon.setColor(0xFFFF9500);
+            ribbon.setText(11, getString(R.string.MeridaVisualMark).toUpperCase(), true);
+        } else if (burned = gift.burned) {
             ribbon.setColor(Theme.getColor(Theme.key_text_RedBold, resourcesProvider));
             ribbon.setText(11, getString(R.string.Gift2UniqueRibbonBurned), true);
         } else {
@@ -657,6 +662,9 @@ public class StarGiftUniqueActionLayout {
                         .createSimpleBulletin(R.raw.fire_on, getString(R.string.UniqueGiftNotFoundBurned))
                         .show();
                 }
+            } else if (currentMessageObject != null && currentMessageObject.meridaVisualCard) {
+                // a visual NFT: MeridaGram's own window (Telegram's would ask the server about a gift it does not have)
+                org.telegram.messenger.merida.MeridaVisualChat.openCard(currentMessageObject);
             } else {
                 new StarGiftSheet(view.getContext(), currentAccount, currentMessageObject.getDialogId(), resourcesProvider)
                     .set(currentMessageObject)

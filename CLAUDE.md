@@ -111,6 +111,15 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    открытие окна (stopAllHeavyOperations 512) душит «тяжёлую» анимацию и она идёт ~15 кадров/с, рывками.
    Окна подарка: setApplyTopPadding(false) + шапка со скруглением 12 dp (цвет до самого верха, как у Telegram);
    «Количество» и «Ценность ~X ₽ подробнее» (оценка в звёздах хранится в value_amount/«XTR», MeridaVisualGifts.valueInStars).
+   Визуал в чатах как у Telegram (`merida/MeridaVisualChat.java`, просьба владельца «чтобы у меня было видно, со всеми
+   метками»): в чат по-прежнему уходит ЧЕСТНЫЙ текст (MeridaVisualSend), а на своём телефоне своё доставленное сообщение
+   о визуальном NFT рисуется родной карточкой подарка: MessageObject подменяет messageOwner локальной копией —
+   TL_messageService + TL_messageActionStarGiftUnique (оригинал в meridaOriginal, в базе не меняется); строка над
+   карточкой + метка, лента «ВИЗУАЛ» оранжевая (StarGiftUniqueActionLayout), «Посмотреть» → наше окно (openCard).
+   После отправки ChatActivity (messageReceivedByServer) превращает сообщение в карточку + конфетти (celebrate).
+   «Передать»: окно Telegram GiftTransferTopView + таблица атрибутов/ценности + метка, затем открывается чат; NFT
+   скрывается из профиля, в его окне владелец — получатель (transferredTo). Покупка NFT себе → честное сообщение в
+   «Избранное», там карточка «Купленный подарок» (resale_amount). «Отправить через Fragment» и удаление метки — отказ.
    По 5-минутному видео владельца (папка Google Drive «MeridaGram dook»): окно NFT — Передать (честное сообщение в чат через
    DialogsActivity) / Носить / Продать (визуальная цена, «В продаже за ⭐N», «Не продавать»; цена на карточке через resell_amount);
    юзернейм — большая карточка «Поставить в профиль / Изменить стоимость / Удалить»; «Стоимость и дата» (TON, $/€/₽ — курс

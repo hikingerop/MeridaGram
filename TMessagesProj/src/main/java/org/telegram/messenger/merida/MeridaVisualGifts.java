@@ -252,10 +252,15 @@ public final class MeridaVisualGifts {
         final String key = gift instanceof TL_stars.TL_starGiftUnique && ((TL_stars.TL_starGiftUnique) gift).slug != null
                 ? ((TL_stars.TL_starGiftUnique) gift).slug
                 : "g" + gift.id + "-" + System.currentTimeMillis();
+        if (gift instanceof TL_stars.TL_starGiftUnique && !"XTR".equals(gift.value_currency)) {
+            setValueStars((TL_stars.TL_starGiftUnique) gift, priceInStars(gift));
+        }
         if (!store(key, gift)) {
             return org.telegram.messenger.LocaleController.getString(org.telegram.messenger.R.string.MeridaVisualBuyFailed);
         }
         org.telegram.utils.settings.MeridaSettings.visualStars.set((int) (balance - price));
+        // like Telegram: the purchase shows up in Saved Messages as a gift card (with the VISUAL mark), with confetti
+        MeridaVisualChat.afterPurchase(gift);
         return org.telegram.messenger.LocaleController.formatString(org.telegram.messenger.R.string.MeridaVisualBought, MeridaVisual.formatNumber(price));
     }
 
