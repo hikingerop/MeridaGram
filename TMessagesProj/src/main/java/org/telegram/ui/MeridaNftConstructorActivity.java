@@ -329,9 +329,11 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         sortByRarity(models);
         sortByRarity(backdrops);
         sortByRarity(patterns);
-        model = models.get(0);
-        backdrop = backdrops.get(0);
-        pattern = patterns.get(0);
+        final Random random = new Random();
+        model = models.get(random.nextInt(models.size()));
+        backdrop = backdrops.get(random.nextInt(backdrops.size()));
+        pattern = patterns.get(random.nextInt(patterns.size()));
+        randomTraits = true;
         actionBar.setVisibility(View.GONE);
         tabBar.setVisibility(View.VISIBLE);
         multiplierButton.setVisibility(View.GONE);
@@ -526,6 +528,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             }
             return;
         }
+        randomTraits = false;
         if (tab == TAB_MODELS) {
             model = models.get(i);
         } else if (tab == TAB_BACKDROPS) {
@@ -941,18 +944,15 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             }));
             addView(num, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.TOP | Gravity.LEFT, 70, top + 17, 0, 0));
             final ImageView send = roundButton(context, R.drawable.msg_send);
-            // tap: put this NFT into your profile at once; hold: «create several NFTs»
+            // the arrow puts this NFT into your profile at once (like Chimera)
             send.setOnClickListener(v -> addToVisual(1));
-            send.setOnLongClickListener(v -> {
-                askCount(LocaleController.getString(R.string.MeridaVCreateSeveral), MeridaNftConstructorActivity.this::addToVisual);
-                return true;
-            });
             addView(send, LayoutHelper.createFrame(46, 46, Gravity.TOP | Gravity.RIGHT, 0, top + 14, 14, 0));
             priceView = pill(context, 0xFFFFFFFF, 0x33000000, 16);
             priceView.setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
             addView(priceView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 40, Gravity.TOP | Gravity.RIGHT, 0, top + 17, 68, 0));
-            final ImageView dice = roundButton(context, R.drawable.merida_v_dice);
-            dice.setOnClickListener(v -> randomize());
+            // the round button under the arrow: «create several NFTs»
+            final ImageView dice = roundButton(context, R.drawable.outline_craft);
+            dice.setOnClickListener(v -> askCount(LocaleController.getString(R.string.MeridaVCreateSeveral), MeridaNftConstructorActivity.this::addToVisual));
             addView(dice, LayoutHelper.createFrame(56, 56, Gravity.TOP | Gravity.RIGHT, 0, top + 76, 14, 0));
 
             modelImage = new BackupImageView(context);
