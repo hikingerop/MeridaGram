@@ -12081,6 +12081,7 @@
     <string name="MeridaVTransferConfirm">Send a visual gift message to **%1$s**? It says plainly that this is not a real gift — nothing is actually transferred.</string>
     <string name="MeridaVValueInfo">Visual estimate: ≈ %1$s ⭐ — the price of such an NFT on Telegram\'s market. Only on this phone: the gift is not real and is worth nothing.</string>
     <string name="MeridaVTransferNote">Visual gift: the recipient will see a message saying the gift is not real. Nothing is actually transferred.</string>
+    <string name="MeridaVListedForSale">The gift %1$s is now on sale!</string>
     <string name="MeridaVTransferred">Sent as a visual gift message ✓</string>
     <string name="MeridaVDate">Date</string>
     <string name="MeridaVCost">Value</string>

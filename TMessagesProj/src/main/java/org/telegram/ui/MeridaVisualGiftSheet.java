@@ -144,8 +144,13 @@ public final class MeridaVisualGiftSheet {
         final TextView subtitle = new TextView(context);
         final long salePrice = key != null ? MeridaVisualGifts.salePrice(key) : 0;
         if (salePrice > 0) {
-            // like Telegram: «On sale for ⭐ N» in a pill under the name
-            subtitle.setText(org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(LocaleController.formatString(R.string.MeridaVOnSaleFor, LocaleController.formatNumber(salePrice, ',')), .8f));
+            // like Telegram: «On sale for ⭐ N» (or «💎 N» when only GRAM is accepted) in a pill under the name
+            final long tonNanos = MeridaVisualGifts.saleTonNanos(key);
+            final String amountText = tonNanos > 0
+                    ? org.telegram.messenger.utils.tlutils.AmountUtils.Amount.fromNano(tonNanos, org.telegram.messenger.utils.tlutils.AmountUtils.Currency.TON).asFormatString()
+                    : LocaleController.formatNumber(salePrice, ',');
+            final String onSale = LocaleController.formatString(R.string.MeridaVOnSaleFor, amountText);
+            subtitle.setText(org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(tonNanos > 0, tonNanos > 0 ? onSale.replace("⭐️", "💎").replace("⭐", "💎") : onSale, .8f));
             subtitle.setPadding(AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8), 0);
             subtitle.setBackground(MeridaVisualUi.round(0x33000000, 10));
             subtitle.setTypeface(AndroidUtilities.bold());
@@ -191,20 +196,29 @@ public final class MeridaVisualGiftSheet {
                     b.setTitle(LocaleController.formatString(R.string.MeridaVUnlistTitle, gift.title + " #" + ((TL_stars.TL_starGiftUnique) gift).num));
                     b.setMessage(s(R.string.MeridaVUnlistText));
                     b.setPositiveButton(s(R.string.MeridaVUnlist), (d, w) -> {
-                        MeridaVisualGifts.setSalePrice(key, 0);
+                        MeridaVisualGifts.setSale(key, null);
                         changed.run();
                     });
                     b.setNegativeButton(s(R.string.Cancel), null);
                     b.show();
                 });
             } else {
-                addHeaderButton(buttons, R.drawable.filled_gift_sell_on, s(R.string.MeridaVSell), () -> MeridaVisualSheets.askNumber(fragment, s(R.string.MeridaVSellPrice),
-                        (int) Math.max(1, MeridaVisualGifts.priceInStars(gift)), value -> {
-                            if (value > 0) {
-                                MeridaVisualGifts.setSalePrice(key, value);
-                                changed.run();
-                            }
-                        }));
+                // Telegram's own «Price in stars / Price in GRAM» window with «Accept only GRAM» (like Chimera);
+                // the price is only kept on this phone, Telegram is not asked
+                addHeaderButton(buttons, R.drawable.filled_gift_sell_on, s(R.string.MeridaVSell), () ->
+                        org.telegram.ui.Stars.StarsIntroActivity.showGiftResellPriceSheet(context, account, null, null, (price, done) -> {
+                            MeridaVisualGifts.setSale(key, price);
+                            if (done != null) done.run();
+                            changed.run();
+                            AndroidUtilities.runOnUIThread(() -> {
+                                try {
+                                    final String name = gift.title + " #" + LocaleController.formatNumber(((TL_stars.TL_starGiftUnique) gift).num, ',');
+                                    org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.contact_check,
+                                            LocaleController.formatString(R.string.MeridaVListedForSale, name)).show();
+                                } catch (Throwable ignore) {
+                                }
+                            }, 300);
+                        }, fragment.getResourceProvider()));
             }
         }
 

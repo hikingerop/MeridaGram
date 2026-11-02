@@ -291,7 +291,7 @@ public final class MeridaVisualGifts {
         final List<String> slugs = slugs();
         slugs.remove(slug);
         saveSlugs(slugs);
-        prefs().edit().remove("gift_" + slug).remove("hidden_" + slug).remove("sale_" + slug).remove("pinned_" + slug).remove("coll_" + slug).apply();
+        prefs().edit().remove("gift_" + slug).remove("hidden_" + slug).remove("sale_" + slug).remove("saleton_" + slug).remove("pinned_" + slug).remove("coll_" + slug).apply();
     }
 
     /** Visual «on sale» price in stars (0 — not on sale); shown on the card and in the gift window only here. */
@@ -334,9 +334,42 @@ public final class MeridaVisualGifts {
             amount.amount = price;
             gift.resell_amount = new ArrayList<>();
             gift.resell_amount.add(amount);
+            final long tonNanos = saleTonNanos(key);
+            if (tonNanos > 0) {
+                // «Accept only GRAM», like Telegram: the card and the window show the GRAM price
+                gift.resell_amount.add(org.telegram.messenger.utils.tlutils.AmountUtils.Amount.fromNano(tonNanos, org.telegram.messenger.utils.tlutils.AmountUtils.Currency.TON).toTl());
+                gift.resale_ton_only = true;
+            }
+            gift.flags |= 16;
         } else {
             gift.resell_amount = null;
         }
+    }
+
+    /** The visual GRAM price (in nano-GRAM) when «Accept only GRAM» was chosen; 0 — sold for stars. */
+    public static long saleTonNanos(String key) {
+        return key == null ? 0 : prefs().getLong("saleton_" + key, 0);
+    }
+
+    /**
+     * Visual sale from Telegram's own «Price in stars / Price in GRAM» window: keeps the price (also as stars,
+     * for the counters) and whether only GRAM is accepted. null or zero — not on sale.
+     */
+    public static void setSale(String key, org.telegram.messenger.utils.tlutils.AmountUtils.Amount price) {
+        if (key == null) return;
+        if (price == null || price.isZero()) {
+            prefs().edit().remove("sale_" + key).remove("saleton_" + key).apply();
+            return;
+        }
+        final org.telegram.messenger.utils.tlutils.AmountUtils.Currency ton = org.telegram.messenger.utils.tlutils.AmountUtils.Currency.TON;
+        final long stars = Math.max(1, price.convertTo(org.telegram.messenger.utils.tlutils.AmountUtils.Currency.STARS).asDecimal());
+        final SharedPreferences.Editor e = prefs().edit().putLong("sale_" + key, stars);
+        if (price.currency == ton) {
+            e.putLong("saleton_" + key, price.asNano());
+        } else {
+            e.remove("saleton_" + key);
+        }
+        e.apply();
     }
 
     /** A hidden visual gift stays in «My gifts» but is not shown in your profile. */
@@ -432,8 +465,8 @@ public final class MeridaVisualGifts {
             if (gift == null) {
                 continue;
             }
-            applySale(slug, gift); // «on sale» only when you put it on visual sale
             gift.resale_ton_only = false;
+            applySale(slug, gift); // «on sale» only when you put it on visual sale
             final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
             saved.gift = gift;
             saved.date = now;
@@ -458,8 +491,8 @@ public final class MeridaVisualGifts {
         if (gift == null) {
             return null;
         }
-        applySale(key, gift);
         gift.resale_ton_only = false;
+        applySale(key, gift);
         final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
         saved.gift = gift;
         saved.name_hidden = false; // no «anonymous sender» icon on the card
