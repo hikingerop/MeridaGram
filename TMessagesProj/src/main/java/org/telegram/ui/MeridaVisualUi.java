@@ -234,6 +234,22 @@ final class MeridaVisualUi {
         return b;
     }
 
+    /** A dark round plate behind the back arrow, like Chimera's top bar. */
+    static void roundBackButton(org.telegram.ui.ActionBar.ActionBar actionBar) {
+        try {
+            final ImageView back = actionBar.getBackButton();
+            if (back == null) return;
+            final GradientDrawable circle = new GradientDrawable();
+            circle.setShape(GradientDrawable.OVAL);
+            circle.setColor(dark() ? 0xFF1C1C1E : 0x14000000);
+            circle.setSize(AndroidUtilities.dp(42), AndroidUtilities.dp(42));
+            final android.graphics.drawable.LayerDrawable layer = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{circle});
+            layer.setLayerGravity(0, Gravity.CENTER);
+            back.setBackground(layer);
+        } catch (Throwable ignore) {
+        }
+    }
+
     static String plural(int n, String one, String few, String many) {
         final int a = Math.abs(n) % 100;
         final int b = a % 10;

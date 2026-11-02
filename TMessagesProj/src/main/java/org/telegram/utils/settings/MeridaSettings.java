@@ -66,6 +66,10 @@ public final class MeridaSettings {
     public static final StringSetting visualUsernames =
         StringSetting.of("merida_visual_usernames", null);
 
+    /** The visual username takes the place of the real one (else the real one stays and the visual is «also»). */
+    public static final BooleanSetting visualUsernameReplace =
+        BooleanSetting.of("merida_visual_username_replace", true);
+
     public static final BooleanSetting visualUsernameShow =
         BooleanSetting.of("merida_visual_username_show", true);
 

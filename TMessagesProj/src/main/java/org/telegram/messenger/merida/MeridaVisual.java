@@ -124,6 +124,19 @@ public final class MeridaVisual {
         return on() && MeridaSettings.visualUsernameShow.get() && u != null && !u.isEmpty();
     }
 
+    /** Saved visual usernames other than the one in the profile (shown as «also …»). */
+    public static java.util.List<String> otherUsernames() {
+        final java.util.ArrayList<String> list = new java.util.ArrayList<>();
+        final String all = MeridaSettings.visualUsernames.get();
+        final String active = MeridaSettings.visualUsername.get();
+        if (all != null) {
+            for (String u : all.split("\n")) {
+                if (!u.isEmpty() && !u.equals(active) && !list.contains(u)) list.add(u);
+            }
+        }
+        return list;
+    }
+
     public static boolean numberOn() {
         final String n = MeridaSettings.visualNumber.get();
         return on() && MeridaSettings.visualNumberShow.get() && n != null && isAnonymousNumber(n);

@@ -123,14 +123,16 @@ final class MeridaVisualSheets {
         return card;
     }
 
-    /** «Show in profile: on/off» pill, blue when on. */
+    /** «Show in profile: on/off» chip: blue-tinted with blue text when on, black with grey text when off. */
     static TextView showChip(Context context, boolean on, Runnable toggle) {
-        final TextView chip = MeridaVisualUi.pillButton(context, "", on);
+        final TextView chip = label(context, "", 0xFFFFFFFF, 16, false);
+        chip.setGravity(Gravity.CENTER);
+        chip.setPadding(AndroidUtilities.dp(22), 0, AndroidUtilities.dp(22), 0);
         final boolean[] state = {on};
         final Runnable paint = () -> {
             chip.setText(LocaleController.formatString(R.string.MeridaVShowInProfile, s(state[0] ? R.string.MeridaVOn : R.string.MeridaVOff)));
             chip.setTextColor(state[0] ? 0xFFFFFFFF : 0xFFAAAAAA);
-            chip.setBackground(MeridaVisualUi.round(state[0] ? MeridaVisualUi.BLUE : 0xFF000000, 26));
+            chip.setBackground(MeridaVisualUi.round(state[0] ? 0xFF2F8FE8 : 0xFF000000, 24));
         };
         paint.run();
         chip.setOnClickListener(v -> {
@@ -139,6 +141,56 @@ final class MeridaVisualSheets {
             toggle.run();
         });
         return chip;
+    }
+
+    static TextView toggleChip(Context context, int format, boolean on, Runnable toggle) {
+        final TextView chip = label(context, "", MeridaVisualUi.BLUE, 16, false);
+        chip.setGravity(Gravity.CENTER);
+        chip.setMaxLines(2);
+        chip.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(4), AndroidUtilities.dp(14), AndroidUtilities.dp(4));
+        final boolean[] state = {on};
+        final Runnable paint = () -> {
+            chip.setText(LocaleController.formatString(format, s(state[0] ? R.string.MeridaVOn : R.string.MeridaVOff)));
+            chip.setTextColor(state[0] ? MeridaVisualUi.BLUE : 0xFFAAAAAA);
+            chip.setBackground(MeridaVisualUi.round(state[0] ? 0xFF1C2E44 : 0xFF000000, 24));
+        };
+        paint.run();
+        chip.setOnClickListener(v -> {
+            state[0] = !state[0];
+            paint.run();
+            toggle.run();
+        });
+        return chip;
+    }
+
+    /** ≈ price in the currency of your Telegram stars shop (₽ for Russia), else in dollars. */
+    static String localPrice(BaseFragment fragment, long stars) {
+        if (stars <= 0) {
+            return null;
+        }
+        final java.util.ArrayList<org.telegram.tgnet.tl.TL_stars.TL_starsTopupOption> options = org.telegram.ui.Stars.StarsController.getInstance(fragment.getCurrentAccount()).getOptions();
+        if (options != null) {
+            org.telegram.tgnet.tl.TL_stars.TL_starsTopupOption best = null;
+            for (org.telegram.tgnet.tl.TL_stars.TL_starsTopupOption o : options) {
+                if (o != null && o.stars > 0 && o.currency != null && (best == null || o.stars > best.stars)) {
+                    best = o;
+                }
+            }
+            if (best != null) {
+                final long amount = Math.round(best.amount * (double) stars / best.stars);
+                final int exp = org.telegram.messenger.BillingController.getInstance().getCurrencyExp(best.currency);
+                final long unit = (long) Math.pow(10, exp);
+                final long rounded = Math.round(amount / (double) unit) * unit;
+                return "≈ " + org.telegram.messenger.BillingController.getInstance().formatCurrency(rounded, best.currency, exp, true);
+            }
+        }
+        return "≈ " + usd(starsUsd(fragment, stars));
+    }
+
+    static String dateText(long ms) {
+        final java.text.SimpleDateFormat f = new java.text.SimpleDateFormat("d MMMM yyyy, HH:mm",
+                "ru".equals(LocaleController.getInstance().getCurrentLocale().getLanguage()) ? new java.util.Locale("ru") : java.util.Locale.getDefault());
+        return f.format(new java.util.Date(ms));
     }
 
     static void askNumber(BaseFragment fragment, CharSequence title, int current, IntConsumer onDone) {
@@ -388,11 +440,18 @@ final class MeridaVisualSheets {
             });
         }));
         sh.addClose();
-        sh.body.addView(label(context, s(R.string.MeridaVUsernamesHint), 0xFF8E8E93, 15, false), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
-        sh.body.addView(showChip(context, MeridaSettings.visualUsernameShow.get(), () -> {
+        sh.body.addView(label(context, s(R.string.MeridaVUsernamesHint), 0xFF8E8E93, 16, false), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
+        final LinearLayout chipsRow = new LinearLayout(context);
+        chipsRow.setOrientation(LinearLayout.HORIZONTAL);
+        chipsRow.addView(toggleChip(context, R.string.MeridaVShowInProfile, MeridaSettings.visualUsernameShow.get(), () -> {
             MeridaSettings.visualUsernameShow.set(!MeridaSettings.visualUsernameShow.get());
             refresh(fragment);
-        }), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 52, 0, 0, 0, 14));
+        }), LayoutHelper.createLinear(0, 56, 1f, 0, 0, 6, 0));
+        chipsRow.addView(toggleChip(context, R.string.MeridaVReplaceOriginal, MeridaSettings.visualUsernameReplace.get(), () -> {
+            MeridaSettings.visualUsernameReplace.set(!MeridaSettings.visualUsernameReplace.get());
+            refresh(fragment);
+        }), LayoutHelper.createLinear(0, 56, 1f, 6, 0, 0, 0));
+        sh.body.addView(chipsRow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 56, 0, 0, 0, 14));
         sh.body.addView(grid);
 
         rebuild[0] = () -> {
@@ -444,10 +503,16 @@ final class MeridaVisualSheets {
         card.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(20), AndroidUtilities.dp(8), AndroidUtilities.dp(14));
         final FrameLayout logoFrame = new FrameLayout(context);
         logoFrame.setBackground(MeridaVisualUi.round(0xFFFFFFFF, 22));
-        final ImageView logo = new ImageView(context);
-        logo.setImageResource(R.drawable.telegram_logo);
-        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        logoFrame.addView(logo, LayoutHelper.createFrame(52, 52, Gravity.CENTER));
+        final FrameLayout circle = new FrameLayout(context);
+        final GradientDrawable blue = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{0xFF37AEE2, 0xFF1E96C8});
+        blue.setShape(GradientDrawable.OVAL);
+        circle.setBackground(blue);
+        final ImageView plane = new ImageView(context);
+        plane.setImageResource(R.drawable.msg_send);
+        plane.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        plane.setColorFilter(new android.graphics.PorterDuffColorFilter(0xFFFFFFFF, android.graphics.PorterDuff.Mode.SRC_IN));
+        circle.addView(plane, LayoutHelper.createFrame(28, 28, Gravity.CENTER, 0, 0, 2, 0));
+        logoFrame.addView(circle, LayoutHelper.createFrame(52, 52, Gravity.CENTER));
         card.addView(logoFrame, LayoutHelper.createLinear(72, 72));
         final TextView pill = label(context, "@ " + username, 0xFFFFFFFF, 20, true);
         pill.setSingleLine(true);
@@ -539,7 +604,7 @@ final class MeridaVisualSheets {
         }
         if (n.time > 0) {
             if (sb.length() > 0) sb.append(" · ");
-            sb.append(LocaleController.formatString(R.string.MeridaVBought, LocaleController.formatDateTime(n.time / 1000, true)));
+            sb.append(LocaleController.formatString(R.string.MeridaVBought, dateText(n.time)));
         }
         return sb.toString();
     }
@@ -560,7 +625,7 @@ final class MeridaVisualSheets {
             MeridaSettings.visualNumberShow.set(!MeridaSettings.visualNumberShow.get());
             rebuild[0].run();
             refresh(fragment);
-        }), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 52, 0, 16, 0, 0));
+        }), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 44, 0, 16, 0, 0));
         sh.body.addView(label(context, s(R.string.MeridaVSavedNumbers), 0xFF8E8E93, 16, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 20, 0, 10));
         final LinearLayout saved = new LinearLayout(context);
         saved.setOrientation(LinearLayout.VERTICAL);
@@ -650,7 +715,7 @@ final class MeridaVisualSheets {
                 toast(fragment, s(R.string.MeridaVisualNumberOnly888));
                 return;
             }
-            final String priceNow = n != null && n.tonTenths > 0 ? String.valueOf(n.tonTenths / 10.0) : "";
+            final String priceNow = n != null && n.tonTenths > 0 ? String.valueOf(n.tonTenths / 10.0) : "10.8";
             askText(fragment, s(R.string.MeridaVNumberPrice), priceNow, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL, priceText -> {
                 int tenths = 0;
                 try {
@@ -779,7 +844,7 @@ final class MeridaVisualSheets {
             pointsBar.setProgress(to > from ? (points[0] - from) / (float) (to - from) : 0);
         }
 
-        sh.body.addView(showChip(context, show[0], () -> show[0] = !show[0]), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 52, 0, 22, 0, 0));
+        sh.body.addView(showChip(context, show[0], () -> show[0] = !show[0]), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 44, 0, 22, 0, 0));
         final TextView save = MeridaVisualUi.bigButton(context, s(R.string.Save));
         save.setOnClickListener(v -> {
             MeridaSettings.visualRating.set(level[0]);

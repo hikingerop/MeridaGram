@@ -12054,4 +12054,8 @@
     <string name="MeridaVRandomTraits">Random traits</string>
     <string name="MeridaVNftNumber">NFT number</string>
     <string name="MeridaVOpenVisual">Visual: gifts, NFT profile, balance</string>
+    <string name="MeridaVGiftVisibleNote">The gift is visible in your profile (only on this phone).</string>
+    <string name="MeridaVGiftHiddenNote">The gift is hidden from your profile.</string>
+    <string name="MeridaVReplaceOriginal">Replace original: %1$s</string>
+    <string name="MeridaVAlso">also</string>
 </resources>

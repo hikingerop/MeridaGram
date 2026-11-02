@@ -82,7 +82,8 @@ public class MeridaNftConstructorActivity extends BaseFragment {
 
     private static final int GOLD = 0xFFF1A73A;
     private static final int BLUE = 0xFF3E9BFF;
-    private static final int TILE = 0xFF1C1C1E;
+    private static final int TILE = 0xFF161616;
+    private static final int PAGE = 0xFF212121;
 
     private FrameLayout root;
     private RecyclerListView listView;
@@ -106,7 +107,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(false);
-        actionBar.setBackgroundColor(0xFF000000);
+        actionBar.setBackgroundColor(PAGE);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -117,7 +118,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         });
 
         root = new FrameLayout(context);
-        root.setBackgroundColor(0xFF000000);
+        root.setBackgroundColor(PAGE);
         fragmentView = root;
 
         listView = new RecyclerListView(context);
@@ -134,14 +135,18 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         listView.setAdapter(adapter = new Adapter());
         listView.setOnItemClickListener((view, position) -> onTileClick(position));
         root.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        // the bar lies over the list (not above it), so the collection page can use the whole screen
+        actionBar.setAddToContainer(false);
+        root.addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
+        MeridaVisualUi.roundBackButton(actionBar);
 
         buildTabBar(context);
         multiplierButton = new TextView(context);
         multiplierButton.setTextColor(0xFFFFFFFF);
-        multiplierButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
+        multiplierButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
         multiplierButton.setGravity(Gravity.CENTER);
         final GradientDrawable mbg = new GradientDrawable();
-        mbg.setCornerRadius(AndroidUtilities.dp(30));
+        mbg.setCornerRadius(AndroidUtilities.dp(22));
         mbg.setColor(0xFF2F8FE8);
         multiplierButton.setBackground(mbg);
         multiplierButton.setElevation(AndroidUtilities.dp(4));
@@ -149,10 +154,15 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             multiplier = count;
             updateMultiplier();
         }));
-        root.addView(multiplierButton, LayoutHelper.createFrame(96, 60, Gravity.BOTTOM | Gravity.RIGHT, 0, 0, 18, 30));
+        root.addView(multiplierButton, LayoutHelper.createFrame(64, 44, Gravity.BOTTOM | Gravity.RIGHT, 0, 0, 16, 24));
         updateMultiplier();
         showCatalog();
         return fragmentView;
+    }
+
+    @Override
+    public int getNavigationBarColor() {
+        return PAGE;
     }
 
     @Override
@@ -412,29 +422,6 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         b.show();
     }
 
-    /** ≈ price in the currency of your Telegram stars shop (₽ for Russia), else in dollars. */
-    private String localPrice(long stars) {
-        if (stars <= 0) {
-            return null;
-        }
-        final ArrayList<TL_stars.TL_starsTopupOption> options = StarsController.getInstance(currentAccount).getOptions();
-        if (options != null) {
-            TL_stars.TL_starsTopupOption best = null;
-            for (TL_stars.TL_starsTopupOption o : options) {
-                if (o != null && o.stars > 0 && o.currency != null && (best == null || o.stars > best.stars)) {
-                    best = o;
-                }
-            }
-            if (best != null) {
-                final long amount = Math.round(best.amount * (double) stars / best.stars);
-                final int exp = org.telegram.messenger.BillingController.getInstance().getCurrencyExp(best.currency);
-                final long rounded = Math.round(amount / Math.pow(10, exp)) * (long) Math.pow(10, exp);
-                return "≈ " + org.telegram.messenger.BillingController.getInstance().formatCurrency(rounded, best.currency, exp, true);
-            }
-        }
-        return "≈ " + MeridaVisualSheets.usd(MeridaVisualSheets.starsUsd(this, stars));
-    }
-
     // ---- ordinary gifts: visual purchase and visual auction ------------------------------------------
 
     private void buyOrdinary(TL_stars.StarGift g) {
@@ -655,11 +642,10 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         PricePill(Context context) {
             super(context);
             setTextColor(0xFFF2B33D);
-            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-            setTypeface(AndroidUtilities.bold());
+            setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             setGravity(Gravity.CENTER);
             setSingleLine(true);
-            setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
+            setPadding(AndroidUtilities.dp(12), 0, AndroidUtilities.dp(12), 0);
             final GradientDrawable bg = new GradientDrawable();
             bg.setCornerRadius(AndroidUtilities.dp(16));
             bg.setColor(0xFF3A2C1A);
@@ -763,7 +749,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             name.setShadowLayer(AndroidUtilities.dp(2), 0, AndroidUtilities.dp(1), 0x55000000);
             addView(name, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 6, 0, 6, 12));
             price = new PricePill(context);
-            addView(price, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 32, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 12));
+            addView(price, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 28, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0, 0, 12));
             rarity = pill(context, 0xFFFFFFFF, 0x33000000, 12);
             addView(rarity, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 22, Gravity.TOP | Gravity.RIGHT, 0, 8, 8, 0));
             rarityTop = pill(context, 0xFFE89A2C, 0x33E89A2C, 12);
@@ -772,9 +758,24 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             addView(ribbon, LayoutHelper.createFrame(64, 64, Gravity.TOP | Gravity.RIGHT));
         }
 
+        boolean modelTile;
+
+        /** Sizes follow the tile width, like Chimera: the gift on top, the price pill below it, never overlapping. */
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
             final int w = MeasureSpec.getSize(widthMeasureSpec);
+            final FrameLayout.LayoutParams ip = (FrameLayout.LayoutParams) image.getLayoutParams();
+            ip.width = ip.height = (int) (w * (modelTile ? 0.56f : 0.6f));
+            ip.topMargin = (int) (w * (modelTile ? 0.2f : 0.08f));
+            final FrameLayout.LayoutParams pp = (FrameLayout.LayoutParams) bigPattern.getLayoutParams();
+            pp.width = pp.height = (int) (w * 0.42f);
+            pp.topMargin = (int) (w * 0.2f);
+            final FrameLayout.LayoutParams rp = (FrameLayout.LayoutParams) ribbon.getLayoutParams();
+            rp.width = rp.height = (int) (w * 0.46f);
+            final FrameLayout.LayoutParams pr = (FrameLayout.LayoutParams) price.getLayoutParams();
+            pr.bottomMargin = (int) (w * 0.08f);
+            final FrameLayout.LayoutParams nm = (FrameLayout.LayoutParams) name.getLayoutParams();
+            nm.bottomMargin = (int) (w * 0.08f);
             super.onMeasure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec((int) (w * 1.1f), MeasureSpec.EXACTLY));
         }
 
@@ -790,8 +791,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         }
 
         private void reset() {
-            ((FrameLayout.LayoutParams) image.getLayoutParams()).topMargin = AndroidUtilities.dp(14);
-            image.requestLayout();
+            modelTile = false;
             bigPattern.setVisibility(GONE);
             bigPattern.setColorFilter(null);
             image.setVisibility(VISIBLE);
@@ -833,8 +833,8 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             reset();
             setBackground(plain);
             setDocument(image, m.document, collection);
-            ((FrameLayout.LayoutParams) image.getLayoutParams()).topMargin = AndroidUtilities.dp(28);
-            image.requestLayout();
+            modelTile = true;
+            requestLayout();
             name.setText(m.name);
             name.setVisibility(VISIBLE);
             selected = m == model;
@@ -1008,7 +1008,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             title.setText(collection.title != null ? collection.title : "NFT");
             subtitle.setText(LocaleController.getString(randomTraits ? R.string.MeridaVRandomTraits : R.string.MeridaNftChosen));
             num.setText("#" + number);
-            final String p = localPrice(collectionPrice);
+            final String p = MeridaVisualSheets.localPrice(MeridaNftConstructorActivity.this, collectionPrice);
             priceView.setText(p == null ? "" : p);
             priceView.setVisibility(p == null ? GONE : VISIBLE);
             final TL_stars.StarGiftAttribute[] parts = {model, backdrop, pattern};

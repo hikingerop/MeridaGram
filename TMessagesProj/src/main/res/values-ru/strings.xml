@@ -687,4 +687,8 @@
     <string name="MeridaVRandomTraits">Случайные характеристики</string>
     <string name="MeridaVNftNumber">Номер NFT</string>
     <string name="MeridaVOpenVisual">Визуал: подарки, NFT-профиль, баланс</string>
+    <string name="MeridaVGiftVisibleNote">Подарок виден в Вашем профиле (только на этом телефоне).</string>
+    <string name="MeridaVGiftHiddenNote">Подарок скрыт из профиля.</string>
+    <string name="MeridaVReplaceOriginal">Заменять оригинальный: %1$s</string>
+    <string name="MeridaVAlso">а также</string>
 </resources>

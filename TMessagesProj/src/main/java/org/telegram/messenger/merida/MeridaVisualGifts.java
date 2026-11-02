@@ -59,6 +59,60 @@ public final class MeridaVisualGifts {
     private MeridaVisualGifts() {
     }
 
+    private static String wornStatusKey;
+    private static TLRPC.TL_emojiStatusCollectible wornStatus;
+
+    /**
+     * The worn visual NFT as a «collectible status» for your own profile on this phone, so the profile header takes
+     * the NFT's backdrop colours and pattern, as when wearing a real one. Never sent to Telegram.
+     */
+    public static TLRPC.TL_emojiStatusCollectible wornStatus(int account) {
+        if (!MeridaVisual.on()) {
+            return null;
+        }
+        final String key = org.telegram.utils.settings.MeridaSettings.visualWorn.get();
+        if (key == null) {
+            return null;
+        }
+        if (key.equals(wornStatusKey) && wornStatus != null) {
+            return wornStatus;
+        }
+        final TL_stars.TL_starGiftUnique gift = load(key);
+        if (gift == null) {
+            return null;
+        }
+        final TL_stars.starGiftAttributeModel model = org.telegram.ui.Stars.StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeModel.class);
+        final TL_stars.starGiftAttributePattern pattern = org.telegram.ui.Stars.StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributePattern.class);
+        final TL_stars.starGiftAttributeBackdrop backdrop = org.telegram.ui.Stars.StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeBackdrop.class);
+        if (backdrop == null) {
+            return null;
+        }
+        final TLRPC.TL_emojiStatusCollectible status = new TLRPC.TL_emojiStatusCollectible();
+        status.collectible_id = key.hashCode();
+        status.title = gift.title + " #" + gift.num;
+        status.slug = gift.slug == null ? "" : gift.slug;
+        status.center_color = backdrop.center_color;
+        status.edge_color = backdrop.edge_color;
+        status.pattern_color = backdrop.pattern_color;
+        status.text_color = backdrop.text_color;
+        try {
+            final org.telegram.ui.Components.AnimatedEmojiDrawable.EmojiDocumentFetcher fetcher = org.telegram.ui.Components.AnimatedEmojiDrawable.getDocumentFetcher(account);
+            if (model != null && model.document != null) {
+                status.document_id = model.document.id;
+                fetcher.putDocument(model.document);
+            }
+            if (pattern != null && pattern.document != null) {
+                status.pattern_document_id = pattern.document.id;
+                fetcher.putDocument(pattern.document);
+            }
+        } catch (Throwable e) {
+            FileLog.e(e);
+        }
+        wornStatusKey = key;
+        wornStatus = status;
+        return status;
+    }
+
     private static SharedPreferences prefs() {
         return ApplicationLoader.applicationContext.getSharedPreferences("merida_visual_gifts", Context.MODE_PRIVATE);
     }
@@ -263,10 +317,11 @@ public final class MeridaVisualGifts {
                 continue;
             }
             gift.resell_amount = null; // never shown as «on sale» in your profile
+            gift.resale_ton_only = false;
             final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
             saved.gift = gift;
             saved.date = now;
-            saved.name_hidden = true;
+            saved.name_hidden = false; // no «anonymous sender» icon on the card
             synchronized (made) {
                 made.add(saved);
                 keys.put(saved, slug);
@@ -283,10 +338,11 @@ public final class MeridaVisualGifts {
             return null;
         }
         gift.resell_amount = null;
+        gift.resale_ton_only = false;
         final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
         saved.gift = gift;
-        saved.name_hidden = true;
-        saved.unsaved = isHidden(key);
+        saved.name_hidden = false; // no «anonymous sender» icon on the card
+        saved.unsaved = false;
         synchronized (made) {
             made.add(saved);
             keys.put(saved, key);
@@ -298,7 +354,7 @@ public final class MeridaVisualGifts {
     public static TL_stars.SavedStarGift preview(TL_stars.StarGift gift) {
         final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
         saved.gift = gift;
-        saved.name_hidden = true;
+        saved.name_hidden = false; // no «anonymous sender» icon on the card
         synchronized (made) {
             made.add(saved);
         }

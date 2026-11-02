@@ -65,6 +65,7 @@ public class MeridaVisualActivity extends BaseFragment {
         actionBar.setTitleColor(MeridaVisualUi.text());
         actionBar.setCastShadows(false);
         actionBar.setTitle(LocaleController.getString(titleRes()));
+        MeridaVisualUi.roundBackButton(actionBar);
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {

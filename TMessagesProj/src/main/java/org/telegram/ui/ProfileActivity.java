@@ -11421,7 +11421,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             avatarDrawable.setInfo(currentAccount, user);
 
             final MessagesController.PeerColor wasPeerColor = peerColor;
-            peerColor = MessagesController.PeerColor.fromCollectible(user.emoji_status);
+            // MeridaGram «Visual»: a worn visual NFT colours your own profile header on this phone
+            final TLRPC.TL_emojiStatusCollectible meridaWornStatus = user.self ? org.telegram.messenger.merida.MeridaVisualGifts.wornStatus(currentAccount) : null;
+            final TLRPC.EmojiStatus meridaStatus = meridaWornStatus != null ? meridaWornStatus : user.emoji_status;
+            peerColor = MessagesController.PeerColor.fromCollectible(meridaStatus);
             if (peerColor == null) {
                 final int colorId = UserObject.getProfileColorId(user);
                 final MessagesController.PeerColors peerColors = MessagesController.getInstance(currentAccount).profilePeerColors;
@@ -11431,12 +11434,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 updatedPeerColor();
             }
             if (topView != null) {
-                topView.setBackgroundEmojiId(UserObject.getProfileEmojiId(user), user != null && user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible, true);
+                topView.setBackgroundEmojiId(meridaWornStatus != null ? meridaWornStatus.pattern_document_id : UserObject.getProfileEmojiId(user), meridaStatus instanceof TLRPC.TL_emojiStatusCollectible, true);
             }
             if (ratingView != null) {
                 ratingView.updateColors(peerColor);
             }
-            setCollectibleGiftStatus(user.emoji_status instanceof TLRPC.TL_emojiStatusCollectible ? (TLRPC.TL_emojiStatusCollectible) user.emoji_status : null);
+            setCollectibleGiftStatus(meridaStatus instanceof TLRPC.TL_emojiStatusCollectible ? (TLRPC.TL_emojiStatusCollectible) meridaStatus : null);
 
 
             final ImageLocation imageLocation = ImageLocation.getForUserOrChat(user, ImageLocation.TYPE_BIG);
@@ -13670,6 +13673,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         String username = null;
                         CharSequence text;
                         CharSequence value;
+                        CharSequence meridaAlso = null;
                         ArrayList<TLRPC.TL_username> usernames = new ArrayList<>();
                         if (userId != 0) {
                             final TLRPC.User user = getMessagesController().getUser(userId);
@@ -13704,7 +13708,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             }
                             // MeridaGram «Visual»: your own profile, with «VISUAL» written over the name
                             if (user != null && user.self && org.telegram.messenger.merida.MeridaVisual.usernameOn()) {
-                                text = org.telegram.messenger.merida.MeridaVisual.watermark("@" + MeridaSettings.visualUsername.get());
+                                final CharSequence visual = org.telegram.messenger.merida.MeridaVisual.watermark("@" + MeridaSettings.visualUsername.get());
+                                final SpannableStringBuilder others = new SpannableStringBuilder();
+                                if (MeridaSettings.visualUsernameReplace.get() || username == null) {
+                                    text = visual;
+                                } else {
+                                    others.append(visual);
+                                }
+                                for (String other : org.telegram.messenger.merida.MeridaVisual.otherUsernames()) {
+                                    if (others.length() > 0) others.append(", ");
+                                    others.append(org.telegram.messenger.merida.MeridaVisual.watermark("@" + other));
+                                }
+                                if (others.length() > 0) {
+                                    meridaAlso = new SpannableStringBuilder(LocaleController.getString(R.string.MeridaVAlso)).append(' ').append(others);
+                                }
                             }
                             containsQr = !myProfile;
                         } else if (currentChat != null) {
@@ -13726,7 +13743,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             value = "";
                             usernames = new ArrayList<>();
                         }
-                        detailCell.setTextAndValue(text, alsoUsernamesString(username, usernames, value), infoEndRowEmpty == -1 && (isTopic || bizHoursRow != -1 || bizLocationRow != -1) && birthdayRow < 0);
+                        detailCell.setTextAndValue(text, meridaAlso != null ? meridaAlso : alsoUsernamesString(username, usernames, value), infoEndRowEmpty == -1 && (isTopic || bizHoursRow != -1 || bizLocationRow != -1) && birthdayRow < 0);
                     } else if (position == locationRow) {
                         if (chatInfo != null && chatInfo.location instanceof TLRPC.TL_channelLocation) {
                             TLRPC.TL_channelLocation location = (TLRPC.TL_channelLocation) chatInfo.location;
