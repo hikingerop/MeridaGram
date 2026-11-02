@@ -12058,7 +12058,7 @@
     <string name="MeridaVRandomTraits">Random traits</string>
     <string name="MeridaVNftNumber">NFT number</string>
     <string name="MeridaVOpenVisual">Visual: gifts, NFT profile, balance</string>
-    <string name="MeridaVGiftVisibleNote">The gift is visible in your profile (only on this phone).</string>
+    <string name="MeridaVGiftVisibleNote">The gift is visible in your profile.</string>
     <string name="MeridaVGiftHiddenNote">The gift is hidden from your profile.</string>
     <string name="MeridaVReplaceOriginal">Replace original: %1$s</string>
     <string name="MeridaVAlso">also</string>
@@ -12079,6 +12079,7 @@
     <string name="MeridaVNoCollections">You have no gift collections yet. Create one in your profile — a visual gift is added to it only on this phone.</string>
     <string name="MeridaVPinnedLocal">Pinned only on this phone: a visual gift.</string>
     <string name="MeridaVTransferConfirm">Send a visual gift message to **%1$s**? It says plainly that this is not a real gift — nothing is actually transferred.</string>
+    <string name="MeridaVValueInfo">Visual estimate: ≈ %1$s ⭐ — the price of such an NFT on Telegram\'s market. Only on this phone: the gift is not real and is worth nothing.</string>
     <string name="MeridaVTransferred">Sent as a visual gift message ✓</string>
     <string name="MeridaVDate">Date</string>
     <string name="MeridaVCost">Value</string>

@@ -142,6 +142,7 @@ final class MeridaVisualUpgradeSheet {
 
         void open() {
             sheet = new BottomSheet(context, false);
+            sheet.setApplyTopPadding(false); // the coloured header reaches the rounded top, like Telegram
             sheet.setBackgroundColor(MeridaVisualUi.SHEET_BG);
             sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
             final LinearLayout root = new LinearLayout(context);
@@ -150,6 +151,13 @@ final class MeridaVisualUpgradeSheet {
 
             // ---- header (shared by both pages): glow + pattern centred on the model
             header = new FrameLayout(context);
+            header.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                @Override
+                public void getOutline(View view, android.graphics.Outline outline) {
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight() + AndroidUtilities.dp(12), AndroidUtilities.dp(12));
+                }
+            });
+            header.setClipToOutline(true);
             background = new MeridaGiftRoll.HeaderBackground(header, 22 + 80);
             header.setBackground(background);
             image = new BackupImageView(context);
@@ -358,6 +366,7 @@ final class MeridaVisualUpgradeSheet {
             unique.attributes.add(resultModel);
             unique.attributes.add(resultPattern);
             unique.attributes.add(resultBackdrop);
+            MeridaVisualGifts.setValueStars(unique, Math.max(0, gift.stars) + price);
             MeridaVisualGifts.store(key, unique);
             if (MeridaSettings.visualSpendStars.get()) {
                 MeridaSettings.visualStars.set((int) Math.max(0, MeridaSettings.visualStars.get() - price));

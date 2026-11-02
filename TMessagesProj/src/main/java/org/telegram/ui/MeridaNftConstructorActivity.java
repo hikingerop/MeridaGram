@@ -475,6 +475,12 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         u.attributes.add(model);
         u.attributes.add(pattern);
         u.attributes.add(backdrop);
+        // like a real NFT: «Quantity» and «Value» rows in its window
+        if (collection.availability_total > 0) {
+            u.availability_total = collection.availability_total;
+            u.availability_issued = collection.availability_total;
+        }
+        MeridaVisualGifts.setValueStars(u, modelPrice > 0 ? modelPrice : collectionPrice);
         return u;
     }
 

@@ -207,6 +207,23 @@ public final class MeridaVisualGifts {
     }
 
     /** The price of a gift in stars: the resale price for an NFT, the shop price for an ordinary gift. */
+    /** Keeps an estimated value (in stars) inside a visual NFT, for its «Value» row; only on this phone. */
+    public static void setValueStars(TL_stars.TL_starGiftUnique gift, long stars) {
+        if (gift == null || stars <= 0) return;
+        gift.flags |= 256; // FLAG_8: value_amount / value_currency are stored with the gift
+        gift.value_amount = stars;
+        gift.value_currency = "XTR";
+        gift.value_usd_amount = 0;
+    }
+
+    /** The NFT's value for the «Value» row: the stored estimate, else its price. */
+    public static long valueInStars(TL_stars.StarGift gift) {
+        if (gift instanceof TL_stars.TL_starGiftUnique && "XTR".equals(gift.value_currency) && gift.value_amount > 0) {
+            return gift.value_amount;
+        }
+        return priceInStars(gift);
+    }
+
     public static long priceInStars(TL_stars.StarGift gift) {
         if (gift == null) {
             return 0;

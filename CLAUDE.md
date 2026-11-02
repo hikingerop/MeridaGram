@@ -109,6 +109,8 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    рамка выбора плавно появляется (AnimatedFloat), выбор без перестройки списка (refreshSelection).
    Модели NFT в наших окнах (BottomSheet) — setLayerNum(4 | 6656) / GiftCell.setImageLayer(7), как у Telegram: иначе
    открытие окна (stopAllHeavyOperations 512) душит «тяжёлую» анимацию и она идёт ~15 кадров/с, рывками.
+   Окна подарка: setApplyTopPadding(false) + шапка со скруглением 12 dp (цвет до самого верха, как у Telegram);
+   «Количество» и «Ценность ~X ₽ подробнее» (оценка в звёздах хранится в value_amount/«XTR», MeridaVisualGifts.valueInStars).
    По 5-минутному видео владельца (папка Google Drive «MeridaGram dook»): окно NFT — Передать (честное сообщение в чат через
    DialogsActivity) / Носить / Продать (визуальная цена, «В продаже за ⭐N», «Не продавать»; цена на карточке через resell_amount);
    юзернейм — большая карточка «Поставить в профиль / Изменить стоимость / Удалить»; «Стоимость и дата» (TON, $/€/₽ — курс

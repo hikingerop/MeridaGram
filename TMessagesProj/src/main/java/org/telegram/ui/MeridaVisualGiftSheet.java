@@ -76,6 +76,8 @@ public final class MeridaVisualGiftSheet {
         final TL_stars.starGiftAttributeBackdrop backdrop = unique ? StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeBackdrop.class) : null;
 
         final BottomSheet sheet = new BottomSheet(context, false);
+        // like Telegram's gift window: the coloured header starts at the sheet's very top, rounded 12 dp
+        sheet.setApplyTopPadding(false);
         sheet.setBackgroundColor(MeridaVisualUi.SHEET_BG);
         sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
         final LinearLayout root = new LinearLayout(context);
@@ -84,6 +86,13 @@ public final class MeridaVisualGiftSheet {
         // ---- header, with Telegram's own sizes (StarGiftSheet.TopView): model 160 dp at the top, title 20 sp,
         //      subtitle 14 sp, buttons 56 dp with 11 dp gaps; the header is as tall as its content
         final FrameLayout header = new FrameLayout(context);
+        header.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, android.graphics.Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight() + AndroidUtilities.dp(12), AndroidUtilities.dp(12));
+            }
+        });
+        header.setClipToOutline(true);
         if (backdrop != null) {
             final MeridaGiftRoll.HeaderBackground bg = new MeridaGiftRoll.HeaderBackground(header, 8 + 80);
             bg.setBackdrop(backdrop, false);
@@ -219,9 +228,17 @@ public final class MeridaVisualGiftSheet {
             table.addRow(s(R.string.Gift2Quantity), LocaleController.formatPluralStringComma("Gift2QuantityIssued1", gift.availability_issued)
                     + LocaleController.formatPluralStringComma("Gift2QuantityIssued2", gift.availability_total));
         }
-        final long price = unique ? MeridaVisualGifts.priceInStars(gift) : 0;
-        if (price > 0) {
-            table.addRow(s(R.string.Gift2Value), MeridaVisualSheets.localPrice(fragment, price).replace("≈ ", "~"));
+        final long price = unique ? MeridaVisualGifts.valueInStars(gift) : 0;
+        final String priceText = price > 0 ? MeridaVisualSheets.localPrice(fragment, price) : null;
+        if (priceText != null) {
+            // like Telegram: «Value  ~6 047 ₽  learn more»
+            table.addRow(s(R.string.GiftValue2), priceText.replace("≈ ", "~"), s(R.string.GiftValue2LearnMore), () -> {
+                final AlertDialog.Builder b = new AlertDialog.Builder(context);
+                b.setTitle(s(R.string.GiftValue2));
+                b.setMessage(LocaleController.formatString(R.string.MeridaVValueInfo, LocaleController.formatNumber(price, ',')));
+                b.setPositiveButton(s(R.string.OK), null);
+                b.show();
+            });
         }
         body.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
 

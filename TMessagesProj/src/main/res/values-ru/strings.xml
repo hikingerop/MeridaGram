@@ -691,7 +691,7 @@
     <string name="MeridaVRandomTraits">Случайные характеристики</string>
     <string name="MeridaVNftNumber">Номер NFT</string>
     <string name="MeridaVOpenVisual">Визуал: подарки, NFT-профиль, баланс</string>
-    <string name="MeridaVGiftVisibleNote">Подарок виден в Вашем профиле (только на этом телефоне).</string>
+    <string name="MeridaVGiftVisibleNote">Подарок виден в Вашем профиле.</string>
     <string name="MeridaVGiftHiddenNote">Подарок скрыт из профиля.</string>
     <string name="MeridaVReplaceOriginal">Заменять оригинальный: %1$s</string>
     <string name="MeridaVAlso">а также</string>
@@ -712,6 +712,7 @@
     <string name="MeridaVNoCollections">У тебя пока нет коллекций подарков. Создай её в профиле — визуальный подарок добавится в неё только на этом телефоне.</string>
     <string name="MeridaVPinnedLocal">Закреплён только на этом телефоне: это визуальный подарок.</string>
     <string name="MeridaVTransferConfirm">Отправить **%1$s** сообщение о визуальном подарке? В нём прямо написано, что это не настоящий подарок — на самом деле ничего не передаётся.</string>
+    <string name="MeridaVValueInfo">Визуальная оценка: ≈ %1$s ⭐ — цена такого NFT на маркете Telegram. Это только на этом телефоне: подарок не настоящий и ничего не стоит.</string>
     <string name="MeridaVTransferred">Отправлено сообщением «визуальный подарок» ✓</string>
     <string name="MeridaVDate">Дата</string>
     <string name="MeridaVCost">Стоимость</string>
