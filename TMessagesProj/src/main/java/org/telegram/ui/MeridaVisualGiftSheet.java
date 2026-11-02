@@ -81,71 +81,80 @@ public final class MeridaVisualGiftSheet {
         final LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.VERTICAL);
 
-        // ---- header: backdrop + pattern, model, title, buttons
+        // ---- header, with Telegram's own sizes (StarGiftSheet.TopView): model 160 dp at the top, title 20 sp,
+        //      subtitle 14 sp, buttons 56 dp with 11 dp gaps; the header is as tall as its content
         final FrameLayout header = new FrameLayout(context);
         if (backdrop != null) {
-            // like Telegram's gift window: the glow and the pattern are centred on the model
-            final MeridaGiftRoll.HeaderBackground bg = new MeridaGiftRoll.HeaderBackground(header, 22 + 90);
+            final MeridaGiftRoll.HeaderBackground bg = new MeridaGiftRoll.HeaderBackground(header, 8 + 80);
             bg.setBackdrop(backdrop, false);
             bg.setPattern(pattern, false);
             header.setBackground(bg);
-        } else {
-            header.setBackgroundColor(0xFF2A2A2C);
         }
-        final int textColor = backdrop != null ? backdrop.text_color | 0xFF000000 : 0xFFAAAAAA;
+        final int textColor = backdrop != null ? backdrop.text_color | 0xFF000000 : 0xFF8E8E93;
 
         final BackupImageView image = new BackupImageView(context);
         final TLRPC.Document doc = model != null ? model.document : gift.sticker;
         if (doc != null) {
             final TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(doc.thumbs, AndroidUtilities.dp(160));
-            image.setImage(ImageLocation.getForDocument(doc), "200_200", ImageLocation.getForDocument(thumb, doc), "200_200", null, gift);
+            image.setImage(ImageLocation.getForDocument(doc), "160_160", ImageLocation.getForDocument(thumb, doc), "160_160", null, gift);
             image.getImageReceiver().setAutoRepeat(1);
         }
-        header.addView(image, LayoutHelper.createFrame(180, 180, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 22, 0, 0));
+        header.addView(image, LayoutHelper.createFrame(160, 160, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 8, 0, 0));
 
         final ImageView more = new ImageView(context);
-        more.setImageResource(R.drawable.ic_ab_other);
+        more.setImageResource(R.drawable.media_more);
         more.setScaleType(ImageView.ScaleType.CENTER);
-        more.setColorFilter(new PorterDuffColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN));
-        more.setBackground(Theme.createSelectorDrawable(0x33FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
-        header.addView(more, LayoutHelper.createFrame(44, 44, Gravity.TOP | Gravity.RIGHT, 0, 12, 10, 0));
+        if (backdrop == null) {
+            more.setColorFilter(new PorterDuffColorFilter(0xFF8E8E93, PorterDuff.Mode.SRC_IN));
+        }
+        more.setBackground(Theme.createSelectorDrawable(0x20FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
+        header.addView(more, LayoutHelper.createFrame(42, 42, Gravity.TOP | Gravity.RIGHT, 0, 5, 5, 0));
+
+        final LinearLayout info = new LinearLayout(context);
+        info.setOrientation(LinearLayout.VERTICAL);
+        info.setPadding(0, 0, 0, AndroidUtilities.dp(backdrop != null ? 18 : 3));
+        header.addView(info, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, backdrop != null ? 24 + 160 : 8 + 160 + 2, 16, 0));
 
         final TextView title = new TextView(context);
         final SpannableStringBuilder titleText = new SpannableStringBuilder(gift.title != null ? gift.title : s(R.string.MeridaVisualGiftTitle));
         if (unique) {
             final int start = titleText.length();
-            titleText.append(" #").append(String.valueOf(((TL_stars.TL_starGiftUnique) gift).num));
+            titleText.append(" #").append(LocaleController.formatNumber(((TL_stars.TL_starGiftUnique) gift).num, ','));
             titleText.setSpan(new ForegroundColorSpan(0xB3FFFFFF), start, titleText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         titleText.append(" ").append(MeridaVisual.mark());
         title.setText(titleText);
         title.setTextColor(0xFFFFFFFF);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         title.setTypeface(AndroidUtilities.bold());
         title.setGravity(Gravity.CENTER);
-        header.addView(title, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, 210, 16, 0));
+        info.addView(title, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 24, 0, 24, 0));
         final TextView subtitle = new TextView(context);
         final long salePrice = key != null ? MeridaVisualGifts.salePrice(key) : 0;
         if (salePrice > 0) {
             // like Telegram: «On sale for ⭐ N» in a pill under the name
             subtitle.setText(org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(LocaleController.formatString(R.string.MeridaVOnSaleFor, LocaleController.formatNumber(salePrice, ',')), .8f));
-            subtitle.setPadding(AndroidUtilities.dp(10), AndroidUtilities.dp(2), AndroidUtilities.dp(10), AndroidUtilities.dp(2));
-            subtitle.setBackground(MeridaVisualUi.round(0x33000000, 12));
+            subtitle.setPadding(AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8), 0);
+            subtitle.setBackground(MeridaVisualUi.round(0x33000000, 10));
+            subtitle.setTypeface(AndroidUtilities.bold());
             subtitle.setTextColor(0xFFFFFFFF);
+            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         } else {
             subtitle.setText(model != null ? model.name : gift.stars > 0 ? LocaleController.formatString(R.string.MeridaVisualSendGift, MeridaVisual.formatNumber(gift.stars)) : "");
+            subtitle.setTextColor(textColor);
+            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         }
-        subtitle.setTextColor(textColor);
-        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         subtitle.setGravity(Gravity.CENTER);
-        header.addView(subtitle, LayoutHelper.createFrame(salePrice > 0 ? LayoutHelper.WRAP_CONTENT : LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 16, 246, 16, 0));
+        info.addView(subtitle, LayoutHelper.createLinear(salePrice > 0 ? LayoutHelper.WRAP_CONTENT : LayoutHelper.MATCH_PARENT, salePrice > 0 ? 20 : LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 24, backdrop != null ? 1.66f : 5, 24, 0));
 
         final LinearLayout buttons = new LinearLayout(context);
         buttons.setOrientation(LinearLayout.HORIZONTAL);
-        header.addView(buttons, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 64, Gravity.TOP, 12, 284, 12, 16));
-        final FrameLayout headerWrap = new FrameLayout(context);
-        headerWrap.addView(header, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, unique ? 364 : 290));
-        root.addView(headerWrap);
+        // Telegram paints the buttons in the backdrop's colour: edge mixed with the pattern colour
+        buttons.setTag(backdrop != null ? androidx.core.graphics.ColorUtils.blendARGB(backdrop.edge_color | 0xFF000000, backdrop.pattern_color | 0xFF000000, .25f) : 0x10FFFFFF);
+        if (unique && key != null) {
+            info.addView(buttons, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, 0, 15, 0, 0));
+        }
+        root.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         final Runnable changed = () -> {
             sheet.dismiss();
@@ -190,7 +199,7 @@ public final class MeridaVisualGiftSheet {
         // ---- table
         final LinearLayout body = new LinearLayout(context);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(14));
+        body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(12));
         final TableView table = new TableView(context, fragment.getResourceProvider());
         table.addRow(s(R.string.Gift2Owner), ownerView(context, account));
         final long addedAt = key != null ? MeridaVisualGifts.addedAt(key) : 0;
@@ -211,7 +220,7 @@ public final class MeridaVisualGiftSheet {
         if (price > 0) {
             table.addRow(s(R.string.Gift2Value), MeridaVisualSheets.localPrice(fragment, price).replace("≈ ", "~"));
         }
-        body.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        body.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
 
         if (key != null) {
             final boolean hidden = MeridaVisualGifts.isHidden(key);
@@ -222,65 +231,73 @@ public final class MeridaVisualGiftSheet {
             f.setSpan(new ForegroundColorSpan(MeridaVisualUi.BLUE), start, f.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             footer.setText(f);
             footer.setTextColor(0xFF8E8E93);
-            footer.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            footer.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            footer.setLineSpacing(AndroidUtilities.dp(2), 1f);
             footer.setGravity(Gravity.CENTER);
             footer.setOnClickListener(v -> {
                 MeridaVisualGifts.setHidden(key, !hidden);
                 changed.run();
             });
-            body.addView(footer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 16, 0, 0));
+            body.addView(footer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 4, 2, 4, 0));
         }
         final TextView note = new TextView(context);
         note.setText(s(R.string.MeridaVisualGiftNote));
         note.setTextColor(0xFF6D6D72);
-        note.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+        note.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
         note.setGravity(Gravity.CENTER);
-        body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
-        final TextView ok = MeridaVisualUi.bigButton(context, upgradable ? "⬆ " + s(R.string.MeridaVUpgrade) : s(R.string.OK));
+        body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 4, 4, 4, 0));
+        final org.telegram.ui.Stories.recorder.ButtonWithCounterView ok = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, fragment.getResourceProvider()).setRound();
+        ok.setText(upgradable ? "⬆ " + s(R.string.MeridaVUpgrade) : s(R.string.OK), false);
         ok.setOnClickListener(v -> {
             sheet.dismiss();
             if (upgradable) {
                 MeridaVisualUpgradeSheet.show(fragment, key, onChanged);
             }
         });
-        body.addView(ok, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 52, 0, 14, 0, 0));
+        body.addView(ok, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 0, 12, 0, 0));
         root.addView(body);
 
         final String slug = MeridaVisualGifts.slugOf(saved);
+        // «⋮» — a pop-up menu like Telegram's: pin, link, share, hide, transfer (all only on this phone)
         more.setOnClickListener(v -> {
-            final java.util.ArrayList<CharSequence> items = new java.util.ArrayList<>();
-            final java.util.ArrayList<Runnable> actions = new java.util.ArrayList<>();
-            if (key != null) {
-                final boolean hiddenNow = MeridaVisualGifts.isHidden(key);
-                items.add(s(hiddenNow ? R.string.MeridaVShowInProfileAction : R.string.MeridaVHideFromProfile));
-                actions.add(() -> {
-                    MeridaVisualGifts.setHidden(key, !hiddenNow);
-                    changed.run();
-                });
-            }
-            if (slug != null && !slug.isEmpty()) {
-                items.add(s(R.string.CopyLink));
-                actions.add(() -> AndroidUtilities.addToClipboard("https://t.me/nft/" + slug));
-                items.add(s(R.string.MeridaVisualRealPage));
-                actions.add(() -> Browser.openUrl(context, "https://t.me/nft/" + slug));
-            }
-            if (key != null) {
-                items.add(s(R.string.MeridaVisualRemoveGift));
-                actions.add(() -> {
-                    MeridaVisualGifts.remove(key);
-                    if (key.equals(MeridaSettings.visualWorn.get())) {
-                        MeridaSettings.visualWorn.set(null);
-                        notifyStatus(account);
-                    }
-                    changed.run();
-                });
-            }
-            if (items.isEmpty()) {
-                return;
-            }
-            final AlertDialog.Builder b = new AlertDialog.Builder(context);
-            b.setItems(items.toArray(new CharSequence[0]), (d, which) -> actions.get(which).run());
-            b.show();
+            final String link = slug != null && !slug.isEmpty() ? MessagesController.getInstance(account).linkPrefix + "/nft/" + slug : null;
+            final boolean pinned = key != null && MeridaVisualGifts.isPinned(key);
+            final boolean hiddenNow = key != null && MeridaVisualGifts.isHidden(key);
+            org.telegram.ui.Components.ItemOptions.makeOptions(sheet.getContainer(), fragment.getResourceProvider(), more)
+                    .addIf(unique && key != null, pinned ? R.drawable.msg_unpin : R.drawable.msg_pin, s(pinned ? R.string.Gift2Unpin : R.string.Gift2Pin), () -> {
+                        MeridaVisualGifts.setPinned(key, !pinned);
+                        changed.run();
+                        org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(pinned ? R.raw.ic_unpin : R.raw.ic_pin,
+                                s(pinned ? R.string.Gift2Unpinned : R.string.Gift2PinnedTitle), pinned ? "" : s(R.string.MeridaVPinnedLocal)).show();
+                    })
+                    .addIf(link != null, R.drawable.msg_link, s(R.string.CopyLink), () -> {
+                        AndroidUtilities.addToClipboard(link);
+                        org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), fragment.getResourceProvider()).createCopyLinkBulletin(false).show();
+                    })
+                    .addIf(link != null, R.drawable.msg_share, s(R.string.ShareFile), () ->
+                            fragment.showDialog(org.telegram.ui.Components.ShareAlert.createShareAlert(context, null, link, false, link, false)))
+                    .addIf(link != null, R.drawable.msg_view_file, s(R.string.MeridaVisualRealPage), () -> Browser.openUrl(context, link))
+                    .addIf(key != null, hiddenNow ? R.drawable.menu_show_on_profile : R.drawable.menu_hide_from_profile, s(hiddenNow ? R.string.Gift2ShowOnProfile : R.string.Gift2HideFromProfile), () -> {
+                        MeridaVisualGifts.setHidden(key, !hiddenNow);
+                        changed.run();
+                    })
+                    .addIf(unique && key != null, R.drawable.menu_transfer, s(R.string.Gift2TransferOption), () -> {
+                        sheet.dismiss();
+                        transfer(fragment, (TL_stars.TL_starGiftUnique) gift);
+                    })
+                    .addIf(key != null, R.drawable.msg_delete, s(R.string.MeridaVisualRemoveGift), true, () -> {
+                        MeridaVisualGifts.remove(key);
+                        if (key.equals(MeridaSettings.visualWorn.get())) {
+                            MeridaSettings.visualWorn.set(null);
+                            notifyStatus(account);
+                        }
+                        changed.run();
+                    })
+                    .setDrawScrim(false)
+                    .setOnTopOfScrim()
+                    .setDimAlpha(0)
+                    .translate(0, -AndroidUtilities.dp(2))
+                    .show();
         });
 
         final ScrollView scroll = new ScrollView(context);
@@ -309,55 +326,65 @@ public final class MeridaVisualGiftSheet {
      * shown as a card with the VISUAL mark in MeridaGram). Nothing real is transferred.
      */
     public static void transfer(BaseFragment fragment, TL_stars.TL_starGiftUnique gift) {
-        final android.os.Bundle args = new android.os.Bundle();
-        args.putBoolean("onlySelect", true);
-        args.putInt("dialogsType", DialogsActivity.DIALOGS_TYPE_FORWARD);
-        args.putInt("messagesCount", 1);
-        final DialogsActivity picker = new DialogsActivity(args);
-        picker.setDelegate((dialogsFragment, dids, message, param, notify, scheduleDate, scheduleRepeatPeriod, topicsFragment) -> {
-            final String text = org.telegram.messenger.merida.MeridaVisualSend.build(
-                    org.telegram.messenger.merida.MeridaVisualSend.nftItem(gift.title, gift.num, gift.slug == null ? "" : gift.slug));
-            final int account = dialogsFragment.getCurrentAccount();
-            for (org.telegram.messenger.MessagesStorage.TopicKey key : dids) {
-                org.telegram.messenger.SendMessagesHelper.getInstance(account).sendMessage(
-                        org.telegram.messenger.SendMessagesHelper.SendMessageParams.of(text, key.dialogId));
-            }
-            dialogsFragment.finishFragment();
-            AndroidUtilities.runOnUIThread(() -> {
-                try {
-                    org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.contact_check, s(R.string.MeridaVTransferred)).show();
-                } catch (Throwable ignore) {
-                }
-            }, 350);
-            return true;
+        final Context context = fragment.getParentActivity();
+        if (context == null) return;
+        final int account = fragment.getCurrentAccount();
+        // the same «Transfer gift» picker as Telegram (search, frequent contacts), without «Send via Fragment»
+        final org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet picker = new org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet(context, account, 0,
+                org.telegram.messenger.BirthdayController.getInstance(account).getState(), org.telegram.ui.Components.Premium.boosts.UserSelectorBottomSheet.TYPE_TRANSFER, true, fragment.getResourceProvider());
+        picker.setTitle(s(R.string.Gift2TransferShort));
+        picker.setOnUserSelector(dialogId -> {
+            if (dialogId == null || dialogId == 0) return;
+            final String name = org.telegram.messenger.DialogObject.getShortName(account, dialogId);
+            new AlertDialog.Builder(context, fragment.getResourceProvider())
+                    .setTitle(s(R.string.Gift2TransferShort))
+                    .setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.MeridaVTransferConfirm, name)))
+                    .setPositiveButton(s(R.string.Send), (d, w) -> {
+                        final String text = org.telegram.messenger.merida.MeridaVisualSend.build(
+                                org.telegram.messenger.merida.MeridaVisualSend.nftItem(gift.title, gift.num, gift.slug == null ? "" : gift.slug));
+                        org.telegram.messenger.SendMessagesHelper.getInstance(account).sendMessage(
+                                org.telegram.messenger.SendMessagesHelper.SendMessageParams.of(text, dialogId));
+                        picker.dismiss();
+                        AndroidUtilities.runOnUIThread(() -> {
+                            try {
+                                org.telegram.ui.Components.BulletinFactory.of(fragment).createSimpleBulletin(R.raw.contact_check, s(R.string.MeridaVTransferred)).show();
+                            } catch (Throwable ignore) {
+                            }
+                        }, 300);
+                    })
+                    .setNegativeButton(s(R.string.Cancel), null)
+                    .show();
         });
-        fragment.presentFragment(picker);
+        picker.show();
     }
 
     private static void notifyStatus(int account) {
         NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_EMOJI_STATUS);
     }
 
+    /** A header button like Telegram's: 56 dp, icon 24 dp at the top, 12 sp bold text, filled with the backdrop colour. */
     private static void addHeaderButton(LinearLayout buttons, int icon, CharSequence text, Runnable click) {
         final Context context = buttons.getContext();
-        final LinearLayout b = new LinearLayout(context);
-        b.setOrientation(LinearLayout.VERTICAL);
-        b.setGravity(Gravity.CENTER);
-        b.setBackground(MeridaVisualUi.round(0x29000000, 14));
+        final FrameLayout b = new FrameLayout(context);
+        final int color = buttons.getTag() instanceof Integer ? (Integer) buttons.getTag() : 0x10FFFFFF;
+        b.setBackground(Theme.createRadSelectorDrawable(color, 0x10FFFFFF, 16, 16));
         final ImageView iv = new ImageView(context);
         iv.setImageResource(icon);
+        iv.setScaleType(ImageView.ScaleType.CENTER);
         iv.setColorFilter(new PorterDuffColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN));
-        b.addView(iv, LayoutHelper.createLinear(24, 24));
+        b.addView(iv, LayoutHelper.createFrame(24, 24, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 8, 0, 0));
         final TextView tv = new TextView(context);
         tv.setText(text);
         tv.setTextColor(0xFFFFFFFF);
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
         tv.setTypeface(AndroidUtilities.bold());
+        tv.setGravity(Gravity.CENTER);
         tv.setSingleLine(true);
         tv.setEllipsize(TextUtils.TruncateAt.END);
-        b.addView(tv, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 3, 0, 0));
+        b.addView(tv, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 4, 35, 4, 0));
         b.setOnClickListener(v -> click.run());
-        buttons.addView(b, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f, 4, 0, 4, 0));
+        org.telegram.ui.Components.ScaleStateListAnimator.apply(b, .075f, 1.5f);
+        buttons.addView(b, LayoutHelper.createLinear(0, 56, 1f, Gravity.FILL, 0, 0, buttons.getChildCount() < 2 ? 11 : 0, 0));
     }
 
     /** «Owner»: your avatar and name with «VISUAL» written over the name. */

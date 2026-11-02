@@ -174,17 +174,17 @@ final class MeridaVisualUpgradeSheet {
             title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
             title.setTypeface(AndroidUtilities.bold());
             title.setGravity(Gravity.CENTER);
-            header.addView(title, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 16, 192, 16, 0));
+            header.addView(title, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 40, 184, 40, 0));
             subtitle = new TextView(context);
             subtitle.setTextColor(0xCCFFFFFF);
             subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             subtitle.setGravity(Gravity.CENTER);
-            header.addView(subtitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 28, 222, 28, 16));
+            header.addView(subtitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 40, 212, 40, 18));
             buttons = new LinearLayout(context);
             buttons.setOrientation(LinearLayout.HORIZONTAL);
             buttons.setAlpha(0f);
             buttons.setVisibility(View.GONE);
-            header.addView(buttons, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 58, Gravity.TOP, 12, 252, 12, 14));
+            header.addView(buttons, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 56, Gravity.TOP, 16, 246, 16, 18));
             root.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 300));
 
             // ---- page 1: «Upgrade gift»
@@ -322,7 +322,7 @@ final class MeridaVisualUpgradeSheet {
             addHeaderButton(R.drawable.msg_delete, s(R.string.MeridaVisualRemoveGift));
             buttons.setVisibility(View.VISIBLE);
             buttons.animate().alpha(0.5f).setDuration(250).start();
-            ((LinearLayout.LayoutParams) header.getLayoutParams()).height = AndroidUtilities.dp(324);
+            ((LinearLayout.LayoutParams) header.getLayoutParams()).height = AndroidUtilities.dp(320); // Telegram: 184 + title + subtitle + 15 + 56 + 18
             header.requestLayout();
             upgradePage.animate().alpha(0f).setDuration(160).withEndAction(() -> {
                 upgradePage.setVisibility(View.GONE);
@@ -337,6 +337,7 @@ final class MeridaVisualUpgradeSheet {
             image.setScaleY(1f);
             image.setAlpha(1f);
             image.setVisibility(View.INVISIBLE);
+            stickers.animate().translationY(-AndroidUtilities.dp(14)).setDuration(320).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).start();
             roller.start(image.getImageReceiver(), model, pattern, backdrop, resultModel, resultPattern, resultBackdrop,
                     () -> {
                     }, this::rollingDone);
@@ -403,27 +404,30 @@ final class MeridaVisualUpgradeSheet {
             addHeaderButton(icon, text, null);
         }
 
+        /** Like Telegram's header buttons: 56 dp, icon at the top, 12 sp bold, filled with the result backdrop's colour. */
         void addHeaderButton(int icon, CharSequence text, Runnable click) {
-            final LinearLayout b = new LinearLayout(context);
-            b.setOrientation(LinearLayout.VERTICAL);
-            b.setGravity(Gravity.CENTER);
-            b.setBackground(MeridaVisualUi.round(0x29000000, 14));
+            final FrameLayout b = new FrameLayout(context);
+            final int color = resultBackdrop != null
+                    ? androidx.core.graphics.ColorUtils.blendARGB(resultBackdrop.edge_color | 0xFF000000, resultBackdrop.pattern_color | 0xFF000000, .25f) : 0x29000000;
+            b.setBackground(org.telegram.ui.ActionBar.Theme.createRadSelectorDrawable(color, 0x10FFFFFF, 16, 16));
             final ImageView iv = new ImageView(context);
             iv.setImageResource(icon);
+            iv.setScaleType(ImageView.ScaleType.CENTER);
             iv.setColorFilter(new PorterDuffColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN));
-            b.addView(iv, LayoutHelper.createLinear(22, 22));
+            b.addView(iv, LayoutHelper.createFrame(24, 24, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 8, 0, 0));
             final TextView tv = new TextView(context);
             tv.setText(text);
             tv.setTextColor(0xFFFFFFFF);
             tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
             tv.setTypeface(AndroidUtilities.bold());
+            tv.setGravity(Gravity.CENTER);
             tv.setSingleLine(true);
             tv.setEllipsize(TextUtils.TruncateAt.END);
-            b.addView(tv, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
+            b.addView(tv, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 4, 35, 4, 0));
             if (click != null) {
                 b.setOnClickListener(v -> click.run());
             }
-            buttons.addView(b, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f, 4, 0, 4, 0));
+            buttons.addView(b, LayoutHelper.createLinear(0, 56, 1f, Gravity.FILL, 0, 0, buttons.getChildCount() < 2 ? 11 : 0, 0));
         }
     }
 }

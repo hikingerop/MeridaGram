@@ -13730,19 +13730,31 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             }
                             // MeridaGram «Visual»: your own profile, with «VISUAL» written over the name
                             if (user != null && user.self && org.telegram.messenger.merida.MeridaVisual.usernameOn()) {
-                                final CharSequence visual = org.telegram.messenger.merida.MeridaVisual.watermark("@" + MeridaSettings.visualUsername.get());
+                                // like a username bought on Fragment: written in the link colour, «also @a, @b» are tappable
+                                final int linkColor = dontApplyPeerColor(getThemedColor(Theme.key_chat_messageLinkIn), false);
+                                final String mainName = MeridaSettings.visualUsername.get();
                                 final SpannableStringBuilder others = new SpannableStringBuilder();
                                 if (MeridaSettings.visualUsernameReplace.get() || username == null) {
+                                    final SpannableStringBuilder visual = new SpannableStringBuilder(org.telegram.messenger.merida.MeridaVisual.watermark("@" + mainName));
+                                    visual.setSpan(new ForegroundColorSpan(linkColor), 0, visual.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                     text = visual;
                                 } else {
-                                    others.append(visual);
+                                    others.append(meridaVisualUsernameLink(mainName, linkColor));
                                 }
                                 for (String other : org.telegram.messenger.merida.MeridaVisual.otherUsernames()) {
                                     if (others.length() > 0) others.append(", ");
-                                    others.append(org.telegram.messenger.merida.MeridaVisual.watermark("@" + other));
+                                    others.append(meridaVisualUsernameLink(other, linkColor));
                                 }
                                 if (others.length() > 0) {
-                                    meridaAlso = new SpannableStringBuilder(LocaleController.getString(R.string.MeridaVAlso)).append(' ').append(others);
+                                    final String also = getString(R.string.UsernameAlso);
+                                    final int at = also.indexOf("%1$s");
+                                    final SpannableStringBuilder sb = new SpannableStringBuilder(also);
+                                    if (at >= 0) {
+                                        sb.replace(at, at + 4, others);
+                                    } else {
+                                        sb.append(' ').append(others);
+                                    }
+                                    meridaAlso = sb;
                                 }
                             }
                             containsQr = !myProfile;
@@ -14405,6 +14417,25 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             } else {
                 return fallback;
             }
+        }
+
+        /** MeridaGram «Visual»: a visual username in the link colour, with «VISUAL» over it; a tap opens its Fragment-style card. */
+        private CharSequence meridaVisualUsernameLink(String name, int color) {
+            final SpannableStringBuilder sb = new SpannableStringBuilder(org.telegram.messenger.merida.MeridaVisual.watermark("@" + name));
+            sb.setSpan(new ClickableSpan() {
+                @Override
+                public void onClick(@NonNull View view) {
+                    MeridaVisualSheets.showCollectible(ProfileActivity.this, false, name);
+                }
+
+                @Override
+                public void updateDrawState(@NonNull android.text.TextPaint ds) {
+                    ds.setColor(color);
+                    ds.setUnderlineText(false);
+                }
+            }, 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            sb.setSpan(new ForegroundColorSpan(color), 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            return sb;
         }
 
         private final HashMap<TLRPC.TL_username, ClickableSpan> usernameSpans = new HashMap<TLRPC.TL_username, ClickableSpan>();

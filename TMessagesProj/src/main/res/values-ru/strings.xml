@@ -707,6 +707,7 @@
     <string name="MeridaVSellPrice">Визуальная цена в звёздах</string>
     <string name="MeridaVNoCollections">У тебя пока нет коллекций подарков. Создай её в профиле — визуальный подарок добавится в неё только на этом телефоне.</string>
     <string name="MeridaVPinnedLocal">Закреплён только на этом телефоне: это визуальный подарок.</string>
+    <string name="MeridaVTransferConfirm">Отправить **%1$s** сообщение о визуальном подарке? В нём прямо написано, что это не настоящий подарок — на самом деле ничего не передаётся.</string>
     <string name="MeridaVTransferred">Отправлено сообщением «визуальный подарок» ✓</string>
     <string name="MeridaVDate">Дата</string>
     <string name="MeridaVCost">Стоимость</string>

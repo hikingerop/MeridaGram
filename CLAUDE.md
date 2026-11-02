@@ -96,6 +96,10 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    Долгое нажатие на визуальный подарок в профиле — меню как у Telegram (ProfileGiftsContainer.onVisualLongPress):
    коллекция/закрепить/носить/ссылка/поделиться/скрыть/передать; коллекции и закрепление — только локально
    (MeridaVisualGifts.setInCollection/setPinned, savedGiftsIn для вкладки коллекции), серверу ничего не шлём.
+   Окно NFT — размеры Telegram TopView (модель 160 dp сверху 8, заголовок 20 sp на 184, кнопки 56 dp с зазором 11, цвет
+   кнопок = blend(edge, pattern, .25), шапка по содержимому); «⋮» — ItemOptions как у Telegram; «Передать» — Telegram
+   UserSelectorBottomSheet TYPE_TRANSFER без Fragment + подтверждение, уходит честное сообщение. Визуальные юзернеймы
+   в профиле — цвет ссылки (как купленные на Fragment), «также @…» нажимаются (showCollectible).
    По 5-минутному видео владельца (папка Google Drive «MeridaGram dook»): окно NFT — Передать (честное сообщение в чат через
    DialogsActivity) / Носить / Продать (визуальная цена, «В продаже за ⭐N», «Не продавать»; цена на карточке через resell_amount);
    юзернейм — большая карточка «Поставить в профиль / Изменить стоимость / Удалить»; «Стоимость и дата» (TON, $/€/₽ — курс
