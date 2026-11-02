@@ -559,22 +559,25 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             return;
         }
         final java.util.List<String> slugs = org.telegram.messenger.merida.MeridaVisualGifts.slugs();
-        final CharSequence[] items = new CharSequence[slugs.size() + 1];
+        final CharSequence[] items = new CharSequence[slugs.size() + 2];
         items[0] = LocaleController.getString(R.string.MeridaVisualGiftAdd);
+        items[1] = LocaleController.getString(R.string.MeridaNftConstructorOpen);
         for (int i = 0; i < slugs.size(); i++) {
             final org.telegram.tgnet.tl.TL_stars.StarGift any = org.telegram.messenger.merida.MeridaVisualGifts.loadAny(slugs.get(i));
             final String label = any instanceof org.telegram.tgnet.tl.TL_stars.TL_starGiftUnique
                     ? any.title + " #" + ((org.telegram.tgnet.tl.TL_stars.TL_starGiftUnique) any).num
                     : any != null ? LocaleController.formatString(R.string.MeridaVisualSendGift, org.telegram.messenger.merida.MeridaVisual.formatNumber(any.stars)) : slugs.get(i);
-            items[i + 1] = label + "  ✕";
+            items[i + 2] = label + "  ✕";
         }
         final AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setTitle(LocaleController.getString(R.string.MeridaVisualGifts));
         builder.setItems(items, (dialog, which) -> {
             if (which == 0) {
                 askVisualGiftLink();
+            } else if (which == 1) {
+                presentFragment(new MeridaNftConstructorActivity());
             } else {
-                org.telegram.messenger.merida.MeridaVisualGifts.remove(slugs.get(which - 1));
+                org.telegram.messenger.merida.MeridaVisualGifts.remove(slugs.get(which - 2));
                 if (adapter != null) {
                     adapter.notifyDataSetChanged();
                 }

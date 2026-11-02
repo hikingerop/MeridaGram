@@ -211,6 +211,17 @@ public final class MeridaVisualGifts {
         return result;
     }
 
+    /** A gift wrapped for the constructor's preview, so it is drawn with the «VISUAL» ribbon. */
+    public static TL_stars.SavedStarGift preview(TL_stars.StarGift gift) {
+        final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
+        saved.gift = gift;
+        saved.name_hidden = true;
+        synchronized (made) {
+            made.add(saved);
+        }
+        return saved;
+    }
+
     public static boolean isVisual(TL_stars.SavedStarGift gift) {
         if (gift == null) {
             return false;

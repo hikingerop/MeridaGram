@@ -503,6 +503,16 @@
     <string name="MeridaVisualBuyOnlySelf">Визуально можно купить только себе. Чтобы подарить — ⋮ в чате → «Визуальный подарок».</string>
     <string name="MeridaVisualSentHonest">Отправлено сообщение «визуальный подарок — не настоящий». Настоящие звёзды не списаны.</string>
     <string name="MeridaVisualSendGift">Подарок за %1$s ⭐</string>
+    <string name="MeridaNftConstructor">Конструктор NFT</string>
+    <string name="MeridaNftConstructorOpen">🛠 Конструктор NFT</string>
+    <string name="MeridaNftConstructorHint">Выберите коллекцию, затем модель, фон и узор. Готовый NFT появится в вашем профиле с лентой «ВИЗУАЛ» — только на этом телефоне.</string>
+    <string name="MeridaNftConstructorLoading">Загружаю каталог подарков…</string>
+    <string name="MeridaNftConstructorNoData">У этой коллекции пока нет вариантов. Выберите другую.</string>
+    <string name="MeridaNftConstructorAdd">Добавить в профиль (визуал)</string>
+    <string name="MeridaNftConstructorTurnOn">Сначала включите «Визуал»: Настройки MeridaGram → Оформление → Визуал.</string>
+    <string name="MeridaNftModels">Модели</string>
+    <string name="MeridaNftBackdrops">Фоны</string>
+    <string name="MeridaNftPatterns">Узоры</string>
     <string name="MeridaHideFolderTabs">Скрыть вкладки папок</string>
     <string name="MeridaTimeWithSeconds">Время с секундами</string>
     <string name="MeridaIdCopied">ID скопирован в буфер обмена.</string>
