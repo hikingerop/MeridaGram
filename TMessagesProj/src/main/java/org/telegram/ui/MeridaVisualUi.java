@@ -66,9 +66,9 @@ final class MeridaVisualUi {
         final TextView tv = new TextView(context);
         tv.setText(title);
         tv.setTextColor(blueHeader());
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         tv.setTypeface(AndroidUtilities.bold());
-        tv.setPadding(AndroidUtilities.dp(28), AndroidUtilities.dp(22), AndroidUtilities.dp(28), AndroidUtilities.dp(10));
+        tv.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(18), AndroidUtilities.dp(24), AndroidUtilities.dp(8));
         return tv;
     }
 
@@ -81,15 +81,15 @@ final class MeridaVisualUi {
     }
 
     static LinearLayout.LayoutParams cardParams() {
-        return LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 14, 0, 14, 0);
+        return LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 12, 0, 12, 0);
     }
 
     static TextView note(Context context, CharSequence text) {
         final TextView tv = new TextView(context);
         tv.setText(text);
         tv.setTextColor(gray());
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        tv.setPadding(AndroidUtilities.dp(28), AndroidUtilities.dp(10), AndroidUtilities.dp(28), AndroidUtilities.dp(4));
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        tv.setPadding(AndroidUtilities.dp(24), AndroidUtilities.dp(8), AndroidUtilities.dp(24), AndroidUtilities.dp(4));
         return tv;
     }
 
@@ -115,38 +115,38 @@ final class MeridaVisualUi {
             this.divider = divider;
             setWillNotDraw(false);
             dividerPaint.setColor(dark() ? 0xFF2C2C2E : Theme.getColor(Theme.key_divider));
-            textLeft = icon != 0 ? 72 : 22;
+            textLeft = icon != 0 ? 64 : 20;
             if (icon != 0) {
                 final ImageView image = new ImageView(context);
                 image.setImageResource(icon);
                 image.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                 image.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.SRC_IN));
-                addView(image, LayoutHelper.createFrame(26, 26, Gravity.LEFT | Gravity.CENTER_VERTICAL, 22, 0, 0, 0));
+                addView(image, LayoutHelper.createFrame(24, 24, Gravity.LEFT | Gravity.CENTER_VERTICAL, 20, 0, 0, 0));
             }
             final LinearLayout texts = new LinearLayout(context);
             texts.setOrientation(LinearLayout.VERTICAL);
             title = new TextView(context);
             title.setText(titleText);
             title.setTextColor(text());
-            title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
             texts.addView(title, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
             subtitle = new TextView(context);
             subtitle.setTextColor(gray());
-            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             subtitle.setEllipsize(TextUtils.TruncateAt.END);
-            texts.addView(subtitle, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 3, 0, 0));
+            texts.addView(subtitle, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 1, 0, 0));
             setSubtitle(subtitleText);
-            addView(texts, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, textLeft, 14, hasSwitch ? 76 : 20, 14));
+            addView(texts, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, textLeft, 10, hasSwitch ? 72 : 16, 10));
             if (hasSwitch) {
                 toggle = new Switch(context);
                 toggle.setColors(Theme.key_switchTrack, Theme.key_switchTrackChecked, Theme.key_windowBackgroundWhite, Theme.key_windowBackgroundWhite);
                 toggle.setChecked(checked, false);
                 toggle.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-                addView(toggle, LayoutHelper.createFrame(37, 40, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 22, 0));
+                addView(toggle, LayoutHelper.createFrame(37, 40, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 20, 0));
             } else {
                 toggle = null;
             }
-            setMinimumHeight(AndroidUtilities.dp(58));
+            setMinimumHeight(AndroidUtilities.dp(52));
             setBackground(Theme.getSelectorDrawable(false));
             if (click != null) {
                 setOnClickListener(click);
@@ -182,7 +182,7 @@ final class MeridaVisualUi {
         final TextView tv = new TextView(context);
         tv.setText(text);
         tv.setGravity(Gravity.CENTER);
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         tv.setTextColor(filled ? 0xFFFFFFFF : BLUE);
         tv.setPadding(AndroidUtilities.dp(18), 0, AndroidUtilities.dp(18), 0);
         tv.setBackground(round(filled ? BLUE : 0x1F3E9BFF, 26));
@@ -193,7 +193,7 @@ final class MeridaVisualUi {
     static TextView bigButton(Context context, CharSequence text) {
         final TextView tv = pillButton(context, text, true);
         tv.setTypeface(AndroidUtilities.bold());
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         tv.setBackground(round(BLUE, 30));
         return tv;
     }
@@ -208,14 +208,14 @@ final class MeridaVisualUi {
         final TextView t = new TextView(context);
         t.setText(title);
         t.setTextColor(0xFFFFFFFF);
-        t.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         t.setTypeface(AndroidUtilities.bold());
         t.setSingleLine(true);
         t.setEllipsize(TextUtils.TruncateAt.END);
         texts.addView(t);
         final TextView s = new TextView(context);
         s.setTextColor(BLUE);
-        s.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        s.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
         s.setText(subtitle);
         s.setVisibility(TextUtils.isEmpty(subtitle) ? View.GONE : View.VISIBLE);
         texts.addView(s);
@@ -242,7 +242,7 @@ final class MeridaVisualUi {
             final GradientDrawable circle = new GradientDrawable();
             circle.setShape(GradientDrawable.OVAL);
             circle.setColor(dark() ? 0xFF1C1C1E : 0x14000000);
-            circle.setSize(AndroidUtilities.dp(42), AndroidUtilities.dp(42));
+            circle.setSize(AndroidUtilities.dp(40), AndroidUtilities.dp(40));
             final android.graphics.drawable.LayerDrawable layer = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{circle});
             layer.setLayerGravity(0, Gravity.CENTER);
             back.setBackground(layer);

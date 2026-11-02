@@ -66,13 +66,13 @@ final class MeridaVisualSheets {
             sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
             final LinearLayout root = new LinearLayout(context);
             root.setOrientation(LinearLayout.VERTICAL);
-            root.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(10), AndroidUtilities.dp(18), AndroidUtilities.dp(14));
+            root.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(6), AndroidUtilities.dp(14), AndroidUtilities.dp(12));
             final TextView[] t = new TextView[1];
             final TextView[] st = new TextView[1];
             titleBar = MeridaVisualUi.sheetTitle(context, titleText, subtitleText, t, st);
             title = t[0];
             subtitle = st[0];
-            root.addView(titleBar, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 64));
+            root.addView(titleBar, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 52));
             final ScrollView scroll = new ScrollView(context);
             scroll.setVerticalScrollBarEnabled(false);
             body = new LinearLayout(context);
@@ -119,13 +119,13 @@ final class MeridaVisualSheets {
         final LinearLayout card = new LinearLayout(context);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setBackground(MeridaVisualUi.round(MeridaVisualUi.SHEET_CARD, 22));
-        card.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(16), AndroidUtilities.dp(20), AndroidUtilities.dp(16));
+        card.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(12));
         return card;
     }
 
     /** «Show in profile: on/off» chip: blue-tinted with blue text when on, black with grey text when off. */
     static TextView showChip(Context context, boolean on, Runnable toggle) {
-        final TextView chip = label(context, "", 0xFFFFFFFF, 16, false);
+        final TextView chip = label(context, "", 0xFFFFFFFF, 13.5f, false);
         chip.setGravity(Gravity.CENTER);
         chip.setPadding(AndroidUtilities.dp(22), 0, AndroidUtilities.dp(22), 0);
         final boolean[] state = {on};
@@ -144,7 +144,7 @@ final class MeridaVisualSheets {
     }
 
     static TextView toggleChip(Context context, int format, boolean on, Runnable toggle) {
-        final TextView chip = label(context, "", MeridaVisualUi.BLUE, 16, false);
+        final TextView chip = label(context, "", MeridaVisualUi.BLUE, 13.5f, false);
         chip.setGravity(Gravity.CENTER);
         chip.setMaxLines(2);
         chip.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(4), AndroidUtilities.dp(14), AndroidUtilities.dp(4));
@@ -209,7 +209,7 @@ final class MeridaVisualSheets {
             return;
         }
         final EditTextBoldCursor input = new EditTextBoldCursor(context);
-        input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+        input.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
         input.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
         input.setHintTextColor(Theme.getColor(Theme.key_dialogTextHint));
         input.setInputType(inputType);
@@ -299,9 +299,9 @@ final class MeridaVisualSheets {
 
         // like Chimera: the numbers are typed right in place with the keyboard
         final EditTextBoldCursor starsValue = amountField(context);
-        final TextView starsUsd = label(context, "", 0xFF8E8E93, 16, false);
+        final TextView starsUsd = label(context, "", 0xFF8E8E93, 13.5f, false);
         final EditTextBoldCursor gramsValue = amountField(context);
-        final TextView gramsUsd = label(context, "", 0xFF8E8E93, 16, false);
+        final TextView gramsUsd = label(context, "", 0xFF8E8E93, 13.5f, false);
         final Runnable update = () -> {
             setIfDifferent(starsValue, stars[0]);
             setIfDifferent(gramsValue, grams[0]);
@@ -317,7 +317,7 @@ final class MeridaVisualSheets {
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
         sh.body.addView(balanceCard(fragment, context, "", gramsValue, "GRAM", gramsUsd, new int[]{1, 10, 100}, grams, update),
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));
-        final TextView note = label(context, s(R.string.MeridaVBalanceNote), 0xFF8E8E93, 14, false);
+        final TextView note = label(context, s(R.string.MeridaVBalanceNote), 0xFF8E8E93, 12, false);
         sh.body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 2, 14, 2, 8));
 
         final MeridaVisualUi.Row[] spendRow = new MeridaVisualUi.Row[1];
@@ -342,14 +342,14 @@ final class MeridaVisualSheets {
             } catch (Throwable ignore) {
             }
         });
-        sh.body.addView(save, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 56, 0, 16, 0, 0));
+        sh.body.addView(save, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 46, 0, 16, 0, 0));
         update.run();
         sh.show(fragment);
     }
 
     private static EditTextBoldCursor amountField(Context context) {
         final EditTextBoldCursor field = new EditTextBoldCursor(context);
-        field.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 34);
+        field.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 28.5f);
         field.setTextColor(0xFFFFFFFF);
         field.setTypeface(AndroidUtilities.bold());
         field.setBackground(null);
@@ -401,9 +401,9 @@ final class MeridaVisualSheets {
         final LinearLayout top = new LinearLayout(context);
         top.setOrientation(LinearLayout.HORIZONTAL);
         top.setGravity(Gravity.CENTER_VERTICAL);
-        top.addView(label(context, icon, 0xFF3E9BFF, 24, false), LayoutHelper.createLinear(40, LayoutHelper.WRAP_CONTENT));
+        top.addView(label(context, icon, 0xFF3E9BFF, 20, false), LayoutHelper.createLinear(40, LayoutHelper.WRAP_CONTENT));
         top.addView(value, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, 4, 0, 0, 0));
-        top.addView(label(context, unit, 0xFF8E8E93, 18, false));
+        top.addView(label(context, unit, 0xFF8E8E93, 15, false));
 
         card.addView(top);
         card.addView(usd, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 8, 0, 0));
@@ -417,16 +417,16 @@ final class MeridaVisualSheets {
                 holder[0] = Math.min(Integer.MAX_VALUE, holder[0] + step);
                 update.run();
             });
-            buttons.addView(b, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 44, 0, 0, 10, 0));
+            buttons.addView(b, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 38, 0, 0, 10, 0));
         }
-        final TextView zero = label(context, "0", 0xFF8E8E93, 17, false);
+        final TextView zero = label(context, "0", 0xFF8E8E93, 14.5f, false);
         zero.setGravity(Gravity.CENTER);
         zero.setPadding(AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10), 0);
         zero.setOnClickListener(v -> {
             holder[0] = 0;
             update.run();
         });
-        buttons.addView(zero, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 44));
+        buttons.addView(zero, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 38));
         final HorizontalScrollView hs = new HorizontalScrollView(context);
         hs.setHorizontalScrollBarEnabled(false);
         hs.addView(buttons);
@@ -463,7 +463,7 @@ final class MeridaVisualSheets {
         }
         final Context context = fragment.getParentActivity();
         final Sheet sh = new Sheet(fragment, s(R.string.MeridaVMyUsernames), "");
-        final TextView count = label(context, "", MeridaVisualUi.BLUE, 15, false);
+        final TextView count = label(context, "", MeridaVisualUi.BLUE, 12.5f, false);
         count.setGravity(Gravity.CENTER);
         final GradientDrawable circle = new GradientDrawable();
         circle.setShape(GradientDrawable.OVAL);
@@ -496,18 +496,18 @@ final class MeridaVisualSheets {
             });
         }));
         sh.addClose();
-        sh.body.addView(label(context, s(R.string.MeridaVUsernamesHint), 0xFF8E8E93, 16, false), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
+        sh.body.addView(label(context, s(R.string.MeridaVUsernamesHint), 0xFF8E8E93, 13.5f, false), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
         final LinearLayout chipsRow = new LinearLayout(context);
         chipsRow.setOrientation(LinearLayout.HORIZONTAL);
         chipsRow.addView(toggleChip(context, R.string.MeridaVShowInProfile, MeridaSettings.visualUsernameShow.get(), () -> {
             MeridaSettings.visualUsernameShow.set(!MeridaSettings.visualUsernameShow.get());
             refresh(fragment);
-        }), LayoutHelper.createLinear(0, 56, 1f, 0, 0, 6, 0));
+        }), LayoutHelper.createLinear(0, 46, 1f, 0, 0, 6, 0));
         chipsRow.addView(toggleChip(context, R.string.MeridaVReplaceOriginal, MeridaSettings.visualUsernameReplace.get(), () -> {
             MeridaSettings.visualUsernameReplace.set(!MeridaSettings.visualUsernameReplace.get());
             refresh(fragment);
-        }), LayoutHelper.createLinear(0, 56, 1f, 6, 0, 0, 0));
-        sh.body.addView(chipsRow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 56, 0, 0, 0, 14));
+        }), LayoutHelper.createLinear(0, 46, 1f, 6, 0, 0, 0));
+        sh.body.addView(chipsRow, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 46, 0, 0, 0, 14));
         sh.body.addView(grid);
 
         rebuild[0] = () -> {
@@ -617,11 +617,11 @@ final class MeridaVisualSheets {
         column.setClickable(true);
         final View card = usernameCard(context, username, color, false, () -> { }, () -> { }, 1.75f);
         column.addView(card, LayoutHelper.createLinear(310, 310));
-        final TextView name = label(context, "@" + username, 0xFFFFFFFF, 18, true);
+        final TextView name = label(context, "@" + username, 0xFFFFFFFF, 15, true);
         name.setGravity(Gravity.CENTER);
         column.addView(name, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 12, 0, 0));
         final long[] meta = usernameMeta(username);
-        final TextView info = label(context, priceLine(fragment, meta[0]) + "\n" + LocaleController.formatString(R.string.MeridaVBought, dateText(meta[1])), 0xFFFFFFFF, 14, false);
+        final TextView info = label(context, priceLine(fragment, meta[0]) + "\n" + LocaleController.formatString(R.string.MeridaVBought, dateText(meta[1])), 0xFFFFFFFF, 12, false);
         info.setGravity(Gravity.CENTER);
         column.addView(info, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 14));
         final TextView put = MeridaVisualUi.bigButton(context, s(R.string.MeridaVPutInProfile));
@@ -630,14 +630,14 @@ final class MeridaVisualSheets {
             wear.run();
         });
         column.addView(put, LayoutHelper.createLinear(310, 48));
-        final TextView price = label(context, s(R.string.MeridaVChangePrice), 0xFFFFFFFF, 15, true);
+        final TextView price = label(context, s(R.string.MeridaVChangePrice), 0xFFFFFFFF, 12.5f, true);
         price.setGravity(Gravity.CENTER);
         price.setOnClickListener(v -> {
             dialog.dismiss();
             showCostDate(fragment, "@" + username, false, username, (int) meta[0], meta[1], (tenths, time) -> setUsernameMeta(username, tenths, time));
         });
         column.addView(price, LayoutHelper.createLinear(310, 48, 0, 8, 0, 0));
-        final TextView del = label(context, s(R.string.Delete), 0xFFFFFFFF, 15, true);
+        final TextView del = label(context, s(R.string.Delete), 0xFFFFFFFF, 12.5f, true);
         del.setGravity(Gravity.CENTER);
         del.setOnClickListener(v -> {
             dialog.dismiss();
@@ -742,7 +742,7 @@ final class MeridaVisualSheets {
         top.setOrientation(LinearLayout.HORIZONTAL);
         top.setGravity(Gravity.CENTER_VERTICAL);
         final EditTextBoldCursor amount = new EditTextBoldCursor(context);
-        amount.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 26);
+        amount.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
         amount.setTextColor(0xFFFFFFFF);
         amount.setBackground(null);
         amount.setPadding(AndroidUtilities.dp(18), 0, 0, 0);
@@ -751,17 +751,17 @@ final class MeridaVisualSheets {
         amount.setSingleLine(true);
         amount.setText(tenths[0] % 10 == 0 ? String.valueOf(tenths[0] / 10) : String.valueOf(tenths[0] / 10.0));
         top.addView(amount, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
-        top.addView(label(context, "TON", 0xFF8E8E93, 17, false));
+        top.addView(label(context, "TON", 0xFF8E8E93, 14.5f, false));
         card.addView(top);
-        final TextView approx = label(context, "", 0xFF8E8E93, 15, false);
+        final TextView approx = label(context, "", 0xFF8E8E93, 12.5f, false);
         card.addView(approx, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
         sh.body.addView(card, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
 
         final LinearLayout chips = new LinearLayout(context);
         chips.setOrientation(LinearLayout.HORIZONTAL);
         final TextView[] chip = new TextView[3];
-        sh.body.addView(chips, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 40, 0, 12, 0, 0));
-        sh.body.addView(label(context, s(R.string.MeridaVPurchaseDate), 0xFF8E8E93, 15, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));
+        sh.body.addView(chips, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 36, 0, 12, 0, 0));
+        sh.body.addView(label(context, s(R.string.MeridaVPurchaseDate), 0xFF8E8E93, 12.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));
 
         final LinearLayout wheels = new LinearLayout(context);
         wheels.setOrientation(LinearLayout.HORIZONTAL);
@@ -798,7 +798,7 @@ final class MeridaVisualSheets {
         wheels.addView(month, LayoutHelper.createLinear(0, 150, 1.2f));
         wheels.addView(year, LayoutHelper.createLinear(0, 150, 0.8f));
         sh.body.addView(wheels, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 150, 0, 4, 0, 0));
-        final TextView summary = label(context, "", 0xFF8E8E93, 14, false);
+        final TextView summary = label(context, "", 0xFF8E8E93, 12, false);
         summary.setGravity(Gravity.CENTER);
         sh.body.addView(summary, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
 
@@ -826,14 +826,14 @@ final class MeridaVisualSheets {
         };
         for (int i = 0; i < 3; i++) {
             final int c = i;
-            chip[i] = label(context, SIGNS[i] + " " + CURRENCIES[i], 0xFFFFFFFF, 15, false);
+            chip[i] = label(context, SIGNS[i] + " " + CURRENCIES[i], 0xFFFFFFFF, 12.5f, false);
             chip[i].setGravity(Gravity.CENTER);
             chip[i].setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
             chip[i].setOnClickListener(v -> {
                 meta().edit().putInt("currency", c).apply();
                 update.run();
             });
-            chips.addView(chip[i], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 40, 0, 0, 8, 0));
+            chips.addView(chip[i], LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 36, 0, 0, 8, 0));
         }
         amount.addTextChangedListener(new android.text.TextWatcher() {
             @Override public void beforeTextChanged(CharSequence a, int b, int c, int d) {}
@@ -854,13 +854,13 @@ final class MeridaVisualSheets {
             sh.sheet.dismiss();
             refresh(fragment);
         });
-        sh.body.addView(save, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 52, 0, 12, 0, 0));
+        sh.body.addView(save, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 44, 0, 12, 0, 0));
         final TextView fragmentButton = MeridaVisualUi.pillButton(context, s(R.string.MeridaVLikeFragment), false);
         fragmentButton.setTextColor(0xFFFFFFFF);
         fragmentButton.setTypeface(AndroidUtilities.bold());
         fragmentButton.setBackground(MeridaVisualUi.round(0xFF1A1A1A, 30));
         fragmentButton.setOnClickListener(v -> Browser.openUrl(context, phone ? "https://fragment.com/numbers" : "https://fragment.com/username/" + name));
-        sh.body.addView(fragmentButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 52, 0, 8, 0, 0));
+        sh.body.addView(fragmentButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 44, 0, 8, 0, 0));
         sh.show(fragment);
     }
 
@@ -935,7 +935,7 @@ final class MeridaVisualSheets {
         final android.text.SpannableStringBuilder title = new android.text.SpannableStringBuilder(AndroidUtilities.replaceTags(
                 LocaleController.formatString(phone ? R.string.FragmentPhoneTitle : R.string.FragmentUsernameTitle, shown)));
         title.append(' ').append(MeridaVisual.mark());
-        final TextView header = label(context, title, 0xFFFFFFFF, 16, true);
+        final TextView header = label(context, title, 0xFFFFFFFF, 13.5f, true);
         header.setGravity(Gravity.CENTER);
         layout.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 26, 0, 26, 0));
 
@@ -951,7 +951,7 @@ final class MeridaVisualSheets {
         }
         chip.addView(avatar, LayoutHelper.createFrame(28, 28, Gravity.LEFT | Gravity.TOP));
         final String myName = me != null ? org.telegram.messenger.UserObject.getUserName(me) : "";
-        final TextView chipText = label(context, MeridaVisual.watermark(myName.isEmpty() ? "—" : myName), 0xFFFFFFFF, 13, false);
+        final TextView chipText = label(context, MeridaVisual.watermark(myName.isEmpty() ? "—" : myName), 0xFFFFFFFF, 11, false);
         chipText.setSingleLine(true);
         chip.addView(chipText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.LEFT, 37, 0, 10, 0));
         layout.addView(chip, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 28, Gravity.CENTER_HORIZONTAL, 42, 10, 42, 18));
@@ -968,24 +968,24 @@ final class MeridaVisualSheets {
         span.setWidth(AndroidUtilities.dp(13));
         tonIcon.setSpan(span, 0, tonIcon.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         final CharSequence messageText = AndroidUtilities.replaceCharSequence("TON", AndroidUtilities.replaceTags(message), tonIcon);
-        final TextView description = label(context, messageText, 0xFFFFFFFF, 14, false);
+        final TextView description = label(context, messageText, 0xFFFFFFFF, 12, false);
         description.setGravity(Gravity.CENTER);
         layout.addView(description, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 6));
-        final TextView note = label(context, s(R.string.MeridaVCollectibleNote), 0xFF8E8E93, 12, false);
+        final TextView note = label(context, s(R.string.MeridaVCollectibleNote), 0xFF8E8E93, 10, false);
         note.setGravity(Gravity.CENTER);
         layout.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 16));
 
         final org.telegram.ui.Stories.recorder.ButtonWithCounterView more = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, null).setRound();
         more.setText(s(R.string.FragmentUsernameOpen), false);
         more.setOnClickListener(v -> Browser.openUrl(context, phone ? "https://fragment.com/numbers" : "https://fragment.com/username/" + name));
-        layout.addView(more, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 6, 0, 6, 0));
+        layout.addView(more, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 42, 6, 0, 6, 0));
         final org.telegram.ui.Stories.recorder.ButtonWithCounterView copy = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, null).setRound().setNeutral();
         copy.setText(s(phone ? R.string.FragmentPhoneCopy : R.string.FragmentUsernameCopy), false);
         copy.setOnClickListener(v -> {
             AndroidUtilities.addToClipboard(phone ? shown : "https://t.me/" + name);
             sheet.dismiss();
         });
-        layout.addView(copy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 6, 6, 6, 0));
+        layout.addView(copy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 42, 6, 6, 6, 0));
         sheet.setCustomView(layout);
         sheet.show();
     }
@@ -1084,8 +1084,8 @@ final class MeridaVisualSheets {
             MeridaSettings.visualNumberShow.set(!MeridaSettings.visualNumberShow.get());
             rebuild[0].run();
             refresh(fragment);
-        }), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 44, 0, 16, 0, 0));
-        sh.body.addView(label(context, s(R.string.MeridaVSavedNumbers), 0xFF8E8E93, 16, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 20, 0, 10));
+        }), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 38, 0, 16, 0, 0));
+        sh.body.addView(label(context, s(R.string.MeridaVSavedNumbers), 0xFF8E8E93, 13.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 20, 0, 10));
         final LinearLayout saved = new LinearLayout(context);
         saved.setOrientation(LinearLayout.VERTICAL);
         sh.body.addView(saved);
@@ -1094,7 +1094,7 @@ final class MeridaVisualSheets {
         fragmentButton.setTypeface(AndroidUtilities.bold());
         fragmentButton.setBackground(MeridaVisualUi.round(0xFF1A1A1A, 30));
         fragmentButton.setOnClickListener(v -> Browser.openUrl(context, "https://fragment.com/numbers"));
-        sh.body.addView(fragmentButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 56, 0, 16, 0, 0));
+        sh.body.addView(fragmentButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 46, 0, 16, 0, 0));
 
         rebuild[0] = () -> {
             final List<Num> list = numbers();
@@ -1112,14 +1112,14 @@ final class MeridaVisualSheets {
             card.addView(phone, LayoutHelper.createLinear(32, 32, 0, 0, 16, 0));
             final LinearLayout texts = new LinearLayout(context);
             texts.setOrientation(LinearLayout.VERTICAL);
-            texts.addView(label(context, cur == null ? s(R.string.MeridaVNoNumber) : MeridaVisual.formatNumber888(cur.digits), 0xFFFFFFFF, 24, true));
+            texts.addView(label(context, cur == null ? s(R.string.MeridaVNoNumber) : MeridaVisual.formatNumber888(cur.digits), 0xFFFFFFFF, 20, true));
             if (cur == null) {
-                texts.addView(label(context, s(R.string.MeridaVAddNumberHint), 0xFF8E8E93, 15, false));
+                texts.addView(label(context, s(R.string.MeridaVAddNumberHint), 0xFF8E8E93, 12.5f, false));
             }
             if (cur != null) {
                 final String d = numberDetails(fragment, cur);
                 if (!d.isEmpty()) {
-                    final TextView details = label(context, d.replace(" · " + LocaleController.formatString(R.string.MeridaVBought, ""), "\n" + LocaleController.formatString(R.string.MeridaVBought, "")), 0xFF8E8E93, 15, false);
+                    final TextView details = label(context, d.replace(" · " + LocaleController.formatString(R.string.MeridaVBought, ""), "\n" + LocaleController.formatString(R.string.MeridaVBought, "")), 0xFF8E8E93, 12.5f, false);
                     texts.addView(details, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 0));
                 }
             }
@@ -1128,7 +1128,7 @@ final class MeridaVisualSheets {
 
             saved.removeAllViews();
             if (list.isEmpty()) {
-                saved.addView(label(context, s(R.string.MeridaVNoNumbersYet), 0xFF8E8E93, 15, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 8));
+                saved.addView(label(context, s(R.string.MeridaVNoNumbersYet), 0xFF8E8E93, 12.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 8));
             }
             for (Num n : list) {
                 final LinearLayout item = blackCard(context);
@@ -1136,7 +1136,7 @@ final class MeridaVisualSheets {
                 item.setGravity(Gravity.CENTER_VERTICAL);
                 final LinearLayout t = new LinearLayout(context);
                 t.setOrientation(LinearLayout.VERTICAL);
-                t.addView(label(context, MeridaVisual.formatNumber888(n.digits), 0xFFFFFFFF, 19, false));
+                t.addView(label(context, MeridaVisual.formatNumber888(n.digits), 0xFFFFFFFF, 16, false));
                 final boolean isActive = n.digits.equals(active);
                 final String d = (isActive && MeridaSettings.visualNumberShow.get() ? s(R.string.MeridaVInProfile) : "")
                         + (isActive && MeridaSettings.visualNumberShow.get() && !numberDetails(fragment, n).isEmpty() ? " · " : "") + numberDetails(fragment, n);
@@ -1245,14 +1245,14 @@ final class MeridaVisualSheets {
         card.addView(badgeView, LayoutHelper.createLinear(60, 60, 0, 0, 18, 0));
         final LinearLayout texts = new LinearLayout(context);
         texts.setOrientation(LinearLayout.VERTICAL);
-        final TextView levelTitle = label(context, "", 0xFFFFFFFF, 22, true);
-        final TextView levelSub = label(context, "", 0xFF8E8E93, 16, false);
+        final TextView levelTitle = label(context, "", 0xFFFFFFFF, 18.5f, true);
+        final TextView levelSub = label(context, "", 0xFF8E8E93, 13.5f, false);
         texts.addView(levelTitle);
         texts.addView(levelSub);
         card.addView(texts, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
         sh.body.addView(card, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
 
-        sh.body.addView(label(context, s(R.string.MeridaVRatingLooks), 0xFF8E8E93, 16, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 18, 0, 10));
+        sh.body.addView(label(context, s(R.string.MeridaVRatingLooks), 0xFF8E8E93, 13.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 18, 0, 10));
         final LinearLayout shapes = new LinearLayout(context);
         shapes.setOrientation(LinearLayout.HORIZONTAL);
         for (int i = 1; i <= 7; i++) {
@@ -1263,18 +1263,18 @@ final class MeridaVisualSheets {
             d.setBadgeLevel(i, false);
             final ImageView iv = new ImageView(context);
             iv.setImageDrawable(d);
-            shapes.addView(iv, LayoutHelper.createLinear(0, 40, 1f));
+            shapes.addView(iv, LayoutHelper.createLinear(0, 36, 1f));
         }
         sh.body.addView(shapes);
 
-        final TextView levelValue = label(context, "", MeridaVisualUi.BLUE, 18, false);
+        final TextView levelValue = label(context, "", MeridaVisualUi.BLUE, 15, false);
         sh.body.addView(sliderHeader(context, s(R.string.MeridaVLevel), null, levelValue), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 22, 0, 0));
         final SeekBarView levelBar = new SeekBarView(context);
         levelBar.setReportChanges(true);
         sh.body.addView(levelBar, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 38, 0, 6, 0, 0));
 
-        final TextView pointsValue = label(context, "", MeridaVisualUi.BLUE, 18, false);
-        final TextView range = label(context, "", 0xFF8E8E93, 15, false);
+        final TextView pointsValue = label(context, "", MeridaVisualUi.BLUE, 15, false);
+        final TextView range = label(context, "", 0xFF8E8E93, 12.5f, false);
         sh.body.addView(sliderHeader(context, s(R.string.MeridaVPoints), range, pointsValue), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 18, 0, 0));
         final SeekBarView pointsBar = new SeekBarView(context);
         pointsBar.setReportChanges(true);
@@ -1319,7 +1319,7 @@ final class MeridaVisualSheets {
             pointsBar.setProgress(to > from ? (points[0] - from) / (float) (to - from) : 0);
         }
 
-        sh.body.addView(showChip(context, show[0], () -> show[0] = !show[0]), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 44, 0, 22, 0, 0));
+        sh.body.addView(showChip(context, show[0], () -> show[0] = !show[0]), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 38, 0, 22, 0, 0));
         final TextView save = MeridaVisualUi.bigButton(context, s(R.string.Save));
         save.setOnClickListener(v -> {
             MeridaSettings.visualRating.set(level[0]);
@@ -1328,7 +1328,7 @@ final class MeridaVisualSheets {
             sh.sheet.dismiss();
             refresh(fragment);
         });
-        sh.body.addView(save, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 56, 0, 16, 0, 0));
+        sh.body.addView(save, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 46, 0, 16, 0, 0));
         sh.show(fragment);
     }
 
@@ -1337,7 +1337,7 @@ final class MeridaVisualSheets {
         row.setOrientation(LinearLayout.HORIZONTAL);
         final LinearLayout left = new LinearLayout(context);
         left.setOrientation(LinearLayout.VERTICAL);
-        left.addView(label(context, title, 0xFFFFFFFF, 19, false));
+        left.addView(label(context, title, 0xFFFFFFFF, 16, false));
         if (sub != null) {
             left.addView(sub);
         }

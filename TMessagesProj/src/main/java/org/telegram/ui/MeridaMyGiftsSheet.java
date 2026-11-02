@@ -93,14 +93,14 @@ final class MeridaMyGiftsSheet {
         summary = new LinearLayout(context);
         summary.setOrientation(LinearLayout.VERTICAL);
         summary.setBackground(MeridaVisualUi.round(MeridaVisualUi.SHEET_CARD, 22));
-        summary.setPadding(AndroidUtilities.dp(20), AndroidUtilities.dp(16), AndroidUtilities.dp(20), AndroidUtilities.dp(16));
+        summary.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(12), AndroidUtilities.dp(16), AndroidUtilities.dp(12));
         sh.body.addView(summary, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 0));
 
         final EditText search = new EditText(context);
         search.setHint(s(R.string.MeridaVSearchHint));
         search.setHintTextColor(0xFF8E8E93);
         search.setTextColor(0xFFFFFFFF);
-        search.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 17);
+        search.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14.5f);
         search.setSingleLine(true);
         search.setBackground(MeridaVisualUi.round(MeridaVisualUi.SHEET_CARD, 22));
         search.setPadding(AndroidUtilities.dp(20), 0, AndroidUtilities.dp(20), 0);
@@ -113,18 +113,18 @@ final class MeridaMyGiftsSheet {
                 rebuild();
             }
         });
-        sh.body.addView(search, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 56, 0, 14, 0, 0));
+        sh.body.addView(search, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 46, 0, 14, 0, 0));
 
         final HorizontalScrollView hs = new HorizontalScrollView(context);
         hs.setHorizontalScrollBarEnabled(false);
         chips = new LinearLayout(context);
         chips.setOrientation(LinearLayout.HORIZONTAL);
         hs.addView(chips);
-        sh.body.addView(hs, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 46, 0, 14, 0, 0));
+        sh.body.addView(hs, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 38, 0, 14, 0, 0));
 
         selectionBar = new LinearLayout(context);
         selectionBar.setOrientation(LinearLayout.HORIZONTAL);
-        sh.body.addView(selectionBar, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 44, 0, 10, 0, 0));
+        sh.body.addView(selectionBar, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 38, 0, 10, 0, 0));
 
         grid = new LinearLayout(context);
         grid.setOrientation(LinearLayout.VERTICAL);
@@ -205,14 +205,14 @@ final class MeridaMyGiftsSheet {
         backButton.setVisibility(selecting ? View.VISIBLE : View.GONE);
 
         summary.removeAllViews();
-        summary.addView(MeridaVisualSheets.label(context, all.size() + " " + MeridaVisualUi.plural(all.size(), "подарок", "подарка", "подарков"), 0xFFFFFFFF, 24, true));
-        summary.addView(MeridaVisualSheets.label(context, nft + " NFT · " + LocaleController.formatString(R.string.MeridaVOrdinaryCount, all.size() - nft), 0xFF8E8E93, 16, false));
+        summary.addView(MeridaVisualSheets.label(context, all.size() + " " + MeridaVisualUi.plural(all.size(), "подарок", "подарка", "подарков"), 0xFFFFFFFF, 20, true));
+        summary.addView(MeridaVisualSheets.label(context, nft + " NFT · " + LocaleController.formatString(R.string.MeridaVOrdinaryCount, all.size() - nft), 0xFF8E8E93, 13.5f, false));
         final LinearLayout stats = new LinearLayout(context);
         stats.setOrientation(LinearLayout.HORIZONTAL);
-        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVInProfileN, inProfile), MeridaVisualUi.BLUE, 16, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
-        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVHiddenN, hidden), 0xFF8E8E93, 16, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
+        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVInProfileN, inProfile), MeridaVisualUi.BLUE, 13.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
+        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVHiddenN, hidden), 0xFF8E8E93, 13.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
         final int onSale = MeridaVisualGifts.onSaleCount();
-        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVOnSaleN, onSale), 0xFF8E8E93, 16, false));
+        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVOnSaleN, onSale), 0xFF8E8E93, 13.5f, false));
         summary.addView(stats, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
 
         chips.removeAllViews();
@@ -237,7 +237,7 @@ final class MeridaMyGiftsSheet {
         selectionBar.setVisibility(selecting ? View.VISIBLE : View.GONE);
         if (selecting) {
             if (craftMode) {
-                final TextView hint = MeridaVisualSheets.label(context, s(R.string.MeridaVCraftPick), 0xFF8E8E93, 14, false);
+                final TextView hint = MeridaVisualSheets.label(context, s(R.string.MeridaVCraftPick), 0xFF8E8E93, 12, false);
                 hint.setGravity(Gravity.CENTER_VERTICAL);
                 selectionBar.addView(hint, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f));
             } else {
@@ -267,7 +267,7 @@ final class MeridaMyGiftsSheet {
             }
         }
         if (col == 0) {
-            final TextView empty = MeridaVisualSheets.label(context, s(R.string.MeridaVNoGifts), 0xFF8E8E93, 15, false);
+            final TextView empty = MeridaVisualSheets.label(context, s(R.string.MeridaVNoGifts), 0xFF8E8E93, 12.5f, false);
             empty.setGravity(Gravity.CENTER);
             grid.addView(empty, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 120));
         }
@@ -281,14 +281,14 @@ final class MeridaMyGiftsSheet {
         if (enabled) {
             chip.setOnClickListener(v -> click.run());
         }
-        chips.addView(chip, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 46, 0, 0, 10, 0));
+        chips.addView(chip, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 38, 0, 0, 10, 0));
     }
 
     private void addAction(Context context, String text, Runnable click) {
         final TextView b = MeridaVisualUi.pillButton(context, text, false);
-        b.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12.5f);
         b.setOnClickListener(v -> click.run());
-        selectionBar.addView(b, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 40, 0, 0, 8, 0));
+        selectionBar.addView(b, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 36, 0, 0, 8, 0));
     }
 
     private View tile(Context context, Item it) {
@@ -310,7 +310,7 @@ final class MeridaMyGiftsSheet {
                 }
                 rebuild();
             } else {
-                MeridaVisualGiftSheet.show(fragment, it.saved, this::rebuild);
+                showItem(it);
             }
         });
         cell.setOnLongClickListener(v -> {
@@ -322,6 +322,126 @@ final class MeridaMyGiftsSheet {
             return true;
         });
         return frame;
+    }
+
+    /**
+     * Tap on a gift in «My gifts», like Chimera: a compact card — the gift, its name and tags («Sale»), a small
+     * table (model / pattern / backdrop or price) and «Edit / Hide / Delete». «Edit» opens the full gift window.
+     */
+    private void showItem(Item it) {
+        final Context context = fragment.getParentActivity();
+        if (context == null) return;
+        final android.app.Dialog dialog = new android.app.Dialog(context, R.style.TransparentDialog);
+        final FrameLayout root = new FrameLayout(context);
+        root.setBackgroundColor(0x99000000);
+        root.setOnClickListener(v -> dialog.dismiss());
+        final LinearLayout card = new LinearLayout(context);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setClickable(true);
+        card.setBackground(MeridaVisualUi.round(0xFF2A2A2C, 24));
+        card.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(14), AndroidUtilities.dp(14), AndroidUtilities.dp(14));
+
+        final LinearLayout top = new LinearLayout(context);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        final GiftSheet.GiftCell cell = new GiftSheet.GiftCell(context, fragment.getCurrentAccount(), fragment.getResourceProvider());
+        cell.setStarsGift(it.saved, true, false);
+        top.addView(cell, LayoutHelper.createLinear(104, LayoutHelper.WRAP_CONTENT, 0, 0, 12, 0));
+        final LinearLayout right = new LinearLayout(context);
+        right.setOrientation(LinearLayout.VERTICAL);
+        final LinearLayout titleRow = new LinearLayout(context);
+        titleRow.setOrientation(LinearLayout.HORIZONTAL);
+        titleRow.setGravity(Gravity.CENTER_VERTICAL);
+        final TL_stars.StarGift g = it.saved.gift;
+        final String name = (g.title != null ? g.title : s(R.string.MeridaVisualGiftTitle)) + (g instanceof TL_stars.TL_starGiftUnique ? " #" + ((TL_stars.TL_starGiftUnique) g).num : "");
+        titleRow.addView(MeridaVisualSheets.label(context, name, 0xFFFFFFFF, 16, true), LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
+        final long sale = MeridaVisualGifts.salePrice(it.key);
+        if (sale > 0) titleRow.addView(tag(context, s(R.string.MeridaVSaleTag), 0xFF4CAF50), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
+        if (it.hidden) titleRow.addView(tag(context, s(R.string.MeridaVHiddenTag), 0xFF8E8E93), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
+        titleRow.addView(tag(context, s(R.string.MeridaVisualMark), 0xFFF5A623), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
+        right.addView(titleRow);
+
+        final LinearLayout table = new LinearLayout(context);
+        table.setOrientation(LinearLayout.VERTICAL);
+        table.setBackground(MeridaVisualUi.round(0xFF000000, 14));
+        table.setPadding(AndroidUtilities.dp(10), AndroidUtilities.dp(8), AndroidUtilities.dp(10), AndroidUtilities.dp(8));
+        if (g instanceof TL_stars.TL_starGiftUnique) {
+            final TL_stars.starGiftAttributeModel m = StarsController.findAttribute(g.attributes, TL_stars.starGiftAttributeModel.class);
+            final TL_stars.starGiftAttributePattern p = StarsController.findAttribute(g.attributes, TL_stars.starGiftAttributePattern.class);
+            final TL_stars.starGiftAttributeBackdrop b = StarsController.findAttribute(g.attributes, TL_stars.starGiftAttributeBackdrop.class);
+            if (m != null) tableRow(table, s(R.string.MeridaNftModel), m.name);
+            if (p != null) tableRow(table, s(R.string.MeridaNftPattern), p.name);
+            if (b != null) tableRow(table, s(R.string.MeridaNftBackdrop), b.name);
+        } else {
+            tableRow(table, s(R.string.MeridaVCost), "⭐ " + LocaleController.formatNumber(g.stars, ','));
+        }
+        if (sale > 0) tableRow(table, s(R.string.MeridaVSaleTag), "⭐ " + LocaleController.formatNumber(sale, ','));
+        right.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 8, 0, 0));
+        top.addView(right, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
+        card.addView(top);
+
+        final LinearLayout buttons = new LinearLayout(context);
+        buttons.setOrientation(LinearLayout.HORIZONTAL);
+        buttons.addView(actionButton(context, s(R.string.MeridaVEdit), MeridaVisualUi.BLUE, 0xFF1C2E44, () -> {
+            dialog.dismiss();
+            MeridaVisualGiftSheet.show(fragment, it.saved, this::rebuild);
+        }), LayoutHelper.createLinear(0, 42, 1f, 0, 0, 6, 0));
+        buttons.addView(actionButton(context, s(it.hidden ? R.string.MeridaVShow : R.string.MeridaVHide), MeridaVisualUi.BLUE, 0xFF1C2E44, () -> {
+            dialog.dismiss();
+            MeridaVisualGifts.setHidden(it.key, !it.hidden);
+            rebuild();
+        }), LayoutHelper.createLinear(0, 42, 1f, 3, 0, 3, 0));
+        buttons.addView(actionButton(context, s(R.string.Delete), 0xFFE5534B, 0xFF3A1F1F, () -> {
+            dialog.dismiss();
+            MeridaVisualGifts.remove(it.key);
+            if (it.key.equals(MeridaSettings.visualWorn.get())) {
+                MeridaSettings.visualWorn.set(null);
+            }
+            rebuild();
+        }), LayoutHelper.createLinear(0, 42, 1f, 6, 0, 0, 0));
+        card.addView(buttons, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 42, 0, 14, 0, 0));
+
+        root.addView(card, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 12, 0, 12, 0));
+        dialog.setContentView(root);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+        card.setScaleX(0.92f);
+        card.setScaleY(0.92f);
+        card.setAlpha(0f);
+        card.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(200).setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_BACK).start();
+        dialog.show();
+    }
+
+    private static TextView tag(Context context, String text, int color) {
+        final TextView t = MeridaVisualSheets.label(context, text, color, 13, false);
+        t.setGravity(Gravity.CENTER);
+        t.setPadding(AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10), 0);
+        final android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setCornerRadius(AndroidUtilities.dp(13));
+        bg.setColor((color & 0x00FFFFFF) | 0x22000000);
+        bg.setStroke(AndroidUtilities.dp(1), color);
+        t.setBackground(bg);
+        return t;
+    }
+
+    private static void tableRow(LinearLayout table, String label, String value) {
+        final Context context = table.getContext();
+        final LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.addView(MeridaVisualSheets.label(context, label, 0xFF8E8E93, 13, false), LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
+        final TextView v = MeridaVisualSheets.label(context, value, 0xFFFFFFFF, 13, false);
+        v.setGravity(Gravity.RIGHT);
+        v.setSingleLine(true);
+        row.addView(v, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
+        table.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 2));
+    }
+
+    private static TextView actionButton(Context context, String text, int color, int bg, Runnable click) {
+        final TextView b = MeridaVisualSheets.label(context, text, color, 15, false);
+        b.setGravity(Gravity.CENTER);
+        b.setBackground(MeridaVisualUi.round(bg, 21));
+        b.setOnClickListener(v -> click.run());
+        return b;
     }
 
     /** The round selection mark in the corner of a tile. */

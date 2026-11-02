@@ -734,4 +734,7 @@
     <string name="MeridaVSaved">Сохранено</string>
     <string name="MeridaVCraftOpen">Скрафтить подарки</string>
     <string name="MeridaVBalanceUpdated">Баланс обновлён</string>
+    <string name="MeridaVSaleTag">Продажа</string>
+    <string name="MeridaVHiddenTag">Скрыт</string>
+    <string name="MeridaVEdit">Изменить</string>
 </resources>

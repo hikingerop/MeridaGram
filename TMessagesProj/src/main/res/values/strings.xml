@@ -12101,4 +12101,7 @@
     <string name="MeridaVSaved">Saved</string>
     <string name="MeridaVCraftOpen">Craft gifts</string>
     <string name="MeridaVBalanceUpdated">Balance updated</string>
+    <string name="MeridaVSaleTag">Sale</string>
+    <string name="MeridaVHiddenTag">Hidden</string>
+    <string name="MeridaVEdit">Edit</string>
 </resources>

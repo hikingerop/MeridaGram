@@ -230,26 +230,26 @@ public class MeridaVisualActivity extends BaseFragment {
             final TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(model.thumbs, AndroidUtilities.dp(160));
             image.setImage(ImageLocation.getForDocument(model), "160_160", ImageLocation.getForDocument(thumb, model), "160_160", null, model);
             image.getImageReceiver().setAutoRepeat(1);
-            header.addView(image, LayoutHelper.createLinear(150, 150));
+            header.addView(image, LayoutHelper.createLinear(120, 120));
         } else {
             final ImageView icon = new ImageView(context);
             icon.setImageResource(R.mipmap.ic_launcher);
             icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            header.addView(icon, LayoutHelper.createLinear(120, 120, 0, 10, 0, 10));
+            header.addView(icon, LayoutHelper.createLinear(100, 100, 0, 10, 0, 10));
         }
         final TextView title = new TextView(context);
         title.setText(s(R.string.MeridaVHeaderTitle));
         title.setTextColor(MeridaVisualUi.text());
-        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 27);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
         title.setTypeface(AndroidUtilities.bold());
         title.setGravity(Gravity.CENTER);
-        header.addView(title, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));
+        header.addView(title, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 12, 0, 0));
         final TextView desc = new TextView(context);
         desc.setText(s(R.string.MeridaVHeaderDesc));
         desc.setTextColor(MeridaVisualUi.gray());
-        desc.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        desc.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         desc.setGravity(Gravity.CENTER);
-        header.addView(desc, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 6));
+        header.addView(desc, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 2, 0, 10));
         return header;
     }
 
