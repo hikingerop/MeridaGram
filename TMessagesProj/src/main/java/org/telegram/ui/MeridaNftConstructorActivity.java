@@ -141,6 +141,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             }
             final TL_stars.StarGift g = list.get(i);
             final View tile = tile(g.sticker, g, null, g.title != null ? g.title : LocaleController.getString(R.string.MeridaNftConstructor), null);
+            addPrice((LinearLayout) tile, g.stars);
             tile.setOnClickListener(v -> openCollection(g));
             row.addView(tile, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f, 4, 4, 4, 4));
         }
@@ -190,6 +191,25 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             tile.addView(r, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         }
         return tile;
+    }
+
+    /** A golden «⭐ 500» pill under a collection: the gift's price in the Telegram shop. */
+    private void addPrice(LinearLayout tile, long stars) {
+        if (stars <= 0) {
+            return;
+        }
+        final TextView price = new TextView(getContext());
+        price.setText("⭐ " + MeridaVisual.formatNumber(stars));
+        price.setTextColor(0xFFF1A73A);
+        price.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+        price.setTypeface(AndroidUtilities.bold());
+        price.setGravity(Gravity.CENTER);
+        price.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(2), AndroidUtilities.dp(8), AndroidUtilities.dp(2));
+        final GradientDrawable bg = new GradientDrawable();
+        bg.setCornerRadius(AndroidUtilities.dp(10));
+        bg.setColor(0x33F1A73A);
+        price.setBackground(bg);
+        tile.addView(price, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 4, 0, 0));
     }
 
     private static String rarityText(TL_stars.StarGiftAttribute a) {
