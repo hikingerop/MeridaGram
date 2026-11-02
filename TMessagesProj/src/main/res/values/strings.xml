@@ -12065,4 +12065,5 @@
     <string name="MeridaVGiftsAddedN">Gifts added: %1$d ✓</string>
     <string name="MeridaVUpgrade">Upgrade</string>
     <string name="MeridaVCollectibleNote">VISUAL: shown only on this phone, nothing was bought.</string>
+    <string name="MeridaVPriceHint">Cheapest NFT with this model on Telegram\'s market: ⭐ %1$s</string>
 </resources>

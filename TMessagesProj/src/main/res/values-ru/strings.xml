@@ -698,4 +698,5 @@
     <string name="MeridaVGiftsAddedN">Добавлено подарков: %1$d ✓</string>
     <string name="MeridaVUpgrade">Улучшить</string>
     <string name="MeridaVCollectibleNote">ВИЗУАЛ: видно только на этом телефоне, на самом деле ничего не куплено.</string>
+    <string name="MeridaVPriceHint">Самый дешёвый NFT с этой моделью на маркете Telegram: ⭐ %1$s</string>
 </resources>

@@ -268,6 +268,8 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         req.limit = 1;
         req.sort_by_price = true;
         collectionPrice = g.resell_min_stars > 0 ? g.resell_min_stars : g.stars + Math.max(0, g.upgrade_stars);
+        modelPrice = 0;
+        modelPriceFor = 0;
         ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
             if (collection != g || fragmentView == null) {
                 return;
@@ -599,6 +601,64 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         }
     }
 
+    // ---- prices like official Telegram ---------------------------------------------------------------
+
+    /**
+     * NFT catalog: the cheapest NFT of the collection on Telegram's market (as Telegram's gift shop shows it),
+     * or, with no market yet, the gift's price plus its upgrade. Gift catalog: the shop price.
+     */
+    private long catalogPrice(TL_stars.StarGift g) {
+        if (mode == MODE_NFT) {
+            if (g.availability_resale > 0 && g.resell_min_stars > 0) {
+                return g.resell_min_stars;
+            }
+            return g.auction ? 0 : g.stars + Math.max(0, g.upgrade_stars);
+        }
+        return g.auction ? 0 : g.stars;
+    }
+
+    private boolean catalogPricePlus(TL_stars.StarGift g) {
+        return mode == MODE_NFT && g.availability_resale > 1 && g.resell_min_stars > 0
+                && g.resell_min_stars < getMessagesController().config.starsStarGiftResaleAmountMax.get();
+    }
+
+    private long modelPrice;
+    private long modelPriceFor;
+
+    /** The cheapest NFT with the chosen model on Telegram's market; the header price follows it. */
+    private void loadModelPrice() {
+        if (collection == null || model == null || model.document == null) {
+            return;
+        }
+        final long docId = model.document.id;
+        if (modelPriceFor == docId) {
+            return;
+        }
+        modelPriceFor = docId;
+        modelPrice = 0;
+        final TL_stars.getResaleStarGifts req = new TL_stars.getResaleStarGifts();
+        req.flags |= 8;
+        req.gift_id = collection.id;
+        req.offset = "";
+        req.limit = 1;
+        req.sort_by_price = true;
+        final TL_stars.starGiftAttributeIdModel id = new TL_stars.starGiftAttributeIdModel();
+        id.document_id = docId;
+        req.attributes.add(id);
+        final TL_stars.StarGift g = collection;
+        ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+            if (collection != g || modelPriceFor != docId || fragmentView == null) {
+                return;
+            }
+            if (res instanceof TL_stars.resaleStarGifts && !((TL_stars.resaleStarGifts) res).gifts.isEmpty()) {
+                modelPrice = MeridaVisualGifts.priceInStars(((TL_stars.resaleStarGifts) res).gifts.get(0));
+                if (adapter != null && tileOffset() > 0) {
+                    adapter.notifyItemChanged(0);
+                }
+            }
+        }));
+    }
+
     // ---- views ---------------------------------------------------------------------------------------
 
     private static final int SOLD = 0xFF7A4636;
@@ -840,8 +900,9 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             setBackground(plain);
             setDocument(image, g.sticker, g);
             price.setVisibility(VISIBLE);
-            if (g.stars > 0 && !g.auction) {
-                price.setText(org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain("⭐️ " + LocaleController.formatNumber(g.stars, ','), .8f));
+            final long shown = catalogPrice(g);
+            if (shown > 0) {
+                price.setText(org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain("⭐️ " + LocaleController.formatNumber(shown, ',') + (catalogPricePlus(g) ? "+" : ""), .8f));
             } else {
                 price.setText(LocaleController.getString(R.string.MeridaVView));
             }
@@ -1054,8 +1115,12 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             title.setText(collection.title != null ? collection.title : "NFT");
             subtitle.setText(LocaleController.getString(randomTraits ? R.string.MeridaVRandomTraits : R.string.MeridaNftChosen));
             num.setText("#" + number);
-            final String p = MeridaVisualSheets.localPrice(MeridaNftConstructorActivity.this, collectionPrice);
+            loadModelPrice();
+            final long stars = modelPrice > 0 ? modelPrice : collectionPrice;
+            final String p = MeridaVisualSheets.localPrice(MeridaNftConstructorActivity.this, stars);
             priceView.setText(p == null ? "" : p);
+            priceView.setOnClickListener(v -> Toast.makeText(getContext(), LocaleController.formatString(R.string.MeridaVPriceHint,
+                    LocaleController.formatNumber(stars, ',')), Toast.LENGTH_LONG).show());
             priceView.setVisibility(p == null ? GONE : VISIBLE);
             final TL_stars.StarGiftAttribute[] parts = {model, backdrop, pattern};
             for (int i = 0; i < 3; i++) {
