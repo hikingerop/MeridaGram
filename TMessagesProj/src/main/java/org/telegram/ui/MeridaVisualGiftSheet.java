@@ -364,7 +364,7 @@ public final class MeridaVisualGiftSheet {
     }
 
     /** «Owner»: your avatar and name with «VISUAL» written over the name. */
-    private static View ownerView(Context context, int account) {
+    static View ownerView(Context context, int account) {
         final LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
