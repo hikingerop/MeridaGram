@@ -58,6 +58,53 @@ public final class MeridaSettings {
     public static final BooleanSetting visualPremium =
         BooleanSetting.of("merida_visual_premium", false);
 
+    /** Visual purchases spend the visual stars balance; off — they are free and the balance stays. */
+    public static final BooleanSetting visualSpendStars =
+        BooleanSetting.of("merida_visual_spend_stars", true);
+
+    /** Saved visual usernames (one per line); the active one is visualUsername. */
+    public static final StringSetting visualUsernames =
+        StringSetting.of("merida_visual_usernames", null);
+
+    public static final BooleanSetting visualUsernameShow =
+        BooleanSetting.of("merida_visual_username_show", true);
+
+    /** Saved +888 numbers, one per line: «digits|price in TON×10|time bought». */
+    public static final StringSetting visualNumbers =
+        StringSetting.of("merida_visual_numbers", null);
+
+    public static final BooleanSetting visualNumberShow =
+        BooleanSetting.of("merida_visual_number_show", true);
+
+    /** Rating points of the visual level (inside that level's range). */
+    public static final IntSetting visualRatingPoints =
+        IntSetting.of("merida_visual_rating_points", 0);
+
+    public static final BooleanSetting visualRatingShow =
+        BooleanSetting.of("merida_visual_rating_show", true);
+
+    /** Your real ordinary (non-NFT) gifts are not listed in your own profile on this phone. */
+    public static final BooleanSetting visualHideOrdinary =
+        BooleanSetting.of("merida_visual_hide_ordinary", false);
+
+    /** Visual NFT / ordinary gifts sent to you by MeridaGram users are shown as gift cards (else plain text). */
+    public static final BooleanSetting visualAcceptNft =
+        BooleanSetting.of("merida_visual_accept_nft", true);
+
+    public static final BooleanSetting visualAcceptGifts =
+        BooleanSetting.of("merida_visual_accept_gifts", true);
+
+    /** Visual craft: the chance shown is ignored and the result always succeeds. */
+    public static final BooleanSetting visualCraftAlways =
+        BooleanSetting.of("merida_visual_craft_always", true);
+
+    /** Visual auction: seconds until it ends and gifts given for one bid. */
+    public static final IntSetting visualAuctionSeconds =
+        IntSetting.of("merida_visual_auction_seconds", 5);
+
+    public static final IntSetting visualAuctionGifts =
+        IntSetting.of("merida_visual_auction_gifts", 1);
+
     /** Folder tabs are not shown above the chat list; only «All chats» stays. */
     public static final BooleanSetting hideFolderTabs =
         BooleanSetting.of("merida_hide_folder_tabs", false);

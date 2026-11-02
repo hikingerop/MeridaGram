@@ -55,6 +55,19 @@ public final class MeridaVisualSend {
         return s.startsWith("🎁 ") && s.endsWith("\n" + TAG) && s.split("\n").length >= 3;
     }
 
+    /** Your own sent ones are always shown as cards; received ones follow «Integrations» (NFT / other gifts). */
+    public static boolean shouldRender(CharSequence text, boolean out) {
+        if (!isVisual(text)) {
+            return false;
+        }
+        if (out) {
+            return true;
+        }
+        return text.toString().contains("t.me/nft/")
+                ? org.telegram.utils.settings.MeridaSettings.visualAcceptNft.get()
+                : org.telegram.utils.settings.MeridaSettings.visualAcceptGifts.get();
+    }
+
     public static CharSequence render(CharSequence text) {
         return render(text, false);
     }

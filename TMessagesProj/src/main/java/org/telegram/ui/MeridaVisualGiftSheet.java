@@ -84,32 +84,58 @@ public final class MeridaVisualGiftSheet {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(unique ? gift.title + " #" + ((TL_stars.TL_starGiftUnique) gift).num : LocaleController.getString(R.string.MeridaVisualGiftTitle));
         builder.setView(layout);
+        builder.setPositiveButton(LocaleController.getString(R.string.Close), null);
+        final AlertDialog[] dialog = new AlertDialog[1];
         if (unique && key != null) {
             final boolean worn = key.equals(MeridaSettings.visualWorn.get());
-            builder.setPositiveButton(LocaleController.getString(worn ? R.string.MeridaVisualTakeOff : R.string.MeridaVisualWear), (d, w) -> {
+            addAction(layout, LocaleController.getString(worn ? R.string.MeridaVisualTakeOff : R.string.MeridaVisualWear), Theme.getColor(Theme.key_dialogTextBlue2), () -> {
                 MeridaSettings.visualWorn.set(worn ? null : key);
                 NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_EMOJI_STATUS);
+                dialog[0].dismiss();
+                if (onChanged != null) onChanged.run();
             });
-        } else {
-            builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
         }
         if (key != null) {
-            builder.setNeutralButton(LocaleController.getString(R.string.MeridaVisualRemoveGift), (d, w) -> {
+            final boolean hidden = MeridaVisualGifts.isHidden(key);
+            addAction(layout, LocaleController.getString(hidden ? R.string.MeridaVShowInProfileAction : R.string.MeridaVHideFromProfile), Theme.getColor(Theme.key_dialogTextBlue2), () -> {
+                MeridaVisualGifts.setHidden(key, !hidden);
+                dialog[0].dismiss();
+                if (onChanged != null) onChanged.run();
+            });
+        }
+        final String slug = MeridaVisualGifts.slugOf(saved);
+        if (slug != null && !slug.isEmpty()) {
+            addAction(layout, LocaleController.getString(R.string.MeridaVisualRealPage), Theme.getColor(Theme.key_dialogTextBlue2), () -> {
+                dialog[0].dismiss();
+                Browser.openUrl(context, "https://t.me/nft/" + slug);
+            });
+        }
+        if (key != null) {
+            addAction(layout, LocaleController.getString(R.string.MeridaVisualRemoveGift), Theme.getColor(Theme.key_text_RedBold), () -> {
                 MeridaVisualGifts.remove(key);
                 if (key.equals(MeridaSettings.visualWorn.get())) {
                     MeridaSettings.visualWorn.set(null);
                     NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_EMOJI_STATUS);
                 }
-                if (onChanged != null) {
-                    onChanged.run();
-                }
+                dialog[0].dismiss();
+                if (onChanged != null) onChanged.run();
             });
         }
-        final String slug = MeridaVisualGifts.slugOf(saved);
-        if (slug != null && !slug.isEmpty()) {
-            builder.setNegativeButton(LocaleController.getString(R.string.MeridaVisualRealPage), (d, w) -> Browser.openUrl(context, "https://t.me/nft/" + slug));
-        }
-        fragment.showDialog(builder.create());
+        dialog[0] = builder.create();
+        dialog[0].show();
+    }
+
+    private static void addAction(LinearLayout layout, CharSequence text, int color, Runnable click) {
+        final TextView tv = new TextView(layout.getContext());
+        tv.setText(text);
+        tv.setTextColor(color);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        tv.setTypeface(AndroidUtilities.bold());
+        tv.setGravity(Gravity.CENTER_VERTICAL);
+        tv.setPadding(0, AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10));
+        tv.setBackground(Theme.getSelectorDrawable(false));
+        tv.setOnClickListener(v -> click.run());
+        layout.addView(tv, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
     }
 
     private static void addLine(LinearLayout layout, CharSequence text, boolean bold) {

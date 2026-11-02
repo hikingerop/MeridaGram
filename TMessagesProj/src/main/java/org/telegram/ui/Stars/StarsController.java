@@ -3721,9 +3721,21 @@ public class StarsController {
                     if (first) {
                         gifts.clear();
                     }
+                    final boolean meridaOwn = dialogId == 0 || dialogId == UserConfig.getInstance(currentAccount).getClientUserId();
+                    int meridaHidden = 0;
+                    if (meridaOwn && org.telegram.messenger.merida.MeridaVisual.on() && org.telegram.utils.settings.MeridaSettings.visualHideOrdinary.get()) {
+                        // MeridaGram «Visual»: «hide ordinary gifts» — only NFTs are listed in your own profile on this phone
+                        for (int i = rez.gifts.size() - 1; i >= 0; i--) {
+                            final TL_stars.SavedStarGift g = rez.gifts.get(i);
+                            if (g != null && !(g.gift instanceof TL_stars.TL_starGiftUnique)) {
+                                rez.gifts.remove(i);
+                                meridaHidden++;
+                            }
+                        }
+                    }
                     gifts.addAll(rez.gifts);
                     lastOffset = rez.next_offset;
-                    totalCount = rez.count;
+                    totalCount = Math.max(0, rez.count - meridaHidden);
                     // MeridaGram «Visual»: your visual NFT gifts first, only in your own profile on this phone
                     if (first && craftingGiftId == 0 && !isCollection && isInclude_unique() && isInclude_displayed()
                             && (dialogId == 0 || dialogId == UserConfig.getInstance(currentAccount).getClientUserId())) {

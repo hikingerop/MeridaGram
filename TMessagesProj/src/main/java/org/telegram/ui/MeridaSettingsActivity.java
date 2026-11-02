@@ -328,7 +328,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return new int[]{
                         hdr(R.string.MeridaHdrChatList), ROW_SNOW_PREVIEW, ROW_SNOW, ROW_HIDE_FOLDER_TABS, ROW_HIDE_STORIES, note(R.string.MeridaInfoChatList),
                         hdr(R.string.MeridaHdrMessages), ROW_TIME_WITH_SECONDS, note(R.string.MeridaInfoSeconds),
-                        hdr(R.string.MeridaHdrVisual), ROW_VISUAL_ENABLED, ROW_VISUAL_STARS, ROW_VISUAL_GRAMS, ROW_VISUAL_GIFTS, ROW_VISUAL_USERNAME, ROW_VISUAL_NUMBER, ROW_VISUAL_RATING, ROW_VISUAL_PURCHASES, ROW_VISUAL_PREMIUM, note(R.string.MeridaInfoVisual)};
+                        hdr(R.string.MeridaHdrVisual), ROW_VISUAL_ENABLED, ROW_VISUAL_GIFTS, note(R.string.MeridaInfoVisual)};
             case PAGE_GENERAL:
                 return new int[]{
                         hdr(R.string.MeridaHdrId), ROW_SHOW_ID, ROW_COPY_ID_MENU, note(R.string.MeridaInfoId),
@@ -974,7 +974,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
             return;
         }
         if (position == ROW_VISUAL_GIFTS) {
-            showVisualGifts();
+            // the whole «Visual» section: my gifts, NFT profile, balance, craft, auctions, catalogs
+            presentFragment(new MeridaVisualActivity());
             return;
         }
         if (position == ROW_VISUAL_USERNAME) {
@@ -1475,7 +1476,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                     } else if (position == ROW_VISUAL_GIFTS) {
                         final int n = org.telegram.messenger.merida.MeridaVisualGifts.slugs().size();
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
-                        cell.setTextAndValue(LocaleController.getString(R.string.MeridaVisualGifts), n > 0 ? String.valueOf(n) : LocaleController.getString(R.string.NotificationsOff), true);
+                        cell.setTextAndValue(LocaleController.getString(R.string.MeridaVOpenVisual), n + " NFT ›", false);
                     } else if (position == ROW_VISUAL_STARS || position == ROW_VISUAL_GRAMS) {
                         final boolean stars = position == ROW_VISUAL_STARS;
                         cell.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));

@@ -96,7 +96,16 @@ public final class MeridaVisualGifts {
         if (userFull == null || !MeridaVisual.on()) {
             return 0;
         }
-        return userFull.id == UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId() ? slugs().size() : 0;
+        if (userFull.id != UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId()) {
+            return 0;
+        }
+        int n = 0;
+        for (String key : slugs()) {
+            if (!isHidden(key)) {
+                n++;
+            }
+        }
+        return n;
     }
 
     public static TL_stars.TL_starGiftUnique load(String key) {
@@ -163,7 +172,8 @@ public final class MeridaVisualGifts {
      * Telegram is not asked and real stars are never spent. Returns a message for the user.
      */
     public static String buyForSelf(TL_stars.StarGift gift) {
-        final long price = priceInStars(gift);
+        final boolean spend = org.telegram.utils.settings.MeridaSettings.visualSpendStars.get();
+        final long price = spend ? priceInStars(gift) : 0;
         final int balance = org.telegram.utils.settings.MeridaSettings.visualStars.get();
         if (price > balance) {
             return org.telegram.messenger.LocaleController.formatString(org.telegram.messenger.R.string.MeridaVisualBuyNoStars, MeridaVisual.formatNumber(price), MeridaVisual.formatNumber(balance));
@@ -205,7 +215,36 @@ public final class MeridaVisualGifts {
         final List<String> slugs = slugs();
         slugs.remove(slug);
         saveSlugs(slugs);
-        prefs().edit().remove("gift_" + slug).apply();
+        prefs().edit().remove("gift_" + slug).remove("hidden_" + slug).apply();
+    }
+
+    /** A hidden visual gift stays in «My gifts» but is not shown in your profile. */
+    public static boolean isHidden(String key) {
+        return key != null && prefs().getBoolean("hidden_" + key, false);
+    }
+
+    public static void setHidden(String key, boolean hidden) {
+        if (key != null) {
+            prefs().edit().putBoolean("hidden_" + key, hidden).apply();
+        }
+    }
+
+    /** Adds several copies of a gift (constructor «create several»); returns how many were stored. */
+    public static int storeMany(String keyPrefix, TL_stars.StarGift gift, int count) {
+        int stored = 0;
+        final long time = System.currentTimeMillis();
+        for (int i = 0; i < count && i < MAX_GIFTS; i++) {
+            if (gift instanceof TL_stars.TL_starGiftUnique) {
+                ((TL_stars.TL_starGiftUnique) gift).num = Math.max(1, ((TL_stars.TL_starGiftUnique) gift).num);
+            }
+            if (store(keyPrefix + "-" + time + "-" + i, gift)) {
+                stored++;
+                if (gift instanceof TL_stars.TL_starGiftUnique) {
+                    ((TL_stars.TL_starGiftUnique) gift).num++;
+                }
+            }
+        }
+        return stored;
     }
 
     /** The visual gifts as profile gift entries, newest first. */
@@ -216,6 +255,9 @@ public final class MeridaVisualGifts {
         }
         final int now = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         for (String slug : slugs()) {
+            if (isHidden(slug)) {
+                continue;
+            }
             final TL_stars.StarGift gift = loadAny(slug);
             if (gift == null) {
                 continue;
@@ -232,6 +274,24 @@ public final class MeridaVisualGifts {
             result.add(saved);
         }
         return result;
+    }
+
+    /** One stored gift wrapped for «My gifts», with its key, so it is drawn with the «VISUAL» ribbon. */
+    public static TL_stars.SavedStarGift wrap(String key) {
+        final TL_stars.StarGift gift = loadAny(key);
+        if (gift == null) {
+            return null;
+        }
+        gift.resell_amount = null;
+        final TL_stars.TL_savedStarGift saved = new TL_stars.TL_savedStarGift();
+        saved.gift = gift;
+        saved.name_hidden = true;
+        saved.unsaved = isHidden(key);
+        synchronized (made) {
+            made.add(saved);
+            keys.put(saved, key);
+        }
+        return saved;
     }
 
     /** A gift wrapped for the constructor's preview, so it is drawn with the «VISUAL» ribbon. */

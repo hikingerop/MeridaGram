@@ -6111,11 +6111,11 @@ public class MessageObject {
             } else {
                 // MeridaGram: messages encrypted over Telegram are shown decrypted (or as locked)
                 final CharSequence meridaPlain = org.telegram.messenger.merida.MeridaCrypto.decryptForDisplay(currentAccount, getDialogId(), messageOwner.message);
-                if (meridaPlain != null && org.telegram.messenger.merida.MeridaVisualSend.isVisual(meridaPlain)) {
+                if (meridaPlain != null && org.telegram.messenger.merida.MeridaVisualSend.shouldRender(meridaPlain, messageOwner.out)) {
                     messageText = org.telegram.messenger.merida.MeridaVisualSend.render(meridaPlain, messageOwner.out);
                 } else if (meridaPlain != null) {
                     messageText = meridaPlain;
-                } else if (org.telegram.messenger.merida.MeridaVisualSend.isVisual(messageOwner.message)) {
+                } else if (org.telegram.messenger.merida.MeridaVisualSend.shouldRender(messageOwner.message, messageOwner.out)) {
                     // MeridaGram «Visual» gift message: shown as a card with the «VISUAL» mark
                     messageText = org.telegram.messenger.merida.MeridaVisualSend.render(messageOwner.message, messageOwner.out);
                 } else if (messageOwner.message != null) {

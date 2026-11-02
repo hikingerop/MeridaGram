@@ -121,16 +121,16 @@ public final class MeridaVisual {
 
     public static boolean usernameOn() {
         final String u = MeridaSettings.visualUsername.get();
-        return on() && u != null && !u.isEmpty();
+        return on() && MeridaSettings.visualUsernameShow.get() && u != null && !u.isEmpty();
     }
 
     public static boolean numberOn() {
         final String n = MeridaSettings.visualNumber.get();
-        return on() && n != null && isAnonymousNumber(n);
+        return on() && MeridaSettings.visualNumberShow.get() && n != null && isAnonymousNumber(n);
     }
 
     public static boolean ratingOn() {
-        return on() && MeridaSettings.visualRating.get() > 0;
+        return on() && MeridaSettings.visualRatingShow.get() && MeridaSettings.visualRating.get() > 0;
     }
 
     /** Only anonymous Fragment numbers: 888 and 8 more digits. Real phone numbers belong to real people. */
@@ -181,9 +181,55 @@ public final class MeridaVisual {
         }));
     }
 
+    public static final int MAX_LEVEL = 100;
+
+    /** Points needed for a level (MeridaGram's own smooth scale: each level is about 15% more). */
+    public static long levelStart(int level) {
+        if (level <= 1) {
+            return 0;
+        }
+        return Math.round(1000 * (Math.pow(1.15, level - 1) - 1));
+    }
+
+    /** The visual rating points, kept inside the chosen level's range. */
+    public static long ratingPoints() {
+        final int level = Math.max(1, Math.min(MAX_LEVEL, MeridaSettings.visualRating.get()));
+        final long from = levelStart(level);
+        final long to = level >= MAX_LEVEL ? Math.round(from * 1.4) : levelStart(level + 1) - 1;
+        final long p = MeridaSettings.visualRatingPoints.get() & 0xFFFFFFFFL;
+        return p < from ? from : Math.min(p, to);
+    }
+
+    /** «1171.64M», «585.2K», «950». */
+    public static String shortNumber(long v) {
+        if (v >= 1_000_000) {
+            return trim(String.format(java.util.Locale.US, "%.2f", v / 1_000_000.0)) + "M";
+        }
+        if (v >= 1_000) {
+            return trim(String.format(java.util.Locale.US, "%.1f", v / 1_000.0)) + "K";
+        }
+        return String.valueOf(v);
+    }
+
+    private static String trim(String s) {
+        if (s.contains(".")) {
+            s = s.replaceAll("0+$", "");
+            if (s.endsWith(".")) {
+                s = s.substring(0, s.length() - 1);
+            }
+        }
+        return s;
+    }
+
     public static org.telegram.tgnet.tl.TL_stars.Tl_starsRating visualRating() {
         final org.telegram.tgnet.tl.TL_stars.Tl_starsRating r = new org.telegram.tgnet.tl.TL_stars.Tl_starsRating();
-        r.level = MeridaSettings.visualRating.get();
+        r.level = Math.max(1, Math.min(MAX_LEVEL, MeridaSettings.visualRating.get()));
+        r.current_level_stars = levelStart(r.level);
+        r.next_level_stars = levelStart(r.level + 1);
+        r.stars = ratingPoints();
+        if (r.level < MAX_LEVEL) {
+            r.flags |= 1;
+        }
         return r;
     }
 
