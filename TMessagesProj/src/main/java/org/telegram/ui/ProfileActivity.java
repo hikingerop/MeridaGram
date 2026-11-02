@@ -11184,8 +11184,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return null;
         }
         if (meridaWorn[a] == null || meridaWornId[a] != model.id) {
-            final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable status = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView[a], dp(24));
-            status.set(model, false);
+            // keyboard cache type: the model animates in an endless loop (the emoji-status type stops after two plays)
+            final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable status = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView[a], dp(24), AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
+            status.set(model, AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD, false);
             status.attach();
             meridaWorn[a] = org.telegram.messenger.merida.MeridaVisual.withMark(status);
             meridaWornId[a] = model.id;
