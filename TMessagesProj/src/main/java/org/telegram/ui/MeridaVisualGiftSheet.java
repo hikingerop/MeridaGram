@@ -84,12 +84,11 @@ public final class MeridaVisualGiftSheet {
         // ---- header: backdrop + pattern, model, title, buttons
         final FrameLayout header = new FrameLayout(context);
         if (backdrop != null) {
-            final GiftSheet.CardBackground card = new GiftSheet.CardBackground(header, fragment.getResourceProvider(), false);
-            card.setPadding(false);
-            card.setRoundRadius(0);
-            card.setBackdrop(backdrop);
-            card.setPattern(pattern);
-            header.setBackground(card);
+            // like Telegram's gift window: the glow and the pattern are centred on the model
+            final MeridaGiftRoll.HeaderBackground bg = new MeridaGiftRoll.HeaderBackground(header, 22 + 90);
+            bg.setBackdrop(backdrop, false);
+            bg.setPattern(pattern, false);
+            header.setBackground(bg);
         } else {
             header.setBackgroundColor(0xFF2A2A2C);
         }
@@ -286,11 +285,9 @@ public final class MeridaVisualGiftSheet {
 
         final ScrollView scroll = new ScrollView(context);
         scroll.addView(root);
-        final FrameLayout container = new FrameLayout(context);
-        container.addView(scroll, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+        // the window is as tall as its content, like Telegram's (the confetti layer must not stretch it)
         final org.telegram.ui.Components.FireworksOverlay fireworks = new org.telegram.ui.Components.FireworksOverlay(context);
-        container.addView(fireworks, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
-        sheet.setCustomView(container);
+        sheet.setCustomView(MeridaVisualUi.withOverlay(context, scroll, fireworks));
         sheet.show();
         if (celebrate) {
             // like Telegram after an upgrade: confetti and «Gift upgraded»

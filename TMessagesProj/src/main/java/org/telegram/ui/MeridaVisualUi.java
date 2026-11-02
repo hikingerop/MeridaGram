@@ -234,6 +234,26 @@ final class MeridaVisualUi {
         return b;
     }
 
+    /**
+     * A window body with a layer on top (confetti) that takes the body's size. A plain FrameLayout with a
+     * full-height overlay would make the bottom sheet as tall as the screen — content at the top, empty below.
+     */
+    static FrameLayout withOverlay(Context context, View content, View overlay) {
+        final FrameLayout container = new FrameLayout(context) {
+            @Override
+            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                content.measure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(heightMeasureSpec),
+                        MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED ? MeasureSpec.UNSPECIFIED : MeasureSpec.AT_MOST));
+                final int w = content.getMeasuredWidth(), h = content.getMeasuredHeight();
+                overlay.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY));
+                setMeasuredDimension(w, h);
+            }
+        };
+        container.addView(content, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+        container.addView(overlay, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        return container;
+    }
+
     /** A dark round plate behind the back arrow, like Chimera's top bar. */
     static void roundBackButton(org.telegram.ui.ActionBar.ActionBar actionBar) {
         try {

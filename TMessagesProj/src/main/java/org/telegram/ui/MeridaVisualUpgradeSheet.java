@@ -49,9 +49,8 @@ import java.util.Random;
 /**
  * MeridaGram «Visual»: upgrading a visual ordinary gift into a visual NFT, laid out and animated like Telegram's
  * (and Chimera's) upgrade: the «Upgrade gift» page with the possible models cycling, then — in the same window —
- * the NFT card: models roll by in a carousel (the big one in the middle, smaller ones at the sides), the
- * backdrop, pattern and the table's model / pattern / backdrop change with them, slow down and stop; confetti,
- * «Gift upgraded», OK. Only on this phone: Telegram is not asked, real stars are not spent.
+ * the NFT card: the reels roll frame by frame like Telegram's (MeridaGiftRoll — models glide by, backdrops slide,
+ * the table values roll), slow down and stop; confetti, «Gift upgraded», OK. The window is as tall as its content. Only on this phone: Telegram is not asked, real stars are not spent.
  */
 final class MeridaVisualUpgradeSheet {
 
@@ -91,6 +90,7 @@ final class MeridaVisualUpgradeSheet {
         }));
     }
 
+
     private static final class Flow {
         final BaseFragment fragment;
         final Context context;
@@ -106,18 +106,22 @@ final class MeridaVisualUpgradeSheet {
 
         BottomSheet sheet;
         FrameLayout header;
-        GiftSheet.CardBackground card;
-        final BackupImageView[] carousel = new BackupImageView[3];
+        MeridaGiftRoll.HeaderBackground background;
+        BackupImageView image;
+        MeridaGiftRoll.StickersView stickers;
+        MeridaGiftRoll.Roller roller;
         TextView title, subtitle;
         ImageView close, more;
         LinearLayout buttons, upgradePage, infoPage;
         ButtonWithCounterView button;
         FireworksOverlay fireworks;
-        ButtonSpan.TextViewButtons modelValue, patternValue, backdropValue;
 
         TL_stars.starGiftAttributeModel model;
         TL_stars.starGiftAttributeBackdrop backdrop;
         TL_stars.starGiftAttributePattern pattern;
+        TL_stars.starGiftAttributeModel resultModel;
+        TL_stars.starGiftAttributeBackdrop resultBackdrop;
+        TL_stars.starGiftAttributePattern resultPattern;
         int previewIndex;
         boolean rolling, done;
 
@@ -140,28 +144,21 @@ final class MeridaVisualUpgradeSheet {
             sheet = new BottomSheet(context, false);
             sheet.setBackgroundColor(MeridaVisualUi.SHEET_BG);
             sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
-            final FrameLayout container = new FrameLayout(context);
             final LinearLayout root = new LinearLayout(context);
             root.setOrientation(LinearLayout.VERTICAL);
-            container.addView(root, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
             fireworks = new FireworksOverlay(context);
-            container.addView(fireworks, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
-            // ---- header (shared by both pages)
+            // ---- header (shared by both pages): glow + pattern centred on the model
             header = new FrameLayout(context);
-            card = new GiftSheet.CardBackground(header, fragment.getResourceProvider(), false);
-            card.setPadding(false);
-            card.setRoundRadius(0);
-            header.setBackground(card);
-            header.setClipChildren(false);
-            for (int i = 0; i < 3; i++) {
-                carousel[i] = new BackupImageView(context);
-                header.addView(carousel[i], LayoutHelper.createFrame(i == 1 ? 160 : 96, i == 1 ? 160 : 96, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, i == 1 ? 22 : 54, 0, 0));
-                if (i != 1) {
-                    carousel[i].setAlpha(0f);
-                    carousel[i].setTranslationX(AndroidUtilities.dp(i == 0 ? -128 : 128));
-                }
-            }
+            background = new MeridaGiftRoll.HeaderBackground(header, 22 + 80);
+            header.setBackground(background);
+            image = new BackupImageView(context);
+            header.addView(image, LayoutHelper.createFrame(160, 160, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 22, 0, 0));
+            stickers = new MeridaGiftRoll.StickersView(context);
+            header.addView(stickers, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 160, Gravity.TOP, 0, 22, 0, 0));
+            roller = new MeridaGiftRoll.Roller(stickers, background);
+            roller.preload(models, backdrops, patterns); // all models load while the first page is shown
+
             close = MeridaVisualUi.iconButton(context, R.drawable.ic_close_white, 0xFFFFFFFF);
             close.setBackground(MeridaVisualUi.round(0x33000000, 18));
             close.setOnClickListener(v -> sheet.dismiss());
@@ -205,19 +202,19 @@ final class MeridaVisualUpgradeSheet {
             upgradePage.addView(f3);
             root.addView(upgradePage);
 
-            // ---- page 2: the NFT card with its table (shown while rolling and after)
+            // ---- page 2: the NFT card; model / pattern / backdrop roll like reels
             infoPage = new LinearLayout(context);
             infoPage.setOrientation(LinearLayout.VERTICAL);
             infoPage.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(14), AndroidUtilities.dp(14), 0);
             infoPage.setVisibility(View.GONE);
             final TableView table = new TableView(context, fragment.getResourceProvider());
             table.addRow(s(R.string.Gift2Owner), MeridaVisualGiftSheet.ownerView(context, fragment.getCurrentAccount()));
-            modelValue = valueView();
-            patternValue = valueView();
-            backdropValue = valueView();
-            table.addRow(s(R.string.Gift2AttributeModel), modelValue);
-            table.addRow(s(R.string.Gift2AttributeSymbol), patternValue);
-            table.addRow(s(R.string.Gift2AttributeBackdrop), backdropValue);
+            roller.modelText = new MeridaGiftRoll.TextRoll(context, fragment.getResourceProvider());
+            roller.patternText = new MeridaGiftRoll.TextRoll(context, fragment.getResourceProvider());
+            roller.backdropText = new MeridaGiftRoll.TextRoll(context, fragment.getResourceProvider());
+            table.addRowUnpadded(s(R.string.Gift2AttributeModel), roller.modelText);
+            table.addRowUnpadded(s(R.string.Gift2AttributeSymbol), roller.patternText);
+            table.addRowUnpadded(s(R.string.Gift2AttributeBackdrop), roller.backdropText);
             final int total = gift.availability_total > 0 ? gift.availability_total : 10000;
             table.addRow(s(R.string.Gift2Quantity), LocaleController.formatPluralStringComma("Gift2QuantityIssued1", total)
                     + LocaleController.formatPluralStringComma("Gift2QuantityIssued2", total));
@@ -237,33 +234,16 @@ final class MeridaVisualUpgradeSheet {
             button.setOnClickListener(v -> onButton());
             root.addView(button, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 14, 12, 14, 14));
 
-            // first look: «Upgrade gift» with the possible models cycling
+            // first look: «Upgrade gift» with the possible models changing
             final SpannableStringBuilder t = new SpannableStringBuilder(s(R.string.Gift2UpgradeTitle)).append(' ').append(MeridaVisual.mark());
             title.setText(t);
             subtitle.setText(s(R.string.Gift2UpgradeText));
             nextPreview(false);
             AndroidUtilities.runOnUIThread(this::cycle, 2200);
 
-            sheet.setCustomView(container);
+            // the window is as tall as its content (the confetti layer must not stretch it to the whole screen)
+            sheet.setCustomView(MeridaVisualUi.withOverlay(context, root, fireworks));
             sheet.show();
-        }
-
-        ButtonSpan.TextViewButtons valueView() {
-            final ButtonSpan.TextViewButtons tv = new ButtonSpan.TextViewButtons(context);
-            tv.setTextColor(0xFFFFFFFF);
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-            tv.setSingleLine(true);
-            return tv;
-        }
-
-        CharSequence attrText(TL_stars.StarGiftAttribute attr) {
-            final Integer[] color = new Integer[1];
-            final CharSequence rarity = StarGiftSheet.getRarityName(attr.rarity, color);
-            final SpannableStringBuilder sb = new SpannableStringBuilder(attr.name != null ? attr.name : "");
-            if (!TextUtils.isEmpty(rarity)) {
-                sb.append(' ').append(ButtonSpan.make(rarity, null, fragment.getResourceProvider(), color[0]));
-            }
-            return sb;
         }
 
         void setDoc(BackupImageView view, TLRPC.Document doc) {
@@ -276,33 +256,22 @@ final class MeridaVisualUpgradeSheet {
             view.getImageReceiver().setAutoRepeat(1);
         }
 
-        void applyTraits() {
-            card.setBackdrop(backdrop);
-            card.setPattern(pattern);
-            header.invalidate();
-            if (rolling || done) {
-                subtitle.setText(model.name);
-                subtitle.setTextColor(backdrop.text_color | 0xFF000000);
-                modelValue.setText(attrText(model));
-                patternValue.setText(attrText(pattern));
-                backdropValue.setText(attrText(backdrop));
-            }
-        }
-
         void nextPreview(boolean animated) {
             final int i = previewIndex++;
             model = models.get(i % models.size());
             backdrop = backdrops.get(i % backdrops.size());
             pattern = patterns.get(i % patterns.size());
+            background.setBackdrop(backdrop, animated);
+            background.setPattern(pattern, animated);
             if (!animated) {
-                setDoc(carousel[1], model.document);
-                applyTraits();
+                setDoc(image, model.document);
                 return;
             }
-            carousel[1].animate().alpha(0f).scaleX(0.9f).scaleY(0.9f).setDuration(160).withEndAction(() -> {
-                setDoc(carousel[1], model.document);
-                applyTraits();
-                carousel[1].animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(220).start();
+            final TL_stars.starGiftAttributeModel m = model;
+            image.animate().alpha(0f).scaleX(0.85f).scaleY(0.85f).setDuration(180).withEndAction(() -> {
+                if (rolling || done) return;
+                setDoc(image, m.document);
+                image.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(260).setInterpolator(CubicBezierInterpolator.EASE_OUT_BACK).start();
             }).start();
         }
 
@@ -318,7 +287,7 @@ final class MeridaVisualUpgradeSheet {
                 return;
             }
             if (rolling) {
-                finish();
+                roller.skip(); // «Skip»: the reels jump to the result
                 return;
             }
             if (MeridaSettings.visualSpendStars.get() && price > MeridaSettings.visualStars.get()) {
@@ -328,9 +297,14 @@ final class MeridaVisualUpgradeSheet {
             startRoll();
         }
 
-        /** The page turns into the NFT card and the carousel starts rolling. */
+        /** The page turns into the NFT card and the reels start rolling (Telegram's own roll maths). */
         void startRoll() {
             rolling = true;
+            resultModel = models.get(random.nextInt(models.size()));
+            resultBackdrop = backdrops.get(random.nextInt(backdrops.size()));
+            resultPattern = patterns.get(random.nextInt(patterns.size()));
+            save(); // the result is kept at once, even if the window is closed during the roll
+
             button.setText(s(R.string.GiftSkipAnimation), true);
             // title: «Name #number» (+VISUAL), the close button gives way to ⋮, the action buttons appear
             final SpannableStringBuilder t = new SpannableStringBuilder(gift.title != null ? gift.title : "NFT");
@@ -339,6 +313,8 @@ final class MeridaVisualUpgradeSheet {
             t.setSpan(new ForegroundColorSpan(0xB3FFFFFF), start, t.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             t.append(' ').append(MeridaVisual.mark());
             title.setText(t);
+            subtitle.setText(resultModel.name);
+            subtitle.setTextColor(resultBackdrop.text_color | 0xFF000000);
             close.animate().alpha(0f).setDuration(200).withEndAction(() -> close.setVisibility(View.GONE)).start();
             more.animate().alpha(1f).setDuration(200).start();
             addHeaderButton(R.drawable.filled_crown_on, s(R.string.Gift2ActionWear));
@@ -348,92 +324,26 @@ final class MeridaVisualUpgradeSheet {
             buttons.animate().alpha(0.5f).setDuration(250).start();
             ((LinearLayout.LayoutParams) header.getLayoutParams()).height = AndroidUtilities.dp(324);
             header.requestLayout();
-            upgradePage.animate().alpha(0f).setDuration(180).withEndAction(() -> {
+            upgradePage.animate().alpha(0f).setDuration(160).withEndAction(() -> {
                 upgradePage.setVisibility(View.GONE);
                 infoPage.setAlpha(0f);
                 infoPage.setVisibility(View.VISIBLE);
-                infoPage.animate().alpha(1f).setDuration(220).start();
+                infoPage.animate().alpha(1f).setDuration(200).start();
             }).start();
-            // side models appear
-            carousel[1].setTag(model);
-            for (int i : new int[]{0, 2}) {
-                final TL_stars.starGiftAttributeModel side = models.get(random.nextInt(models.size()));
-                carousel[i].setTag(side);
-                setDoc(carousel[i], side.document);
-                carousel[i].animate().alpha(0.45f).setDuration(250).start();
-            }
-            applyTraits();
-            roll(70);
+
+            // the shown model becomes the first frame of the roll (same picture, so nothing blinks)
+            image.animate().cancel();
+            image.setScaleX(1f);
+            image.setScaleY(1f);
+            image.setAlpha(1f);
+            image.setVisibility(View.INVISIBLE);
+            roller.start(image.getImageReceiver(), model, pattern, backdrop, resultModel, resultPattern, resultBackdrop,
+                    () -> {
+                    }, this::rollingDone);
         }
 
-        /** One carousel step: everything slides left, the right model comes to the middle; steps slow down. */
-        void roll(long step) {
-            if (done || sheet == null || !sheet.isShowing()) return;
-            final float shift = AndroidUtilities.dp(128);
-            final long duration = Math.min(step, 420);
-            for (int i = 0; i < 3; i++) {
-                carousel[i].animate().cancel();
-            }
-            carousel[1].animate().translationX(-shift).scaleX(0.6f).scaleY(0.6f).alpha(0.45f).setDuration(duration).start();
-            carousel[2].animate().translationX(0).scaleX(1.66f).scaleY(1.66f).alpha(1f).setDuration(duration).start();
-            carousel[0].animate().translationX(-shift * 2).alpha(0f).setDuration(duration).withEndAction(() -> {
-                if (done) return;
-                // the right one is now in the middle: shift the pictures and reset positions
-                final TL_stars.starGiftAttributeModel next = models.get(random.nextInt(models.size()));
-                model = (TL_stars.starGiftAttributeModel) carousel[2].getTag();
-                if (model == null) model = next;
-                carousel[0].setTag(carousel[1].getTag());
-                carousel[1].setTag(model);
-                carousel[2].setTag(next);
-                setDoc(carousel[0], ((TL_stars.starGiftAttributeModel) (carousel[0].getTag() != null ? carousel[0].getTag() : next)).document);
-                setDoc(carousel[1], model.document);
-                setDoc(carousel[2], next.document);
-                resetCarousel();
-                backdrop = backdrops.get(random.nextInt(backdrops.size()));
-                pattern = patterns.get(random.nextInt(patterns.size()));
-                applyTraits();
-                final long nextStep = (long) (step * 1.14f);
-                if (nextStep < 560) {
-                    roll(nextStep);
-                } else {
-                    finish();
-                }
-            }).start();
-        }
-
-        void resetCarousel() {
-            for (int i = 0; i < 3; i++) {
-                carousel[i].animate().cancel();
-                carousel[i].setTranslationX(i == 0 ? -AndroidUtilities.dp(128) : i == 2 ? AndroidUtilities.dp(128) : 0);
-                carousel[i].setScaleX(1f);
-                carousel[i].setScaleY(1f);
-                carousel[i].setAlpha(i == 1 ? 1f : 0.45f);
-            }
-        }
-
-        /** Stop on the result, keep it, confetti and «Gift upgraded». */
-        void finish() {
-            if (done) return;
-            done = true;
-            rolling = false;
-            resetCarousel();
-            if (model == null) model = models.get(random.nextInt(models.size()));
-            setDoc(carousel[1], model.document);
-            for (int i : new int[]{0, 2}) {
-                carousel[i].animate().alpha(0f).setDuration(250).start();
-            }
-            carousel[1].setScaleX(1.12f);
-            carousel[1].setScaleY(1.12f);
-            carousel[1].animate().scaleX(1f).scaleY(1f).setDuration(320).setInterpolator(CubicBezierInterpolator.EASE_OUT_BACK).start();
-            rollingDone();
-        }
-
-        void rollingDone() {
-            final boolean keepRolling = rolling;
-            rolling = true; // so applyTraits fills the table
-            applyTraits();
-            rolling = keepRolling;
-
+        /** Keeps the visual NFT on this phone and takes the visual stars. */
+        void save() {
             final TL_stars.TL_starGiftUnique unique = new TL_stars.TL_starGiftUnique();
             unique.id = gift.id;
             unique.gift_id = gift.id;
@@ -443,9 +353,9 @@ final class MeridaVisualUpgradeSheet {
             unique.availability_total = total;
             unique.availability_issued = total;
             unique.num = number;
-            unique.attributes.add(model);
-            unique.attributes.add(pattern);
-            unique.attributes.add(backdrop);
+            unique.attributes.add(resultModel);
+            unique.attributes.add(resultPattern);
+            unique.attributes.add(resultBackdrop);
             MeridaVisualGifts.store(key, unique);
             if (MeridaSettings.visualSpendStars.get()) {
                 MeridaSettings.visualStars.set((int) Math.max(0, MeridaSettings.visualStars.get() - price));
@@ -453,8 +363,13 @@ final class MeridaVisualUpgradeSheet {
             if (onChanged != null) {
                 onChanged.run();
             }
+        }
 
-            // the buttons work now
+        /** The reels are stopping on the result: confetti, «Gift upgraded», the buttons work. */
+        void rollingDone() {
+            if (done) return;
+            done = true;
+            rolling = false;
             buttons.removeAllViews();
             addHeaderButton(R.drawable.filled_crown_on, s(R.string.Gift2ActionWear), () -> {
                 MeridaSettings.visualWorn.set(key);
@@ -475,7 +390,7 @@ final class MeridaVisualUpgradeSheet {
             button.setText(s(R.string.OK), true);
 
             fireworks.start(true);
-            final String product = unique.title + " #" + LocaleController.formatNumber(number, ',');
+            final String product = (gift.title != null ? gift.title : "NFT") + " #" + LocaleController.formatNumber(number, ',');
             try {
                 org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), null)
                         .createSimpleBulletin(R.raw.gift_upgrade, s(R.string.Gift2UpgradedTitle), AndroidUtilities.replaceTags(LocaleController.formatString(R.string.Gift2UpgradedText, product)))
