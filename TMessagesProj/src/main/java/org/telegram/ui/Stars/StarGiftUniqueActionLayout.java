@@ -176,8 +176,7 @@ public class StarGiftUniqueActionLayout {
             emoji.set((Drawable) null, animated);
         }
         if (model != null && (prevModel == null || prevModel.document.id != model.document.id)) {
-            if (repost || messageObject.meridaVisualCard) {
-                // MeridaGram «Visual»: the visual NFT keeps playing on its card
+            if (repost) {
                 imageReceiver.setAllowStartLottieAnimation(true);
                 imageReceiver.setAllowStartAnimation(true);
                 imageReceiver.setAutoRepeat(1);

@@ -158,6 +158,9 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
 окно как openValueStats (модель 160, синяя плашка цены, честный текст MeridaVValueInfo + метка, таблица Стоимость/Дата);
 строки Модель/Узор/Фон — наш конструктор сразу в этой коллекции и на этой вкладке
 (MeridaNftConstructorActivity.openingCollection(giftId, tab)).
+Анимации подарков как у Telegram: играют ОДИН раз (setAutoRepeat(0)) — карточки в профиле/«Моих подарках» (GiftCell),
+карточки в чате (ChatActionCell, StarGiftUniqueActionLayout), окна подарка, плитки конструктора; по кругу — ТОЛЬКО
+надетый NFT у имени (ProfileActivity.getMeridaWorn, значок у владельца, превью «Носить»). Просьба владельца.
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).

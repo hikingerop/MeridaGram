@@ -268,7 +268,7 @@ final class MeridaVisualUpgradeSheet {
             }
             final TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(doc.thumbs, AndroidUtilities.dp(160));
             view.setImage(ImageLocation.getForDocument(doc), "160_160", ImageLocation.getForDocument(thumb, doc), "160_160", null, gift);
-            view.getImageReceiver().setAutoRepeat(1);
+            view.getImageReceiver().setAutoRepeat(0); // like Telegram: plays once (only the worn NFT at your name loops)
         }
 
         void nextPreview(boolean animated) {

@@ -220,7 +220,7 @@ public class MeridaVisualActivity extends BaseFragment {
             final BackupImageView image = new BackupImageView(context);
             final TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(model.thumbs, AndroidUtilities.dp(160));
             image.setImage(ImageLocation.getForDocument(model), "160_160", ImageLocation.getForDocument(thumb, model), "160_160", null, model);
-            image.getImageReceiver().setAutoRepeat(1);
+            image.getImageReceiver().setAutoRepeat(0); // like Telegram: plays once (only the worn NFT at your name loops)
             header.addView(image, LayoutHelper.createLinear(120, 120));
         } else {
             final ImageView icon = new ImageView(context);

@@ -833,7 +833,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         }
         final TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(document.thumbs, AndroidUtilities.dp(100));
         image.setImage(ImageLocation.getForDocument(document), "120_120", ImageLocation.getForDocument(thumb, document), "120_120", null, parent);
-        image.getImageReceiver().setAutoRepeat(1);
+        image.getImageReceiver().setAutoRepeat(0); // like Telegram: plays once (only the worn NFT at your name loops)
     }
 
     private static TextView pill(Context context, int textColor, int bgColor, float textSizeDp) {
