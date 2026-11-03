@@ -179,6 +179,8 @@ featuredStickers_addButton с водяным знаком + статус SwapAni
 остальных строк. Низ окна по замеру со скриншотов Chimera: отступ над ОК 16 dp, под ОК 3 dp.
 Свайп между NFT разной высоты без рывка: фон листа прозрачный (sheet.setBackgroundColor(0)), каждая карточка рисует свой фон
 со скруглённым верхом; MeridaGiftPager — высота = max(текущая, соседняя), карточки стоят по низу (onLayout).
+Без подтормаживания в начале свайпа: MeridaGiftPager заранее строит соседние карточки (pages, preloadNeighbours через
+350 мс после открытия и после каждого перелистывания), держит их INVISIBLE и при свайпе только показывает.
 Визуальные звёзды на постах (переключатель «Визуальные звёзды на постах» в экране Визуала, по просьбе владельца — с меткой):
 родные кнопка ⭐ / StarsReactionsSheet / плашка с таймером, но StarsController.PendingPaidReactions.commit при
 meridaVisual НЕ шлёт sendPaidReaction — списывает visualStars и хранит сумму в `merida/MeridaVisualReactions` (по посту);

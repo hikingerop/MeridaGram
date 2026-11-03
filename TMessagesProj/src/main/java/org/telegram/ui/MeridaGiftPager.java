@@ -38,6 +38,12 @@ final class MeridaGiftPager extends FrameLayout {
     private VelocityTracker velocity;
     private final int touchSlop;
     private ValueAnimator animator;
+    /**
+     * Cards built in advance (the neighbours of the current one), kept hidden: building a card — its model,
+     * animation and backdrop — when the finger already moves made the first frames of a swipe stutter.
+     */
+    private final android.util.SparseArray<View> pages = new android.util.SparseArray<>();
+    private final Runnable preload = this::preloadNeighbours;
 
     MeridaGiftPager(Context context, int count, int index, Factory factory) {
         super(context);
@@ -46,7 +52,52 @@ final class MeridaGiftPager extends FrameLayout {
         this.index = index;
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         current = factory.create(index);
+        pages.put(index, current);
         addView(current, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        // the opened card first, its neighbours right after the window has appeared
+        removeCallbacks(preload);
+        postDelayed(preload, 350);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        removeCallbacks(preload);
+    }
+
+    private View page(int i) {
+        View v = pages.get(i);
+        if (v == null) {
+            v = factory.create(i);
+            pages.put(i, v);
+            v.setVisibility(INVISIBLE);
+            addView(v, 0, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+            final int w = getWidth();
+            if (w > 0) {
+                v.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.displaySize.y, MeasureSpec.AT_MOST));
+                v.layout(0, getHeight() - v.getMeasuredHeight(), w, getHeight());
+            }
+        }
+        return v;
+    }
+
+    /** Builds the cards on both sides of the current one (hidden) and drops those further away. */
+    private void preloadNeighbours() {
+        if (count <= 1) return;
+        for (int i = pages.size() - 1; i >= 0; i--) {
+            final int k = pages.keyAt(i);
+            if (Math.abs(k - index) > 1) {
+                removeView(pages.valueAt(i));
+                pages.removeAt(i);
+            }
+        }
+        if (exists(index - 1)) page(index - 1);
+        if (exists(index + 1)) page(index + 1);
     }
 
     /**
@@ -64,7 +115,8 @@ final class MeridaGiftPager extends FrameLayout {
         for (int i = 0; i < getChildCount(); i++) {
             final View child = getChildAt(i);
             child.measure(childW, childH);
-            h = Math.max(h, child.getMeasuredHeight());
+            // hidden prepared cards do not change the window's height
+            if (child == current || child == neighbour) h = Math.max(h, child.getMeasuredHeight());
         }
         setMeasuredDimension(w, h);
     }
@@ -184,12 +236,10 @@ final class MeridaGiftPager extends FrameLayout {
         }
         if (neighbourIndex != target) {
             dropNeighbour();
-            neighbour = factory.create(target);
+            neighbour = page(target); // usually already prepared
             neighbourIndex = target;
-            addView(neighbour, 0, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-            neighbour.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.displaySize.y, MeasureSpec.AT_MOST));
-            neighbour.layout(0, getHeight() - neighbour.getMeasuredHeight(), w, getHeight());
-            requestLayout();
+            neighbour.setVisibility(VISIBLE);
+            if (neighbour.getMeasuredHeight() > getHeight()) requestLayout();
         }
         transform(current, offset, w);
         transform(neighbour, offset + (target > index ? w : -w), w);
@@ -216,7 +266,9 @@ final class MeridaGiftPager extends FrameLayout {
 
     private void dropNeighbour() {
         if (neighbour != null) {
-            removeView(neighbour);
+            // kept for the next swipe, just hidden
+            reset(neighbour);
+            neighbour.setVisibility(INVISIBLE);
             neighbour = null;
         }
         neighbourIndex = -1;
@@ -243,17 +295,22 @@ final class MeridaGiftPager extends FrameLayout {
                 if (animator != animation) return;
                 animator = null;
                 if (go && neighbour != null) {
-                    removeView(current);
+                    final View was = current;
                     current = neighbour;
                     index = neighbourIndex;
                     neighbour = null;
                     neighbourIndex = -1;
+                    // the card we came from stays prepared (hidden) for swiping back
+                    reset(was);
+                    was.setVisibility(INVISIBLE);
                 } else {
                     dropNeighbour();
                 }
                 offset = 0;
                 reset(current);
                 requestLayout();
+                removeCallbacks(preload);
+                postDelayed(preload, 200);
             }
         });
         animator.setDuration(go ? 280 : 320);
