@@ -72,6 +72,17 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         this.mode = mode;
     }
 
+    /** Opened from a gift's Model / Pattern / Backdrop row: goes straight to that collection, on that tab. */
+    private long pendingOpenId;
+    private int pendingTab = -1;
+
+    public static MeridaNftConstructorActivity openingCollection(long collectionId, int tab) {
+        final MeridaNftConstructorActivity f = new MeridaNftConstructorActivity(MODE_NFT);
+        f.pendingOpenId = collectionId;
+        f.pendingTab = tab;
+        return f;
+    }
+
     private static final int TAB_MODELS = 0;
     private static final int TAB_BACKDROPS = 1;
     private static final int TAB_PATTERNS = 2;
@@ -241,6 +252,22 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 }
             }
             collections.addAll(0, sold);
+        }
+        if (pendingOpenId != 0 && !c.gifts.isEmpty()) {
+            TL_stars.StarGift target = null;
+            for (TL_stars.StarGift g : c.gifts) {
+                if (g != null && !(g instanceof TL_stars.TL_starGiftUnique) && g.id == pendingOpenId) {
+                    target = g;
+                    break;
+                }
+            }
+            pendingOpenId = 0;
+            if (target != null) {
+                final TL_stars.StarGift open = target;
+                AndroidUtilities.runOnUIThread(() -> {
+                    if (fragmentView != null && collection == null) openCollection(open);
+                }, 350);
+            }
         }
         actionBar.setSubtitle(collections.isEmpty() ? LocaleController.getString(R.string.MeridaNftConstructorLoading)
                 : mode == MODE_GIFTS ? collections.size() + " " + MeridaVisualUi.plural(collections.size(), "подарок", "подарка", "подарков") : collections.size() + " NFT");
@@ -412,7 +439,8 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         model = models.get(0);
         backdrop = backdrops.get(0);
         pattern = patterns.get(0);
-        tab = TAB_MODELS;
+        tab = pendingTab >= 0 ? pendingTab : TAB_MODELS;
+        pendingTab = -1;
         number = 1;
         randomTraits = false;
         sortByRarity(models);

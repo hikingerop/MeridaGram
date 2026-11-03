@@ -154,6 +154,10 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    FragmentUsernameBottomSheet (16/13/14 sp, кнопки 48). Надетый NFT у имени — с искрами (setParticles).
 «Высокая частота экрана» (Основные → Экран, вкл. по умолчанию, `merida/MeridaRefreshRate.java`): preferredDisplayModeId
 самого быстрого режима (окно LaunchActivity.onResume и все BottomSheet) — Xiaomi и др. дают 120 Гц только своему списку.
+Окно визуального NFT как у Telegram: нажатие на владельца — его профиль (ProfileActivity.of); «подробнее» у ценности —
+окно как openValueStats (модель 160, синяя плашка цены, честный текст MeridaVValueInfo + метка, таблица Стоимость/Дата);
+строки Модель/Узор/Фон — наш конструктор сразу в этой коллекции и на этой вкладке
+(MeridaNftConstructorActivity.openingCollection(giftId, tab)).
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).

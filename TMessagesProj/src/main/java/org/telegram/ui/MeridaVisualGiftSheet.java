@@ -313,6 +313,12 @@ public final class MeridaVisualGiftSheet {
         final long newOwner = key != null ? org.telegram.messenger.merida.MeridaVisualChat.transferredTo(key) : 0;
         ownerRow[0] = (LinearLayout) ownerView(context, account, newOwner);
         table.addRow(s(R.string.Gift2Owner), ownerRow[0]);
+        // like Telegram: tapping the owner opens their profile
+        ownerRow[0].setOnClickListener(v -> {
+            final long ownerId = newOwner != 0 ? newOwner : UserConfig.getInstance(account).getClientUserId();
+            sheet.dismiss();
+            AndroidUtilities.runOnUIThread(() -> fragment.presentFragment(ProfileActivity.of(ownerId)), 150);
+        });
         final long addedAt = key != null ? MeridaVisualGifts.addedAt(key) : 0;
         if (!unique && addedAt > 0) {
             table.addRow(s(R.string.MeridaVDate), LocaleController.formatDateTime(addedAt / 1000, true));
@@ -320,9 +326,11 @@ public final class MeridaVisualGiftSheet {
         if (!unique && gift.stars > 0) {
             table.addRow(s(R.string.MeridaVCost), org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain("⭐️ " + LocaleController.formatNumber(gift.stars, ','), .8f));
         }
-        if (model != null) StarGiftSheet.addAttributeRow(table, model);
-        if (pattern != null) StarGiftSheet.addAttributeRow(table, pattern);
-        if (backdrop != null) StarGiftSheet.addAttributeRow(table, backdrop);
+        // model / pattern / backdrop: tapping opens the NFT constructor right at this collection
+        final long collectionId = gift.gift_id != 0 ? gift.gift_id : gift.id;
+        if (model != null) addAttributeRow(table, model, () -> openConstructor(fragment, sheet, collectionId, 0));
+        if (pattern != null) addAttributeRow(table, pattern, () -> openConstructor(fragment, sheet, collectionId, 2));
+        if (backdrop != null) addAttributeRow(table, backdrop, () -> openConstructor(fragment, sheet, collectionId, 1));
         if (gift.availability_total > 0 && gift.availability_issued > 0) {
             table.addRow(s(R.string.Gift2Quantity), LocaleController.formatPluralStringComma("Gift2QuantityIssued1", gift.availability_issued)
                     + LocaleController.formatPluralStringComma("Gift2QuantityIssued2", gift.availability_total));
@@ -331,13 +339,8 @@ public final class MeridaVisualGiftSheet {
         final String priceText = price > 0 ? MeridaVisualSheets.localPrice(fragment, price) : null;
         if (priceText != null) {
             // like Telegram: «Value  ~6 047 ₽  learn more»
-            table.addRow(s(R.string.GiftValue2), priceText.replace("≈ ", "~"), s(R.string.GiftValue2LearnMore), () -> {
-                final AlertDialog.Builder b = new AlertDialog.Builder(context);
-                b.setTitle(s(R.string.GiftValue2));
-                b.setMessage(LocaleController.formatString(R.string.MeridaVValueInfo, LocaleController.formatNumber(price, ',')));
-                b.setPositiveButton(s(R.string.OK), null);
-                b.show();
-            });
+            table.addRow(s(R.string.GiftValue2), priceText.replace("≈ ", "~"), s(R.string.GiftValue2LearnMore), () ->
+                    showValue(fragment, gift, model, priceText.replace("≈ ", "~"), price, key));
         }
         body.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
 
@@ -678,6 +681,69 @@ public final class MeridaVisualGiftSheet {
         scroll.addView(root);
         sheet.setCustomView(scroll);
         sheet.show();
+    }
+
+    /** An attribute row like Telegram's (name + rarity badge); the row and the badge are tappable. */
+    private static void addAttributeRow(TableView table, TL_stars.StarGiftAttribute attr, Runnable onClick) {
+        final String name;
+        if (attr instanceof TL_stars.starGiftAttributeModel) {
+            name = s(R.string.Gift2AttributeModel);
+        } else if (attr instanceof TL_stars.starGiftAttributePattern) {
+            name = s(R.string.Gift2AttributeSymbol);
+        } else if (attr instanceof TL_stars.starGiftAttributeBackdrop) {
+            name = s(R.string.Gift2AttributeBackdrop);
+        } else return;
+        final Integer[] color = new Integer[1];
+        final CharSequence rarity = StarGiftSheet.getRarityName(attr.rarity, color);
+        final android.widget.TableRow row = table.addRow(name, attr.name, rarity, onClick, color[0]);
+        row.setOnClickListener(v -> onClick.run());
+    }
+
+    private static void openConstructor(BaseFragment fragment, BottomSheet sheet, long collectionId, int tab) {
+        sheet.dismiss();
+        AndroidUtilities.runOnUIThread(() -> fragment.presentFragment(MeridaNftConstructorActivity.openingCollection(collectionId, tab)), 150);
+    }
+
+    /**
+     * «Value … learn more», laid out like Telegram's value window: the gift 160 dp, the price in a blue pill,
+     * a line under it and a table. The figures are the visual estimate, said so plainly, with the VISUAL mark.
+     */
+    private static void showValue(BaseFragment fragment, TL_stars.StarGift gift, TL_stars.starGiftAttributeModel model, String priceText, long stars, String key) {
+        final Context context = fragment.getParentActivity();
+        if (context == null) return;
+        final BottomSheet.Builder b = new BottomSheet.Builder(context, false, fragment.getResourceProvider());
+        final LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(20), AndroidUtilities.dp(16), AndroidUtilities.dp(8));
+        final BackupImageView image = new BackupImageView(context);
+        image.setLayerNum(4 | 6656);
+        org.telegram.ui.Stars.StarsIntroActivity.setGiftImage(image.getImageReceiver(), model != null ? model.document : gift.getDocument(), 160);
+        layout.addView(image, LayoutHelper.createLinear(160, 160, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 0));
+        final TextView pill = new TextView(context);
+        pill.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        pill.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText, fragment.getResourceProvider()));
+        pill.setTypeface(AndroidUtilities.bold());
+        pill.setPadding(AndroidUtilities.dp(20), 0, AndroidUtilities.dp(20), 0);
+        pill.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(21), Theme.getColor(Theme.key_featuredStickers_addButton, fragment.getResourceProvider())));
+        pill.setGravity(Gravity.CENTER);
+        pill.setText(priceText);
+        layout.addView(pill, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 42, Gravity.CENTER_HORIZONTAL, 0, 12, 0, 15));
+        final TextView text = new TextView(context);
+        text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        text.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, fragment.getResourceProvider()));
+        text.setGravity(Gravity.CENTER);
+        text.setText(new SpannableStringBuilder(LocaleController.formatString(R.string.MeridaVValueInfo, LocaleController.formatNumber(stars, ',')))
+                .append(' ').append(MeridaVisual.mark()));
+        layout.addView(text, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 16, 0, 16, 19));
+        final TableView table = new TableView(context, fragment.getResourceProvider());
+        table.addRow(s(R.string.MeridaVCost), org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain("⭐️" + LocaleController.formatNumber(stars, ',') + " (" + priceText + ")", .8f));
+        final long added = key != null ? MeridaVisualGifts.addedAt(key) : 0;
+        if (added > 0) {
+            table.addRow(s(R.string.MeridaVDate), LocaleController.formatYearMonthDay((int) (added / 1000), true));
+        }
+        layout.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL, 0, 0, 0, 12));
+        b.setCustomView(layout);
+        fragment.showDialog(b.create());
     }
 
     private static void notifyStatus(int account) {
