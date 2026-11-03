@@ -49,17 +49,33 @@ final class MeridaGiftPager extends FrameLayout {
         addView(current, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     }
 
-    /** As tall as the current card (the neighbour may be taller or shorter while it slides in). */
+    /**
+     * As tall as the taller of the current card and the neighbour sliding in; the cards stand on the bottom and
+     * draw their own backgrounds (the sheet is transparent), so a taller or shorter neighbour never makes the
+     * window jump — like Telegram's swipeable gift window.
+     */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         final int w = MeasureSpec.getSize(widthMeasureSpec);
         final int hMode = MeasureSpec.getMode(heightMeasureSpec);
         final int childH = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(heightMeasureSpec), hMode == MeasureSpec.UNSPECIFIED ? MeasureSpec.UNSPECIFIED : MeasureSpec.AT_MOST);
         final int childW = MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY);
+        int h = 0;
         for (int i = 0; i < getChildCount(); i++) {
-            getChildAt(i).measure(childW, childH);
+            final View child = getChildAt(i);
+            child.measure(childW, childH);
+            h = Math.max(h, child.getMeasuredHeight());
         }
-        setMeasuredDimension(w, current.getMeasuredHeight());
+        setMeasuredDimension(w, h);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        final int h = bottom - top;
+        for (int i = 0; i < getChildCount(); i++) {
+            final View child = getChildAt(i);
+            child.layout(0, h - child.getMeasuredHeight(), child.getMeasuredWidth(), h);
+        }
     }
 
     private boolean startsDrag(float x, float y) {
@@ -171,8 +187,9 @@ final class MeridaGiftPager extends FrameLayout {
             neighbour = factory.create(target);
             neighbourIndex = target;
             addView(neighbour, 0, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-            neighbour.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(getHeight() * 4, MeasureSpec.AT_MOST));
-            neighbour.layout(0, 0, w, neighbour.getMeasuredHeight());
+            neighbour.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.displaySize.y, MeasureSpec.AT_MOST));
+            neighbour.layout(0, getHeight() - neighbour.getMeasuredHeight(), w, getHeight());
+            requestLayout();
         }
         transform(current, offset, w);
         transform(neighbour, offset + (target > index ? w : -w), w);

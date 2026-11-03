@@ -78,9 +78,11 @@ public final class MeridaVisualGiftSheet {
         }
         final Context context = fragment.getParentActivity();
         final BottomSheet sheet = new BottomSheet(context, false);
-        // like Telegram's gift window: the coloured header starts at the sheet's very top, rounded 12 dp
+        // like Telegram's gift window: the coloured header starts at the sheet's very top, rounded 12 dp.
+        // Each card draws its own background (the sheet's is transparent), like Telegram's swipeable gift
+        // window: cards of different heights then swipe without the window jumping
         sheet.setApplyTopPadding(false);
-        sheet.setBackgroundColor(MeridaVisualUi.SHEET_BG);
+        sheet.setBackgroundColor(0x00000000);
         sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
         final boolean[] anyChanged = new boolean[1];
         sheet.setOnDismissListener(d -> {
@@ -421,6 +423,11 @@ public final class MeridaVisualGiftSheet {
         // the window is as tall as its content, like Telegram's (the confetti layer must not stretch it)
         final org.telegram.ui.Components.FireworksOverlay fireworks = new org.telegram.ui.Components.FireworksOverlay(context);
         final View page = MeridaVisualUi.withOverlay(context, scroll, fireworks);
+        final android.graphics.drawable.GradientDrawable pageBg = new android.graphics.drawable.GradientDrawable();
+        final float r = AndroidUtilities.dp(12);
+        pageBg.setCornerRadii(new float[]{r, r, r, r, 0, 0, 0, 0});
+        pageBg.setColor(MeridaVisualUi.SHEET_BG);
+        page.setBackground(pageBg);
         if (celebrate) {
             // like Telegram after an upgrade: confetti and «Gift upgraded»
             AndroidUtilities.runOnUIThread(() -> {
