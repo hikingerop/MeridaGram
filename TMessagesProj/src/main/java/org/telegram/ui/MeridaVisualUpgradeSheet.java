@@ -116,8 +116,8 @@ final class MeridaVisualUpgradeSheet {
         ButtonWithCounterView button;
         TextView nextLink;
         FireworksOverlay fireworks;
-        /** The possible looks change every ~1.7 s on the «Upgrade gift» page, like Telegram's. */
-        static final int CYCLE_MS = 1700;
+        /** Like Telegram's upgrade page (StarGiftSheet.rotateAttributes): the next look 2.5 s after a 320 ms switch. */
+        static final int CYCLE_MS = 2500 + 320;
 
         TL_stars.starGiftAttributeModel model;
         TL_stars.starGiftAttributeBackdrop backdrop;
@@ -268,7 +268,7 @@ final class MeridaVisualUpgradeSheet {
             }
             final TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(doc.thumbs, AndroidUtilities.dp(160));
             view.setImage(ImageLocation.getForDocument(doc), "160_160", ImageLocation.getForDocument(thumb, doc), "160_160", null, gift);
-            view.getImageReceiver().setAutoRepeat(0); // like Telegram: plays once (only the worn NFT at your name loops)
+            view.getImageReceiver().setAutoRepeat(1); // like Telegram's upgrade page: the possible models keep playing
         }
 
         void nextPreview(boolean animated) {
@@ -282,11 +282,16 @@ final class MeridaVisualUpgradeSheet {
                 setDoc(image, model.document);
                 return;
             }
+            // like Telegram: a soft 320 ms cross-fade, the model keeps playing from where the previous one was
             final TL_stars.starGiftAttributeModel m = model;
-            image.animate().alpha(0f).scaleX(0.85f).scaleY(0.85f).setDuration(180).withEndAction(() -> {
+            final org.telegram.ui.Components.RLottieDrawable was = image.getImageReceiver().getLottieAnimation();
+            final float progress = was != null ? was.getProgress() : 0;
+            image.animate().alpha(0f).setDuration(140).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).withEndAction(() -> {
                 if (rolling || done) return;
                 setDoc(image, m.document);
-                image.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(260).setInterpolator(CubicBezierInterpolator.EASE_OUT_BACK).start();
+                final org.telegram.ui.Components.RLottieDrawable now = image.getImageReceiver().getLottieAnimation();
+                if (now != null) now.setProgress(progress, false);
+                image.animate().alpha(1f).setDuration(180).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).start();
             }).start();
         }
 
