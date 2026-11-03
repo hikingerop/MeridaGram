@@ -374,9 +374,9 @@ final class MeridaMyGiftsSheet {
             if (p != null) tableRow(table, s(R.string.MeridaNftPattern), p.name);
             if (b != null) tableRow(table, s(R.string.MeridaNftBackdrop), b.name);
         } else {
-            tableRow(table, s(R.string.MeridaVCost), "⭐ " + LocaleController.formatNumber(g.stars, ','));
+            tableRow(table, s(R.string.MeridaVCost), org.telegram.messenger.merida.MeridaVisual.stars(g.stars));
         }
-        if (sale > 0) tableRow(table, s(R.string.MeridaVSaleTag), "⭐ " + LocaleController.formatNumber(sale, ','));
+        if (sale > 0) tableRow(table, s(R.string.MeridaVSaleTag), org.telegram.messenger.merida.MeridaVisual.stars(sale));
         right.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 8, 0, 0));
         top.addView(right, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
         card.addView(top);
@@ -426,7 +426,7 @@ final class MeridaMyGiftsSheet {
         return t;
     }
 
-    private static void tableRow(LinearLayout table, String label, String value) {
+    private static void tableRow(LinearLayout table, String label, CharSequence value) {
         final Context context = table.getContext();
         final LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);

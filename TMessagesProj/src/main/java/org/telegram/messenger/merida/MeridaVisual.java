@@ -60,6 +60,23 @@ public final class MeridaVisual {
         return s.replace(',', ' ');
     }
 
+    /** «⭐ N» with Telegram's own star icon (not a plain star), for balances and prices. */
+    public static CharSequence stars(long value) {
+        return org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain("⭐ " + formatNumber(value), .85f);
+    }
+
+    /** «N GRAM» with Telegram's own GRAM/diamond icon (the TON glyph), for balances and prices. */
+    public static CharSequence gram(long value) {
+        return org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(true, "TON " + formatNumber(value), .85f);
+    }
+
+    /** «⭐ N · GRAM M» line with Telegram's real icons, used for the balance everywhere. */
+    public static CharSequence balance(long starsValue, long gramsValue) {
+        final SpannableStringBuilder sb = new SpannableStringBuilder();
+        sb.append(stars(starsValue)).append("   ").append(gram(gramsValue));
+        return sb;
+    }
+
     /** The orange «VISUAL» pill that goes next to every visual number. */
     public static CharSequence mark() {
         final SpannableString s = new SpannableString(LocaleController.getString(R.string.MeridaVisualMark));

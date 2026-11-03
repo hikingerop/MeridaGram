@@ -308,12 +308,12 @@ final class MeridaVisualSheets {
             starsUsd.setText("≈ " + usd(starsUsd(fragment, stars[0])));
             final double rate = tonUsdRate(fragment);
             gramsUsd.setText(rate > 0 ? "≈ " + usd(grams[0] * rate) + " · " + LocaleController.formatString(R.string.MeridaVTonRate, String.format(java.util.Locale.US, "%.2f", rate)) : "");
-            sh.setSubtitle(stars[0] + " Stars · " + grams[0] + " GRAM");
+            sh.setSubtitle(org.telegram.messenger.merida.MeridaVisual.balance(stars[0], grams[0]));
         };
 
         watchAmount(starsValue, stars, update);
         watchAmount(gramsValue, grams, update);
-        sh.body.addView(balanceCard(fragment, context, "★", starsValue, "Stars", starsUsd, new int[]{100, 1000, 10000}, stars, update),
+        sh.body.addView(balanceCard(fragment, context, "⭐", starsValue, "Stars", starsUsd, new int[]{100, 1000, 10000}, stars, update),
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
         sh.body.addView(balanceCard(fragment, context, "", gramsValue, "GRAM", gramsUsd, new int[]{1, 10, 100}, grams, update),
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));

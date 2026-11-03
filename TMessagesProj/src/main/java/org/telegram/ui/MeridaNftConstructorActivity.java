@@ -307,8 +307,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         }
         final android.text.SpannableStringBuilder sb = new android.text.SpannableStringBuilder(LocaleController.getString(R.string.MeridaNftBalance));
         sb.append(' ').append(MeridaVisual.mark()).append('\n');
-        sb.append("💎 ").append(MeridaVisual.formatNumber(grams)).append("  ");
-        sb.append(org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain("⭐️ " + MeridaVisual.formatNumber(stars), .85f));
+        sb.append(MeridaVisual.gram(grams)).append("   ").append(MeridaVisual.stars(stars));
         balanceView.setText(sb);
         balanceView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         balanceView.setVisibility(View.VISIBLE);

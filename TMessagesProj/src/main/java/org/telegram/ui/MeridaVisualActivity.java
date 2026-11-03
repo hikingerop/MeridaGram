@@ -175,7 +175,7 @@ public class MeridaVisualActivity extends BaseFragment {
                 v -> { if (needOn()) new MeridaMyGiftsSheet(this).show(); }));
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_gear, s(R.string.MeridaVNftProfile), nftProfileSubtitle(), true,
                 v -> presentFragment(new MeridaVisualActivity(PAGE_PROFILE))));
-        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_wallet, s(R.string.MeridaVBalance), balanceSubtitle(), true,
+        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_wallet, s(R.string.MeridaVBalance), balanceSubtitleCs(), true,
                 v -> MeridaVisualSheets.showBalance(this)));
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_dice, s(R.string.MeridaVCraft), s(R.string.MeridaVCraftSub), true,
                 v -> presentFragment(new MeridaVisualActivity(PAGE_CRAFT))));
@@ -334,8 +334,8 @@ public class MeridaVisualActivity extends BaseFragment {
         b.show();
     }
 
-    static String balanceSubtitle() {
-        return MeridaSettings.visualStars.get() + " Stars · " + MeridaSettings.visualGrams.get() + " GRAM";
+    static CharSequence balanceSubtitleCs() {
+        return org.telegram.messenger.merida.MeridaVisual.balance(MeridaSettings.visualStars.get(), MeridaSettings.visualGrams.get());
     }
 
     void notifyProfile() {
