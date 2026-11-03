@@ -1051,8 +1051,14 @@ public class ChatActionCell extends BaseCell implements DownloadController.FileD
                     }
                     if (messageIdChanged || messageObject == null || messageObject.type != MessageObject.TYPE_GIFT_PREMIUM) {
                         SvgHelper.SvgDrawable svgThumb = DocumentObject.getSvgThumb(document, Theme.key_windowBackgroundGray, 0.3f);
-                        imageReceiver.setAutoRepeat(0);
-                        imageReceiver.setImage(ImageLocation.getForDocument(document), String.format(Locale.US, "%d_%d_nr_messageId=%d", 160, 160, messageObject.stableId), svgThumb, "tgs", parentObject, 1);
+                        if (messageObject.meridaVisualCard) {
+                            // MeridaGram «Visual»: the visual gift keeps playing (Telegram plays it once)
+                            imageReceiver.setAutoRepeat(1);
+                            imageReceiver.setImage(ImageLocation.getForDocument(document), String.format(Locale.US, "%d_%d_messageId=%d", 160, 160, messageObject.stableId), svgThumb, "tgs", parentObject, 1);
+                        } else {
+                            imageReceiver.setAutoRepeat(0);
+                            imageReceiver.setImage(ImageLocation.getForDocument(document), String.format(Locale.US, "%d_%d_nr_messageId=%d", 160, 160, messageObject.stableId), svgThumb, "tgs", parentObject, 1);
+                        }
                     }
                 } else if (packName != null) {
                     MediaDataController.getInstance(currentAccount).loadStickersByEmojiOrName(packName, false, set == null);

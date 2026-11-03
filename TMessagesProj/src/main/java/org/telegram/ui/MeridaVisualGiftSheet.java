@@ -435,6 +435,8 @@ public final class MeridaVisualGiftSheet {
                         picker.dismiss();
                         // like Telegram: the chat with the new owner opens with the gift card
                         AndroidUtilities.runOnUIThread(() -> fragment.presentFragment(ChatActivity.of(dialogId)), 200);
+                        // confetti once the chat is open (like Telegram when a gift arrives)
+                        AndroidUtilities.runOnUIThread(org.telegram.messenger.merida.MeridaVisualChat::celebrate, 800);
                     })
                     .setNegativeButton(s(R.string.Cancel), null)
                     .show();

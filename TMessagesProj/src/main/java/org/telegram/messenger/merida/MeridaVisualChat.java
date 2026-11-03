@@ -25,7 +25,12 @@ public final class MeridaVisualChat {
     }
 
     /** Confetti over the whole screen, like Telegram when a gift arrives. */
+    private static long lastCelebrate;
+
     public static void celebrate() {
+        final long now = System.currentTimeMillis();
+        if (now - lastCelebrate < 4000) return; // once per transfer / purchase
+        lastCelebrate = now;
         try {
             if (org.telegram.ui.LaunchActivity.instance != null) {
                 org.telegram.ui.LaunchActivity.instance.getFireworksOverlay().start(true);
@@ -69,6 +74,7 @@ public final class MeridaVisualChat {
                 if (fragment != null) {
                     fragment.presentFragment(org.telegram.ui.ChatActivity.of(self));
                 }
+                org.telegram.messenger.AndroidUtilities.runOnUIThread(MeridaVisualChat::celebrate, 700);
             } catch (Throwable ignore) {
             }
         }, 350);
