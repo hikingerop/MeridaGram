@@ -806,6 +806,21 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
                 o.add(R.drawable.menu_transfer, getString(R.string.Gift2TransferOption), () ->
                     org.telegram.ui.MeridaVisualGiftSheet.transfer(parent.fragment, key, (TL_stars.TL_starGiftUnique) saved.gift));
             }
+            if (isCollection && list != null && parent.collections.isMine()) {
+                // like Telegram inside a collection: «Remove From Collection» (only on this phone)
+                final int collectionId = list.collectionId;
+                o.add(R.drawable.msg_removefolder, getString(R.string.Gift2RemoveFromCollection), true, () -> {
+                    parent.collections.removeGift(collectionId, saved);
+                    parent.updateTabsShown(true);
+                    final TL_stars.TL_starGiftCollection collection = parent.collections.findById(collectionId);
+                    if (collection != null) {
+                        BulletinFactory.of(parent.fragment)
+                            .createSimpleMultiBulletin(saved.gift.getDocument(), AndroidUtilities.replaceTags(formatString(R.string.Gift2RemovedFromCollection, getGiftName(saved.gift), collection.title)))
+                            .show();
+                    }
+                    changed.run();
+                });
+            }
             o.setGravity(Gravity.RIGHT);
             o.setBlur(true);
             o.allowMoveScrim();

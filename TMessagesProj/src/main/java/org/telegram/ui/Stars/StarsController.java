@@ -3316,6 +3316,12 @@ public class StarsController {
             req.flags |= 4;
             for (TL_stars.SavedStarGift gift : gifts) {
                 updateGiftsCollections(gift, id, true);
+                if (org.telegram.messenger.merida.MeridaVisualGifts.isVisual(gift)) {
+                    // MeridaGram «Visual»: a visual gift joins the collection only on this phone
+                    final String visualKey = org.telegram.messenger.merida.MeridaVisualGifts.keyOf(gift);
+                    if (visualKey != null) org.telegram.messenger.merida.MeridaVisualGifts.setInCollection(visualKey, id, true);
+                    continue;
+                }
                 if (gift.msg_id > 0) {
                     final TL_stars.TL_inputSavedStarGiftUser inputGift = new TL_stars.TL_inputSavedStarGiftUser();
                     inputGift.msg_id = gift.msg_id;
@@ -3329,6 +3335,7 @@ public class StarsController {
                     FileLog.w("can't convert gift to inputgift to add into the collection");
                 }
             }
+            if (req.add_stargift.isEmpty()) return; // only visual gifts: Telegram is not asked
             ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
                 if (res instanceof TL_stars.TL_starGiftCollection) {
                     final TL_stars.TL_starGiftCollection loaded = (TL_stars.TL_starGiftCollection) res;
@@ -3373,6 +3380,11 @@ public class StarsController {
             req.flags |= 2;
             for (TL_stars.SavedStarGift gift : gifts) {
                 updateGiftsCollections(gift, id, false);
+                if (org.telegram.messenger.merida.MeridaVisualGifts.isVisual(gift)) {
+                    final String visualKey = org.telegram.messenger.merida.MeridaVisualGifts.keyOf(gift);
+                    if (visualKey != null) org.telegram.messenger.merida.MeridaVisualGifts.setInCollection(visualKey, id, false);
+                    continue;
+                }
                 if (gift.msg_id > 0) {
                     final TL_stars.TL_inputSavedStarGiftUser inputGift = new TL_stars.TL_inputSavedStarGiftUser();
                     inputGift.msg_id = gift.msg_id;
@@ -3387,7 +3399,7 @@ public class StarsController {
                 }
             }
             final int count = req.delete_stargift.size();
-            ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+            if (count > 0) ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
                 if (res instanceof TL_stars.TL_starGiftCollection) {
                     final TL_stars.TL_starGiftCollection loaded = (TL_stars.TL_starGiftCollection) res;
                     int index = indexOf(loaded.collection_id);
