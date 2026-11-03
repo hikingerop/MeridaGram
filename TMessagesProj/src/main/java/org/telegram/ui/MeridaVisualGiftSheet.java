@@ -83,6 +83,9 @@ public final class MeridaVisualGiftSheet {
         // window: cards of different heights then swipe without the window jumping
         sheet.setApplyTopPadding(false);
         sheet.setBackgroundColor(0x00000000);
+        // the sheet's own 8 dp under the content would be transparent (the profile showed through under «OK»):
+        // the card takes it into its own bottom padding instead
+        sheet.setApplyBottomPadding(false);
         sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
         final boolean[] anyChanged = new boolean[1];
         sheet.setOnDismissListener(d -> {
@@ -310,7 +313,7 @@ public final class MeridaVisualGiftSheet {
         // ---- table
         final LinearLayout body = new LinearLayout(context);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(3));
+        body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(3 + 8));
         final TableView table = new TableView(context, fragment.getResourceProvider());
         final long newOwner = key != null ? org.telegram.messenger.merida.MeridaVisualChat.transferredTo(key) : 0;
         ownerRow[0] = (FrameLayout) ownerView(context, account, newOwner);

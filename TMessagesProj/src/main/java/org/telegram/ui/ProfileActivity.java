@@ -7371,6 +7371,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return false;
     }
 
+    /** MeridaGram «Visual»: your own username row shows the visual username itself (as a link). */
+    private boolean meridaVisualMainUsername() {
+        if (userId == 0 || userId != getUserConfig().getClientUserId() || !org.telegram.messenger.merida.MeridaVisual.usernameOn()) {
+            return false;
+        }
+        final TLRPC.User user = getMessagesController().getUser(userId);
+        return MeridaSettings.visualUsernameReplace.get() || user == null || UserObject.getPublicUsername(user) == null;
+    }
+
     private boolean processOnClickOrPress(final int position, final View view, final float x, final float y) {
         if (meridaOpenVisualCollectible(position)) {
             return true;
@@ -9142,6 +9151,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             checkCanSendStoryForPosting();
         } else if (id == NotificationCenter.updateInterfaces) {
             int mask = (Integer) args[0];
+            if (mask == MessagesController.UPDATE_MASK_ALL && listAdapter != null && infoSectionRow >= 0) {
+                // MeridaGram «Visual»: the verification line under the info card (chosen or just loaded)
+                listAdapter.notifyItemChanged(infoSectionRow);
+            }
             boolean infoChanged = (mask & MessagesController.UPDATE_MASK_AVATAR) != 0 || (mask & MessagesController.UPDATE_MASK_NAME) != 0 || (mask & MessagesController.UPDATE_MASK_STATUS) != 0 || (mask & MessagesController.UPDATE_MASK_EMOJI_STATUS) != 0;
             if (userId != 0) {
                 if (infoChanged) {
@@ -11262,6 +11275,19 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         return premiumCrossfadeDrawable[a];
     }
 
+    /**
+     * MeridaGram «Visual»: the organization's icon with the VISUAL pill; until the icon is loaded (or when the
+     * organization's bot has none) a plain verification mark in the name's colour.
+     */
+    private Drawable getMeridaVerifyDrawable(long icon, int a) {
+        if (icon != 0) {
+            return org.telegram.messenger.merida.MeridaVisual.withMark(getBotVerificationDrawable(icon, false, a));
+        }
+        final Drawable mark = ContextCompat.getDrawable(getParentActivity() != null ? getParentActivity() : ApplicationLoader.applicationContext, R.drawable.menu_verification).mutate();
+        mark.setColorFilter(new PorterDuffColorFilter(nameTextView[a] != null ? nameTextView[a].getTextPaint().getColor() : 0xFFFFFFFF, PorterDuff.Mode.SRC_IN));
+        return org.telegram.messenger.merida.MeridaVisual.withMark(mark);
+    }
+
     private Drawable getBotVerificationDrawable(long icon, boolean animated, int a) {
         if (botVerificationDrawable[a] == null) {
             botVerificationDrawable[a] = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView[a], AndroidUtilities.dp(17), a == 0 ? AnimatedEmojiDrawable.CACHE_TYPE_EMOJI_STATUS : AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
@@ -11669,14 +11695,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextView[a].setRightDrawable(null);
                     }
                 }
-                final long meridaVerifyIcon = user.self && user.bot_verification_icon == 0 ? org.telegram.messenger.merida.MeridaVisualVerify.iconFor(currentAccount, user.id) : 0;
+                final boolean meridaVerify = user.self && user.bot_verification_icon == 0 && org.telegram.messenger.merida.MeridaVisualVerify.has(user.id);
+                final long meridaVerifyIcon = meridaVerify ? org.telegram.messenger.merida.MeridaVisualVerify.iconFor(currentAccount, user.id) : 0;
                 if (leftIcon == null && currentEncryptedChat == null && user.bot_verification_icon != 0) {
                     nameTextView[a].setLeftDrawableOutside(true);
                     leftIcon = getBotVerificationDrawable(user.bot_verification_icon, false, a);
-                } else if (leftIcon == null && currentEncryptedChat == null && meridaVerifyIcon != 0) {
+                } else if (leftIcon == null && currentEncryptedChat == null && meridaVerify) {
                     // MeridaGram «Visual»: the chosen organization's icon, with the VISUAL pill (only on this phone)
                     nameTextView[a].setLeftDrawableOutside(true);
-                    leftIcon = org.telegram.messenger.merida.MeridaVisual.withMark(getBotVerificationDrawable(meridaVerifyIcon, false, a));
+                    leftIcon = getMeridaVerifyDrawable(meridaVerifyIcon, a);
                 } else {
                     nameTextView[a].setLeftDrawableOutside(false);
                 }
@@ -12002,14 +12029,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextView[a].setRightDrawable(null);
                     }
                 }
-                final long meridaChatVerifyIcon = chat.bot_verification_icon == 0 ? org.telegram.messenger.merida.MeridaVisualVerify.iconFor(currentAccount, -chat.id) : 0;
+                final boolean meridaChatVerify = chat.bot_verification_icon == 0 && org.telegram.messenger.merida.MeridaVisualVerify.has(-chat.id);
+                final long meridaChatVerifyIcon = meridaChatVerify ? org.telegram.messenger.merida.MeridaVisualVerify.iconFor(currentAccount, -chat.id) : 0;
                 if (chat.bot_verification_icon != 0) {
                     nameTextView[a].setLeftDrawableOutside(true);
                     nameTextView[a].setLeftDrawable(getBotVerificationDrawable(chat.bot_verification_icon, false, a));
-                } else if (meridaChatVerifyIcon != 0) {
+                } else if (meridaChatVerify) {
                     // MeridaGram «Visual»: the chosen organization's icon, with the VISUAL pill (only on this phone)
                     nameTextView[a].setLeftDrawableOutside(true);
-                    nameTextView[a].setLeftDrawable(org.telegram.messenger.merida.MeridaVisual.withMark(getBotVerificationDrawable(meridaChatVerifyIcon, false, a)));
+                    nameTextView[a].setLeftDrawable(getMeridaVerifyDrawable(meridaChatVerifyIcon, a));
                 } else {
                     nameTextView[a].setLeftDrawable(null);
                 }
@@ -13769,8 +13797,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 final String mainName = MeridaSettings.visualUsername.get();
                                 final SpannableStringBuilder others = new SpannableStringBuilder();
                                 if (MeridaSettings.visualUsernameReplace.get() || username == null) {
-                                    final SpannableStringBuilder visual = new SpannableStringBuilder(org.telegram.messenger.merida.MeridaVisual.watermark("@" + mainName, linkColor));
-                                    text = visual;
+                                    // like Telegram's Fragment usernames: only «@name» is tappable, with a small rounded
+                                    // highlight on it, not the whole row
+                                    text = meridaVisualUsernameLink(mainName, linkColor);
                                 } else {
                                     others.append(meridaVisualUsernameLink(mainName, linkColor));
                                 }
@@ -14237,7 +14266,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             }
                             if (bot_verification != null) {
                                 sb.append("x");
-                                sb.setSpan(new AnimatedEmojiSpan(bot_verification.icon, cell.getTextView().getPaint().getFontMetricsInt()), sb.length() - 1, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                if (meridaVerify && bot_verification.icon == 0) {
+                                    // the organization's icon is not loaded yet: a plain verification mark
+                                    sb.setSpan(new ColoredImageSpan(R.drawable.menu_verification), sb.length() - 1, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                } else {
+                                    sb.setSpan(new AnimatedEmojiSpan(bot_verification.icon, cell.getTextView().getPaint().getFontMetricsInt()), sb.length() - 1, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                }
                                 sb.append(" ");
                                 SpannableString description = new SpannableString(meridaVerify
                                         ? org.telegram.messenger.merida.MeridaVisualVerify.descriptionFor(did, bot_verification)
@@ -14463,7 +14497,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         /** MeridaGram «Visual»: a visual username in the link colour, with «VISUAL» over it; a tap opens its Fragment-style card. */
         private CharSequence meridaVisualUsernameLink(String name, int color) {
             final SpannableStringBuilder sb = new SpannableStringBuilder(org.telegram.messenger.merida.MeridaVisual.watermark("@" + name, color));
-            sb.setSpan(new ClickableSpan() {
+            sb.setSpan(new org.telegram.messenger.merida.MeridaVisual.LinkSpan() {
                 @Override
                 public void onClick(@NonNull View view) {
                     MeridaVisualSheets.showCollectible(ProfileActivity.this, false, name);
@@ -14553,6 +14587,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         position == addToGroupButtonRow || position == premiumRow || position == premiumGiftingRow ||
                         position == businessRow || position == liteModeRow || position == birthdayRow || position == channelRow ||
                         position == starsRow || position == tonRow || position == linkedCommunityRow;
+            }
+            if (holder.getAdapterPosition() == usernameRow && meridaVisualMainUsername()) {
+                // MeridaGram «Visual»: the row itself does nothing, the «@name» link in it opens the card
+                return false;
             }
             if (holder.itemView instanceof UserCell) {
                 UserCell userCell = (UserCell) holder.itemView;

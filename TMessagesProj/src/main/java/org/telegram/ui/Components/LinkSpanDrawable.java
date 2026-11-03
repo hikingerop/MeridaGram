@@ -681,7 +681,7 @@ public class LinkSpanDrawable<S extends CharacterStyle> {
                 if ((span = hit((int) event.getX(), (int) event.getY())) != null) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         final LinkSpanDrawable link = new LinkSpanDrawable<ClickableSpan>(span, resourcesProvider, event.getX(), event.getY());
-                        link.setColor(overrideColor());
+                        link.setColor(span instanceof org.telegram.messenger.merida.MeridaVisual.LinkSpan ? ((org.telegram.messenger.merida.MeridaVisual.LinkSpan) span).pressColor() : overrideColor());
                         pressedLink = link;
                         links.addLink(pressedLink);
                         Spannable buffer = new SpannableString(textLayout.getText());

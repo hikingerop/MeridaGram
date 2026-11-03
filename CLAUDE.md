@@ -192,6 +192,12 @@ ReactionsLayoutInBubble прибавляет её к ⭐ и рисует ора�
 «Верификация организацией», группы/каналы — «⋮» → «Визуальная верификация» (пока Визуал включён). ProfileActivity:
 значок слева от имени + пилюля ВИЗУАЛ (MeridaVisual.withMark), строка «… верифицирован организацией «X».» в infoSectionRow
 с водяным знаком ВИЗУАЛ поверх текста. Ничего не отправляется.
+Значок и название организации (verifier_settings) Telegram отдаёт только владельцу бота — поэтому запасные источники:
+своя верификация бота (bot_verification / bot_verification_icon) и его имя; до загрузки — простой значок menu_verification
+и «Major»/«Hold». Строка в профиле обновляется по updateInterfaces (notifyItemChanged(infoSectionRow)). В экране Визуала
+пункт стоит сразу после «NFT-профиля». Визуальный юзернейм в своём профиле — ссылка только на «@ник» (MeridaVisual.LinkSpan:
+маленькая скруглённая прозрачно-белая подсветка, как у Chimera), сама строка не нажимается (isEnabled false).
+Окно NFT: setApplyBottomPadding(false) — иначе под «ОК» прозрачная полоса (фон листа прозрачный), отступ ушёл в body (3+8).
 Обновления как у exteraGram (Основные → «Обновления MeridaGram», вкл. по умолчанию): `TMessagesProj_AppStandalone/…/
 MeridaUpdaterController.java` берёт последний релиз GitHub `build-N` (api.github.com/repos/hikingerop/MeridaGram/releases/latest,
 раз в час), сравнивает с MeridaBuild.NUMBER; ApplicationLoaderImpl (Standalone) — isCustomUpdate/getUpdate/download… →

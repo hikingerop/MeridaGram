@@ -175,6 +175,9 @@ public class MeridaVisualActivity extends BaseFragment {
                 v -> { if (needOn()) new MeridaMyGiftsSheet(this).show(); }));
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_gear, s(R.string.MeridaVNftProfile), nftProfileSubtitle(), true,
                 v -> presentFragment(new MeridaVisualActivity(PAGE_PROFILE))));
+        // right under the NFT profile: it belongs with your profile's looks
+        card.addView(MeridaVisualUi.row(context, R.drawable.menu_verification, s(R.string.MeridaVVerifyTitle), verifySubtitle(), true,
+                v -> { if (needOn()) MeridaVisualSheets.askVerification(this, getUserConfig().getClientUserId(), this::rebuild); }));
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_wallet, s(R.string.MeridaVBalance), balanceSubtitleCs(), true,
                 v -> MeridaVisualSheets.showBalance(this)));
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_dice, s(R.string.MeridaVCraft), s(R.string.MeridaVCraftSub), true,
@@ -205,8 +208,6 @@ public class MeridaVisualActivity extends BaseFragment {
             reactions[0].setChecked(MeridaSettings.visualStarReactions.get());
         });
         extra.addView(reactions[0]);
-        extra.addView(MeridaVisualUi.row(context, R.drawable.menu_verification, s(R.string.MeridaVVerifyTitle), s(R.string.MeridaVVerifySub), true,
-                v -> { if (needOn()) MeridaVisualSheets.askVerification(this, getUserConfig().getClientUserId(), this::rebuild); }));
         addCard(extra);
 
         content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVExtra)));
@@ -289,6 +290,13 @@ public class MeridaVisualActivity extends BaseFragment {
     }
 
     /** «Username · Number · Rating» — only what is set, like Chimera. */
+    /** The chosen organization («Major»), or what the row does when none is chosen. */
+    private String verifySubtitle() {
+        final String chosen = org.telegram.messenger.merida.MeridaVisualVerify.get(getUserConfig().getClientUserId());
+        if (chosen == null) return s(R.string.MeridaVVerifySub);
+        return org.telegram.messenger.merida.MeridaVisualVerify.companyOrName(chosen);
+    }
+
     private String nftProfileSubtitle() {
         final java.util.ArrayList<String> parts = new java.util.ArrayList<>();
         final String u = MeridaSettings.visualUsername.get();

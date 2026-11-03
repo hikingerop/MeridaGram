@@ -270,6 +270,17 @@ public final class MeridaVisual {
     }
 
     /**
+     * A tappable visual username / number: while pressed, only its text gets a small rounded translucent
+     * highlight (white on dark themes), like Telegram's links — not the whole row.
+     */
+    public abstract static class LinkSpan extends android.text.style.ClickableSpan {
+        public int pressColor() {
+            return org.telegram.ui.ActionBar.Theme.isCurrentThemeDark() ? 0x29FFFFFF
+                    : org.telegram.ui.ActionBar.Theme.getColor(org.telegram.ui.ActionBar.Theme.key_chat_linkSelectBackground);
+        }
+    }
+
+    /**
      * The text with «VISUAL» written over it, repeated across its whole width, so a screenshot cannot be
      * cropped to show the text without the mark.
      */
