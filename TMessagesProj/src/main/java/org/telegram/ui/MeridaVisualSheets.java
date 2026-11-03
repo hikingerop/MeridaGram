@@ -935,12 +935,14 @@ final class MeridaVisualSheets {
         final android.text.SpannableStringBuilder title = new android.text.SpannableStringBuilder(AndroidUtilities.replaceTags(
                 LocaleController.formatString(phone ? R.string.FragmentPhoneTitle : R.string.FragmentUsernameTitle, shown)));
         title.append(' ').append(MeridaVisual.mark());
-        final TextView header = label(context, title, 0xFFFFFFFF, 13.5f, true);
+        // sizes exactly as Telegram's FragmentUsernameBottomSheet: title 16 sp bold, owner chip 13 sp,
+        // description 14 sp, buttons 48 dp
+        final TextView header = label(context, title, 0xFFFFFFFF, 16, true);
         header.setGravity(Gravity.CENTER);
-        layout.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 26, 0, 26, 0));
+        layout.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 42, 0, 42, 0));
 
         final FrameLayout chip = new FrameLayout(context);
-        chip.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(28), AndroidUtilities.dp(28), 0xFF2C2C2E));
+        chip.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(28), AndroidUtilities.dp(28), Theme.getColor(Theme.key_groupcreate_spanBackground)));
         final org.telegram.tgnet.TLRPC.User me = org.telegram.messenger.UserConfig.getInstance(fragment.getCurrentAccount()).getCurrentUser();
         final org.telegram.ui.Components.BackupImageView avatar = new org.telegram.ui.Components.BackupImageView(context);
         avatar.setRoundRadius(AndroidUtilities.dp(28));
@@ -951,7 +953,7 @@ final class MeridaVisualSheets {
         }
         chip.addView(avatar, LayoutHelper.createFrame(28, 28, Gravity.LEFT | Gravity.TOP));
         final String myName = me != null ? org.telegram.messenger.UserObject.getUserName(me) : "";
-        final TextView chipText = label(context, MeridaVisual.watermark(myName.isEmpty() ? "—" : myName), 0xFFFFFFFF, 11, false);
+        final TextView chipText = label(context, MeridaVisual.watermark(myName.isEmpty() ? "—" : myName), Theme.getColor(Theme.key_dialogTextBlack), 13, false);
         chipText.setSingleLine(true);
         chip.addView(chipText, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.LEFT, 37, 0, 10, 0));
         layout.addView(chip, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 28, Gravity.CENTER_HORIZONTAL, 42, 10, 42, 18));
@@ -968,24 +970,24 @@ final class MeridaVisualSheets {
         span.setWidth(AndroidUtilities.dp(13));
         tonIcon.setSpan(span, 0, tonIcon.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         final CharSequence messageText = AndroidUtilities.replaceCharSequence("TON", AndroidUtilities.replaceTags(message), tonIcon);
-        final TextView description = label(context, messageText, 0xFFFFFFFF, 12, false);
+        final TextView description = label(context, messageText, Theme.getColor(Theme.key_dialogTextBlack), 14, false);
         description.setGravity(Gravity.CENTER);
-        layout.addView(description, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 6));
-        final TextView note = label(context, s(R.string.MeridaVCollectibleNote), 0xFF8E8E93, 10, false);
+        layout.addView(description, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 8));
+        final TextView note = label(context, s(R.string.MeridaVCollectibleNote), 0xFF8E8E93, 12, false);
         note.setGravity(Gravity.CENTER);
-        layout.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 16));
+        layout.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 19));
 
         final org.telegram.ui.Stories.recorder.ButtonWithCounterView more = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, null).setRound();
         more.setText(s(R.string.FragmentUsernameOpen), false);
         more.setOnClickListener(v -> Browser.openUrl(context, phone ? "https://fragment.com/numbers" : "https://fragment.com/username/" + name));
-        layout.addView(more, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 42, 6, 0, 6, 0));
+        layout.addView(more, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 6, 0, 6, 0));
         final org.telegram.ui.Stories.recorder.ButtonWithCounterView copy = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, null).setRound().setNeutral();
         copy.setText(s(phone ? R.string.FragmentPhoneCopy : R.string.FragmentUsernameCopy), false);
         copy.setOnClickListener(v -> {
             AndroidUtilities.addToClipboard(phone ? shown : "https://t.me/" + name);
             sheet.dismiss();
         });
-        layout.addView(copy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 42, 6, 6, 6, 0));
+        layout.addView(copy, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 6, 6, 6, 0));
         sheet.setCustomView(layout);
         sheet.show();
     }

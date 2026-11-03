@@ -269,12 +269,26 @@ public final class MeridaVisual {
      * cropped to show the text without the mark.
      */
     public static CharSequence watermark(CharSequence text) {
+        return watermark(text, 0);
+    }
+
+    /**
+     * textColor ≠ 0: the text itself is drawn in this colour (a span's own colour does not reach the text of
+     * a replacement span, so e.g. a visual username is blue like one bought on Fragment only this way).
+     */
+    public static CharSequence watermark(CharSequence text, int textColor) {
         final SpannableString s = new SpannableString(text);
-        s.setSpan(new WatermarkSpan(), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        s.setSpan(new WatermarkSpan(textColor), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return s;
     }
 
     private static final class WatermarkSpan extends ReplacementSpan {
+        private final int textColor;
+
+        WatermarkSpan(int textColor) {
+            this.textColor = textColor;
+        }
+
         private final TextPaint markPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         private final String mark = LocaleController.getString(R.string.MeridaVisualMark).toUpperCase();
 
@@ -298,7 +312,10 @@ public final class MeridaVisual {
         public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, @NonNull Paint paint) {
             final float textWidth = paint.measureText(text, start, end);
             final float width = spanWidth(paint, text, start, end);
+            final int oldColor = paint.getColor();
+            if (textColor != 0) paint.setColor(textColor);
             canvas.drawText(text, start, end, x + (width - textWidth) / 2f, y, paint);
+            if (textColor != 0) paint.setColor(oldColor);
             // the whole word «VISUAL» is always readable: it fits the name (not smaller than ~half the
             // text size), is centred on it and repeats only when the name is long enough
             markPaint.setTypeface(AndroidUtilities.bold());

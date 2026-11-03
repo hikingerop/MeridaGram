@@ -9,6 +9,10 @@ public final class MeridaSettings {
     public static final BooleanSetting showId =
         BooleanSetting.of("merida_show_id", false);
 
+    /** «High refresh rate»: ask the phone for its fastest screen mode (MeridaRefreshRate). */
+    public static final BooleanSetting highRefreshRate =
+        BooleanSetting.of("merida_high_refresh_rate", true);
+
     /** «Copy ID» of the sender in the message menu. */
     public static final BooleanSetting copyIdMenu =
         BooleanSetting.of("merida_copy_id_menu", false);

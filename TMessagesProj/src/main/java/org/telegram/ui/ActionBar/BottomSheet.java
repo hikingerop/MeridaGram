@@ -1503,6 +1503,8 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
             // same as the activity window: SHORT_EDGES keeps the window out of a cutout on a long edge (e.g. top in landscape), so it ends up below the status bar
             AndroidUtilities.applyEdgeToEdgeLayoutParams(params);
             window.setAttributes(params);
+            // MeridaGram: the sheet keeps the high screen refresh rate too
+            org.telegram.messenger.merida.MeridaRefreshRate.apply(window);
         }
     }
 

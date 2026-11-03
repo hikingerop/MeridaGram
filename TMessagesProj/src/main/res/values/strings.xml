@@ -11889,6 +11889,10 @@
     <string name="MeridaNftPattern">Pattern</string>
     <string name="MeridaNftBackdrop">Backdrop</string>
     <string name="MeridaVCraftOnlyVisual">Only visual gifts can go into a visual craft — real gifts are crafted by Telegram.</string>
+    <string name="MeridaHdrScreen">Screen</string>
+    <string name="MeridaHighRefresh">High refresh rate</string>
+    <string name="MeridaSubHighRefresh">The fastest screen mode of your phone (90 / 120 Hz)</string>
+    <string name="MeridaInfoHighRefresh">Many phones give 120 Hz only to apps on their own list, so without this MeridaGram may run at 60 Hz. Uses a little more battery.</string>
     <string name="MeridaVisualGiftNote">Visual gift: only this phone shows it, Telegram does not have it.</string>
     <string name="MeridaVisualGiftTitle">Visual gift</string>
     <string name="MeridaVisualWear">Wear</string>

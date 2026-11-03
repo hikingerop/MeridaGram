@@ -11208,6 +11208,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             // keyboard cache type: the model animates in an endless loop (the emoji-status type stops after two plays)
             final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable status = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView[a], dp(24), AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
             status.set(model, AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD, false);
+            // like Telegram for a worn collectible: the gift twinkles with little sparkles around it
+            status.setParticles(true, false);
             status.attach();
             meridaWorn[a] = org.telegram.messenger.merida.MeridaVisual.withMark(status);
             meridaWornId[a] = model.id;
@@ -13735,8 +13737,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 final String mainName = MeridaSettings.visualUsername.get();
                                 final SpannableStringBuilder others = new SpannableStringBuilder();
                                 if (MeridaSettings.visualUsernameReplace.get() || username == null) {
-                                    final SpannableStringBuilder visual = new SpannableStringBuilder(org.telegram.messenger.merida.MeridaVisual.watermark("@" + mainName));
-                                    visual.setSpan(new ForegroundColorSpan(linkColor), 0, visual.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                    final SpannableStringBuilder visual = new SpannableStringBuilder(org.telegram.messenger.merida.MeridaVisual.watermark("@" + mainName, linkColor));
                                     text = visual;
                                 } else {
                                     others.append(meridaVisualUsernameLink(mainName, linkColor));
@@ -14421,7 +14422,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         /** MeridaGram «Visual»: a visual username in the link colour, with «VISUAL» over it; a tap opens its Fragment-style card. */
         private CharSequence meridaVisualUsernameLink(String name, int color) {
-            final SpannableStringBuilder sb = new SpannableStringBuilder(org.telegram.messenger.merida.MeridaVisual.watermark("@" + name));
+            final SpannableStringBuilder sb = new SpannableStringBuilder(org.telegram.messenger.merida.MeridaVisual.watermark("@" + name, color));
             sb.setSpan(new ClickableSpan() {
                 @Override
                 public void onClick(@NonNull View view) {

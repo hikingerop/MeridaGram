@@ -522,6 +522,10 @@
     <string name="MeridaNftPattern">Узор</string>
     <string name="MeridaNftBackdrop">Фон</string>
     <string name="MeridaVCraftOnlyVisual">В визуальный крафт кладутся только визуальные подарки — настоящие крафтит сам Telegram.</string>
+    <string name="MeridaHdrScreen">Экран</string>
+    <string name="MeridaHighRefresh">Высокая частота экрана</string>
+    <string name="MeridaSubHighRefresh">Самая быстрая частота экрана телефона (90 / 120 Гц)</string>
+    <string name="MeridaInfoHighRefresh">Многие телефоны дают 120 Гц только приложениям из своего списка, поэтому без этого MeridaGram может работать на 60 Гц. Расходует чуть больше заряда.</string>
     <string name="MeridaVisualGiftNote">Визуальный подарок: виден только на этом телефоне, в Telegram его нет.</string>
     <string name="MeridaVisualGiftTitle">Визуальный подарок</string>
     <string name="MeridaVisualWear">Надеть</string>

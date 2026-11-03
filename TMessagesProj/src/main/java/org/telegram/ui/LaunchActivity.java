@@ -7086,6 +7086,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         isResumed = true;
         // MeridaGram: look for devices that logged into the account while we were away
         org.telegram.messenger.merida.MeridaSessions.checkAll();
+        // MeridaGram: «High refresh rate» — the fastest screen mode (90/120/144 Hz), like Chimera
+        org.telegram.messenger.merida.MeridaRefreshRate.apply(getWindow());
         // MeridaGram: warn if this copy is not signed with the official MeridaGram key
         org.telegram.messenger.merida.MeridaSignature.check();
         pipActivityHandler.onResume();
