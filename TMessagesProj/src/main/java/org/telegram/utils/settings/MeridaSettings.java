@@ -56,6 +56,10 @@ public final class MeridaSettings {
         IntSetting.of("merida_visual_rating", 0);
 
     /** «Visual purchases»: gift shop and NFT market buy only visually, paid by the visual stars balance. */
+    /** «Visual stars on posts»: ⭐ reactions from the visual balance, only on this phone, marked VISUAL. */
+    public static final BooleanSetting visualStarReactions =
+        BooleanSetting.of("merida_visual_star_reactions", false);
+
     public static final BooleanSetting visualPurchases =
         BooleanSetting.of("merida_visual_purchases", false);
 

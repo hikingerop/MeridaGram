@@ -199,6 +199,12 @@ public class MeridaVisualActivity extends BaseFragment {
             purchases[0].setChecked(MeridaSettings.visualPurchases.get());
         });
         extra.addView(purchases[0]);
+        final MeridaVisualUi.Row[] reactions = new MeridaVisualUi.Row[1];
+        reactions[0] = MeridaVisualUi.switchRow(context, 0, s(R.string.MeridaVStarReactions), s(R.string.MeridaSubVStarReactions), MeridaSettings.visualStarReactions.get(), false, v -> {
+            MeridaSettings.visualStarReactions.set(!MeridaSettings.visualStarReactions.get());
+            reactions[0].setChecked(MeridaSettings.visualStarReactions.get());
+        });
+        extra.addView(reactions[0]);
         addCard(extra);
 
         content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVExtra)));

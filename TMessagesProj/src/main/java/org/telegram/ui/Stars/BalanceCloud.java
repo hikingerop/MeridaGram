@@ -73,10 +73,26 @@ public class BalanceCloud extends LinearLayout implements NotificationCenter.Not
 
     private final ColoredImageSpan[] coloredImageSpansTon = new ColoredImageSpan[1];
 
+    /** MeridaGram «Visual»: shows the visual stars balance with the VISUAL mark and no «buy stars» link. */
+    private boolean meridaVisual;
+
+    public void setMeridaVisual(boolean visual) {
+        meridaVisual = visual;
+        updateBalance(false);
+    }
+
     private void updateBalance(boolean animated) {
         final StarsController c = StarsController.getInstance(currentAccount, currency);
         final AmountUtils.Amount balance = c.getBalanceAmount();
 
+        if (meridaVisual && currency == AmountUtils.Currency.STARS) {
+            textView1.setText(new android.text.SpannableStringBuilder(StarsIntroActivity.replaceStarsWithPlain(LocaleController.formatString(R.string.Gift2MessageStarsInfo,
+                    LocaleController.formatNumber(org.telegram.utils.settings.MeridaSettings.visualStars.get(), ',')), .60f))
+                    .append(' ').append(org.telegram.messenger.merida.MeridaVisual.mark()));
+            textView2.setVisibility(GONE);
+            return;
+        }
+        textView2.setVisibility(VISIBLE);
         if (currency == AmountUtils.Currency.STARS) {
             textView1.setText(StarsIntroActivity.replaceStarsWithPlain(LocaleController.formatString(R.string.Gift2MessageStarsInfo, LocaleController.formatNumber(balance.asDecimal(), ',')), .60f));
 

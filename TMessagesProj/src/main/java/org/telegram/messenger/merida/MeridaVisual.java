@@ -46,6 +46,11 @@ public final class MeridaVisual {
         return on() && MeridaSettings.visualGrams.get() > 0;
     }
 
+    /** Stars on posts from the visual balance (MeridaVisualReactions). */
+    public static boolean starReactionsOn() {
+        return on() && MeridaSettings.visualStarReactions.get();
+    }
+
     public static boolean purchasesOn() {
         return on() && MeridaSettings.visualPurchases.get();
     }

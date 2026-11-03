@@ -1864,7 +1864,13 @@ public class StarsController {
             this.overlay = overlay;
         }
 
-        public String getToastTitle() {
+        /** MeridaGram «Visual»: these stars come from the visual balance and stay on this phone. */
+        public final boolean meridaVisual = org.telegram.messenger.merida.MeridaVisual.starReactionsOn();
+
+        public CharSequence getToastTitle() {
+            if (meridaVisual) {
+                return new android.text.SpannableStringBuilder(getString(R.string.MeridaVStarsSentTitle)).append(' ').append(org.telegram.messenger.merida.MeridaVisual.mark());
+            }
             if (isAnonymous()) {
                 return getString(R.string.StarsSentAnonymouslyTitle);
             } else if (getPeerId() != 0 && getPeerId() != UserConfig.getInstance(currentAccount).getClientUserId()) {
@@ -2019,6 +2025,18 @@ public class StarsController {
             if (committed || cancelled) {
                 return;
             }
+            if (meridaVisual) {
+                // MeridaGram «Visual»: nothing goes to Telegram — the stars leave the visual balance and stay on this
+                // post only on this phone (the ⭐ reaction shows them with the VISUAL mark)
+                committed = true;
+                messageObject.addPaidReactions((int) -amount, wasChosen, getPeerId());
+                minus -= amount;
+                org.telegram.messenger.merida.MeridaVisualReactions.spend(amount);
+                org.telegram.messenger.merida.MeridaVisualReactions.add(message.did, message.mid, amount);
+                NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.starBalanceUpdated);
+                NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.didUpdateReactions, messageObject.getDialogId(), messageObject.getId(), messageObject.messageOwner.reactions);
+                return;
+            }
 
             final StarsController starsController = StarsController.getInstance(currentAccount);
             final MessagesController messagesController = MessagesController.getInstance(currentAccount);
@@ -2131,7 +2149,18 @@ public class StarsController {
         final long totalStars = amount;
         final Context context = getContext(chatActivity);
         if (context == null) return null;
-        if (checkBalance && s.balanceAvailable() && s.getBalance(false) <= 0) {
+        // MeridaGram «Visual»: stars on posts come from the visual balance — never Telegram's «buy stars» window
+        final boolean meridaVisual = org.telegram.messenger.merida.MeridaVisual.starReactionsOn();
+        if (meridaVisual && checkBalance) {
+            final long pending = currentPendingReactions != null && currentPendingReactions.message.equals(key) ? currentPendingReactions.amount : 0;
+            if (!org.telegram.messenger.merida.MeridaVisualReactions.canSpend(pending + amount)) {
+                android.widget.Toast.makeText(context, LocaleController.formatString(R.string.MeridaVisualBuyNoStars,
+                        org.telegram.messenger.merida.MeridaVisual.formatNumber(pending + amount),
+                        org.telegram.messenger.merida.MeridaVisual.formatNumber(org.telegram.utils.settings.MeridaSettings.visualStars.get())), android.widget.Toast.LENGTH_LONG).show();
+                return null;
+            }
+        }
+        if (!meridaVisual && checkBalance && s.balanceAvailable() && s.getBalance(false) <= 0) {
             final long dialogId = chatActivity.getDialogId();
             String name;
             if (dialogId >= 0) {
@@ -2159,7 +2188,7 @@ public class StarsController {
             currentPendingReactions = new PendingPaidReactions(key, messageObject, chatActivity, ConnectionsManager.getInstance(currentAccount).getCurrentTime(), affect);
         }
         final long totalStars2 = currentPendingReactions.amount + amount;
-        if (checkBalance && s.balanceAvailable() && s.getBalance(false) < totalStars2) {
+        if (!meridaVisual && checkBalance && s.balanceAvailable() && s.getBalance(false) < totalStars2) {
             currentPendingReactions.cancel();
             final long dialogId = chatActivity.getDialogId();
             String name;

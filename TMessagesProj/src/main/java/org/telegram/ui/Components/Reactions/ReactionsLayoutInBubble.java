@@ -182,6 +182,11 @@ public class ReactionsLayoutInBubble {
             }
 
             comparator.dialogId = messageObject.getDialogId();
+            // MeridaGram «Visual»: stars you put on this post from the visual balance (only on this phone)
+            final long meridaStars = isSmall || isTag ? 0 : org.telegram.messenger.merida.MeridaVisualReactions.get(messageObject.getDialogId(), messageObject.getId());
+            if (meridaStars > 0 && messageObject.messageOwner.reactions == null) {
+                messageObject.messageOwner.reactions = new TLRPC.TL_messageReactions();
+            }
             if (messageObject.messageOwner.reactions != null && messageObject.messageOwner.reactions.results != null) {
                 int totalCount = 0;
                 for (int i = 0; i < messageObject.messageOwner.reactions.results.size(); i++) {
@@ -212,6 +217,13 @@ public class ReactionsLayoutInBubble {
                     if (!hasPaidReaction) {
                         includeEmptyStarButton = true;
                     }
+                }
+                if (meridaStars > 0) {
+                    boolean hasPaid = false;
+                    for (int i = 0; i < messageObject.messageOwner.reactions.results.size(); i++) {
+                        if (messageObject.messageOwner.reactions.results.get(i).reaction instanceof TLRPC.TL_reactionPaid) hasPaid = true;
+                    }
+                    if (!hasPaid) includeEmptyStarButton = true;
                 }
 
                 ArrayList<TLRPC.Reaction> forcedReactions = new ArrayList<>();
@@ -247,7 +259,18 @@ public class ReactionsLayoutInBubble {
                             break;
                         }
                     }
-                    ReactionButton button = new ReactionLayoutButton(old, reactionCount, isSmall, isTag);
+                    TLRPC.ReactionCount shownCount = reactionCount;
+                    final boolean meridaPaid = meridaStars > 0 && reactionCount.reaction instanceof TLRPC.TL_reactionPaid;
+                    if (meridaPaid) {
+                        final TLRPC.TL_reactionCount copy = new TLRPC.TL_reactionCount();
+                        copy.reaction = reactionCount.reaction;
+                        copy.count = reactionCount.count + (int) meridaStars;
+                        copy.chosen = true;
+                        copy.chosen_order = reactionCount.chosen_order;
+                        shownCount = copy;
+                    }
+                    ReactionButton button = new ReactionLayoutButton(old, shownCount, isSmall, isTag);
+                    button.meridaVisual = meridaPaid;
                     button.inGroup = messageObject.hasValidGroupId();
                     reactionButtons.add(button);
                     hasPaidReaction = hasPaidReaction || button.paid;
@@ -795,6 +818,11 @@ public class ReactionsLayoutInBubble {
         public int choosenOrder;
         public boolean drawImage = true;
         public boolean paid;
+        /** MeridaGram «Visual»: this ⭐ includes visual stars — drawn with the VISUAL mark. */
+        public boolean meridaVisual;
+        private static android.text.TextPaint meridaMarkText;
+        private static Paint meridaMarkBg;
+        private static String meridaMarkLabel;
         public boolean lastImageDrawn;
         public boolean wasDrawn;
         public String key;
@@ -1206,6 +1234,28 @@ public class ReactionsLayoutInBubble {
                     avatarsDrawable.onDraw(canvas);
                     canvas.restore();
                 }
+            }
+
+            if (meridaVisual && !isSmall) {
+                // a small orange «VISUAL» pill on the top right corner of the ⭐ reaction
+                if (meridaMarkText == null) {
+                    meridaMarkText = new android.text.TextPaint(Paint.ANTI_ALIAS_FLAG);
+                    meridaMarkText.setTypeface(AndroidUtilities.bold());
+                    meridaMarkText.setTextSize(dp(7));
+                    meridaMarkText.setColor(0xFFFFFFFF);
+                    meridaMarkBg = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    meridaMarkBg.setColor(org.telegram.messenger.merida.MeridaVisual.MARK_COLOR);
+                    meridaMarkLabel = LocaleController.getString(R.string.MeridaVisualMark).toUpperCase();
+                }
+                final float tw = meridaMarkText.measureText(meridaMarkLabel);
+                final float pw = tw + dp(6), ph = dp(10);
+                final float right = x + w + dp(3), top = y - dp(4);
+                AndroidUtilities.rectTmp.set(right - pw, top, right, top + ph);
+                meridaMarkBg.setAlpha((int) (0xFF * alpha));
+                canvas.drawRoundRect(AndroidUtilities.rectTmp, ph / 2f, ph / 2f, meridaMarkBg);
+                meridaMarkText.setAlpha((int) (0xFF * alpha));
+                final Paint.FontMetrics fm = meridaMarkText.getFontMetrics();
+                canvas.drawText(meridaMarkLabel, right - pw + dp(3), top + ph / 2f - (fm.ascent + fm.descent) / 2f, meridaMarkText);
             }
 
             if (restore) {

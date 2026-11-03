@@ -113,6 +113,7 @@ public class StarsReactionsSheet extends BottomSheet implements NotificationCent
     private final Theme.ResourcesProvider resourcesProvider;
     private final int currentAccount;
     private final boolean liveStories;
+    private boolean meridaVisual;
     private final boolean sendEnabled;
 
     private final LinearLayout layout;
@@ -188,12 +189,16 @@ public class StarsReactionsSheet extends BottomSheet implements NotificationCent
         this.sendEnabled = sendEnabled;
 
         balanceCloud = new BalanceCloud(context, currentAccount, resourcesProvider);
+        // MeridaGram «Visual»: stars on posts come from the visual balance (marked VISUAL)
+        meridaVisual = !liveStories && org.telegram.messenger.merida.MeridaVisual.starReactionsOn();
+        if (meridaVisual) balanceCloud.setMeridaVisual(true);
         balanceCloud.setScaleX(0.6f);
         balanceCloud.setScaleY(0.6f);
         balanceCloud.setAlpha(0.0f);
         container.addView(balanceCloud, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 48, 0, 0));
         ScaleStateListAnimator.apply(balanceCloud);
         balanceCloud.setOnClickListener(v -> {
+            if (meridaVisual) return; // the visual balance is not bought with real stars
             new StarsIntroActivity.StarsOptionsSheet(context, resourcesProvider).show();
         });
 
@@ -560,7 +565,7 @@ public class StarsReactionsSheet extends BottomSheet implements NotificationCent
                     }
                 };
 
-                if (starsController.balanceAvailable() && starsController.getBalance().amount < totalStars) {
+                if (!meridaVisual && starsController.balanceAvailable() && starsController.getBalance().amount < totalStars) {
                     if (liveStories) {
                         new StarsIntroActivity.StarsNeededSheet(context, resourcesProvider, totalStars, StarsIntroActivity.StarsNeededSheet.TYPE_LIVE_COMMENTS, DialogObject.getShortName(currentAccount, dialogId), send, dialogId).show();
                     } else {

@@ -11894,6 +11894,9 @@
     <string name="MeridaSubHighRefresh">The fastest screen mode of your phone (90 / 120 Hz)</string>
     <string name="MeridaInfoHighRefresh">Many phones give 120 Hz only to apps on their own list, so without this MeridaGram may run at 60 Hz. Uses a little more battery.</string>
     <string name="MeridaVWalletNote">Visual balance: only this phone shows it, it is not in the TON blockchain.</string>
+    <string name="MeridaVStarReactions">Visual stars on posts</string>
+    <string name="MeridaSubVStarReactions">The ⭐ reaction under posts takes the visual balance: only on this phone, marked VISUAL, nothing is sent</string>
+    <string name="MeridaVStarsSentTitle">Visual stars — only on this phone</string>
     <string name="MeridaVisualGiftNote">Visual gift: only this phone shows it, Telegram does not have it.</string>
     <string name="MeridaVisualGiftTitle">Visual gift</string>
     <string name="MeridaVisualWear">Wear</string>
