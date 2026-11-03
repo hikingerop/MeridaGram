@@ -107,6 +107,66 @@ public class ApplicationLoaderImpl extends ApplicationLoader {
 
     @Override
     public IUpdateLayout takeUpdateLayout(Activity activity, ViewGroup sideMenuContainer) {
+        // MeridaGram: the bottom «Update MeridaGram / Downloading N%» bar for builds from GitHub
+        if (isCustomUpdate()) {
+            return new org.telegram.ui.Components.MeridaUpdateLayout(activity, sideMenuContainer);
+        }
         return new UpdateLayout(activity, sideMenuContainer);
+    }
+
+    // ---- MeridaGram updates from GitHub releases (MeridaUpdaterController), like exteraGram's updater ----
+
+    @Override
+    public boolean isCustomUpdate() {
+        return MeridaUpdaterController.enabled();
+    }
+
+    @Override
+    public BetaUpdate getUpdate() {
+        return isCustomUpdate() ? MeridaUpdaterController.getInstance().getUpdate() : null;
+    }
+
+    @Override
+    public void checkUpdate(boolean force, Runnable whenDone) {
+        MeridaUpdaterController.getInstance().checkForUpdate(force, whenDone);
+    }
+
+    @Override
+    public void downloadUpdate() {
+        if (isCustomUpdate()) MeridaUpdaterController.getInstance().downloadUpdate();
+    }
+
+    @Override
+    public void cancelDownloadingUpdate() {
+        if (isCustomUpdate()) MeridaUpdaterController.getInstance().cancelDownloadingUpdate();
+    }
+
+    @Override
+    public boolean isDownloadingUpdate() {
+        return isCustomUpdate() && MeridaUpdaterController.getInstance().isDownloading();
+    }
+
+    @Override
+    public float getDownloadingUpdateProgress() {
+        return isCustomUpdate() ? MeridaUpdaterController.getInstance().getDownloadingProgress() : 0;
+    }
+
+    @Override
+    public File getDownloadedUpdateFile() {
+        return isCustomUpdate() ? MeridaUpdaterController.getInstance().getDownloadedFile() : null;
+    }
+
+    @Override
+    public boolean showCustomUpdateAppPopup(Context context, BetaUpdate update, int account) {
+        // the window once per new build; after that only the bottom bar reminds about it
+        final android.content.SharedPreferences prefs = context.getSharedPreferences("merida_updates", Context.MODE_PRIVATE);
+        if (update == null || prefs.getInt("shownBuild", 0) == update.versionCode) return true;
+        prefs.edit().putInt("shownBuild", update.versionCode).apply();
+        try {
+            new org.telegram.ui.Components.MeridaUpdateAppAlertDialog(context, update, account).show();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
+        return true;
     }
 }

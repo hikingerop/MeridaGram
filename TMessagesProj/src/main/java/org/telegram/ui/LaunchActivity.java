@@ -6075,7 +6075,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         if (!ApplicationLoader.isStandaloneBuild() && !ApplicationLoader.isBetaBuild()) {
             return;
         }
-        if (!BuildVars.CHECK_UPDATES) {
+        // MeridaGram: Telegram's own update check stays off (it would offer official Telegram); MeridaGram's own
+        // GitHub updater (isCustomUpdate) still runs
+        if (!BuildVars.CHECK_UPDATES && !ApplicationLoader.applicationLoaderInstance.isCustomUpdate()) {
             return;
         }
         if (ApplicationLoader.applicationLoaderInstance.isCustomUpdate()) {

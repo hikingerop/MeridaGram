@@ -9,6 +9,10 @@ public final class MeridaSettings {
     public static final BooleanSetting showId =
         BooleanSetting.of("merida_show_id", false);
 
+    /** «MeridaGram updates»: new builds from GitHub, with the bottom «Update» bar (MeridaUpdaterController). */
+    public static final BooleanSetting githubUpdates =
+        BooleanSetting.of("merida_github_updates", true);
+
     /** «High refresh rate»: ask the phone for its fastest screen mode (MeridaRefreshRate). */
     public static final BooleanSetting highRefreshRate =
         BooleanSetting.of("merida_high_refresh_rate", true);

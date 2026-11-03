@@ -11904,6 +11904,13 @@
     <string name="MeridaVVerifiedAccount">Account verified by the organization «%1$s».</string>
     <string name="MeridaVVerifiedGroup">Group verified by the organization «%1$s».</string>
     <string name="MeridaVVerifiedChannel">Channel verified by the organization «%1$s».</string>
+    <string name="MeridaHdrUpdates">Updates</string>
+    <string name="MeridaUpdates">MeridaGram updates</string>
+    <string name="MeridaSubUpdates">New builds from GitHub with an «Update» bar at the bottom</string>
+    <string name="MeridaInfoUpdates">Every build of MeridaGram is published on GitHub. When a newer one is out, a bar at the bottom of the chats offers to download it (with progress) and install it — like exteraGram. Nothing about you is sent.</string>
+    <string name="MeridaUpdateButton">Update MeridaGram</string>
+    <string name="MeridaUpdateTitle">MeridaGram update</string>
+    <string name="MeridaUpdateVersion">Build %1$d is available</string>
     <string name="MeridaVisualGiftNote">Visual gift: only this phone shows it, Telegram does not have it.</string>
     <string name="MeridaVisualGiftTitle">Visual gift</string>
     <string name="MeridaVisualWear">Wear</string>

@@ -128,6 +128,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
     private static final int ROW_COPY_ID_MENU = 65;
     private static final int ROW_FREE_TRANSLATE = 84;
     private static final int ROW_HIGH_REFRESH = 85;
+    private static final int ROW_GITHUB_UPDATES = 86;
     private static final int ROW_PLAYER_SLEEP = 66;
     private static final int ROW_SECURITY_GAP = 67;
     private static final int ROW_SPY_TRANSLUCENT = 68;
@@ -337,6 +338,7 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                         hdr(R.string.MeridaHdrTranslate), ROW_FREE_TRANSLATE, note(R.string.MeridaInfoTranslate),
                         hdr(R.string.MeridaHdrScreenshots), ROW_ALLOW_SCREENSHOTS, note(R.string.MeridaInfoScreenshots),
                         hdr(R.string.MeridaHdrScreen), ROW_HIGH_REFRESH, note(R.string.MeridaInfoHighRefresh),
+                        hdr(R.string.MeridaHdrUpdates), ROW_GITHUB_UPDATES, note(R.string.MeridaInfoUpdates),
                         hdr(R.string.MeridaHdrNotifications), ROW_BACKGROUND, note(R.string.MeridaInfoBackground)};
             default:
                 return new int[]{ROW_APP_HEADER, ROW_CATEGORIES_HEADER, ROW_SECTION_GENERAL, ROW_SECTION_LOOK, ROW_SECTION_VPN, ROW_SECTION_GHOST, ROW_SECTION_SPY, ROW_SECTION_PLAYER, ROW_SECTION_SECURITY,
@@ -1090,6 +1092,10 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
         if (position == ROW_CRYPTO_ENABLED) {
             refreshCryptoPage();
         }
+        if (position == ROW_GITHUB_UPDATES && MeridaSettings.githubUpdates.get() && LaunchActivity.instance != null) {
+            // look for a new build right away
+            LaunchActivity.instance.checkAppUpdate(true, null);
+        }
         if (position == ROW_HIGH_REFRESH && getParentActivity() != null) {
             org.telegram.messenger.merida.MeridaRefreshRate.apply(getParentActivity().getWindow());
         }
@@ -1131,6 +1137,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return MeridaSettings.copyIdMenu;
             case ROW_HIGH_REFRESH:
                 return MeridaSettings.highRefreshRate;
+            case ROW_GITHUB_UPDATES:
+                return MeridaSettings.githubUpdates;
             case ROW_FREE_TRANSLATE:
                 return MeridaSettings.freeTranslate;
             case ROW_CRYPTO_ENABLED:
@@ -1201,6 +1209,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaSubCopyId;
             case ROW_HIGH_REFRESH:
                 return R.string.MeridaSubHighRefresh;
+            case ROW_GITHUB_UPDATES:
+                return R.string.MeridaSubUpdates;
             case ROW_FREE_TRANSLATE:
                 return R.string.MeridaSubTranslate;
             case ROW_GHOST_AUTO_OFFLINE:
@@ -1236,6 +1246,8 @@ public class MeridaSettingsActivity extends BaseFragment implements MeridaVpn.Li
                 return R.string.MeridaCopyIdMenu;
             case ROW_HIGH_REFRESH:
                 return R.string.MeridaHighRefresh;
+            case ROW_GITHUB_UPDATES:
+                return R.string.MeridaUpdates;
             case ROW_FREE_TRANSLATE:
                 return R.string.MeridaFreeTranslate;
             case ROW_CRYPTO_ENABLED:

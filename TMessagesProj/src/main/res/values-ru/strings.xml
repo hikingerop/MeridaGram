@@ -537,6 +537,13 @@
     <string name="MeridaVVerifiedAccount">Аккаунт верифицирован организацией «%1$s».</string>
     <string name="MeridaVVerifiedGroup">Группа верифицирована организацией «%1$s».</string>
     <string name="MeridaVVerifiedChannel">Канал верифицирован организацией «%1$s».</string>
+    <string name="MeridaHdrUpdates">Обновления</string>
+    <string name="MeridaUpdates">Обновления MeridaGram</string>
+    <string name="MeridaSubUpdates">Новые сборки с GitHub и полоска «Обновить» внизу</string>
+    <string name="MeridaInfoUpdates">Каждая сборка MeridaGram публикуется на GitHub. Когда выходит новая, внизу списка чатов появляется полоска: скачать (с процентами) и установить — как в exteraGram. О тебе ничего не отправляется.</string>
+    <string name="MeridaUpdateButton">Обновить MeridaGram</string>
+    <string name="MeridaUpdateTitle">Обновление MeridaGram</string>
+    <string name="MeridaUpdateVersion">Доступна сборка %1$d</string>
     <string name="MeridaVisualGiftNote">Визуальный подарок: виден только на этом телефоне, в Telegram его нет.</string>
     <string name="MeridaVisualGiftTitle">Визуальный подарок</string>
     <string name="MeridaVisualWear">Надеть</string>
