@@ -92,15 +92,24 @@ public class ProfileWalletCardDialog extends Dialog {
     private Runnable afterDismiss;
     private final int[] rootLocation = new int[2];
 
+    /** MeridaGram «Visual»: the card is built from the visual GRAM balance — no buttons, «VISUAL» on it. */
+    private final boolean meridaVisual;
+
     public ProfileWalletCardDialog(BaseFragment fragment, ProfileBalanceView anchor,
                                   TLRPC.User user, TL_wallet.card profileCard) {
+        this(fragment, anchor, user, profileCard, false);
+    }
+
+    public ProfileWalletCardDialog(BaseFragment fragment, ProfileBalanceView anchor,
+                                  TLRPC.User user, TL_wallet.card profileCard, boolean meridaVisual) {
         super(fragment.getParentActivity(), R.style.TransparentDialog);
         this.fragment = fragment;
         this.anchor = anchor;
         this.profileCard = profileCard;
+        this.meridaVisual = meridaVisual;
         isSelf = user != null && user.id == UserConfig.getInstance(fragment.getCurrentAccount()).getClientUserId();
-        showSendMoney = user != null && !isSelf && MessagesController.getInstance(fragment.getCurrentAccount()).config.walletAvailable.get();
-        showHowItWorks = user != null && !isSelf && !showSendMoney;
+        showSendMoney = !meridaVisual && user != null && !isSelf && MessagesController.getInstance(fragment.getCurrentAccount()).config.walletAvailable.get();
+        showHowItWorks = !meridaVisual && user != null && !isSelf && !showSendMoney;
         anchor.getButtonBoundsOnScreen(source);
         AndroidUtilities.enableEdgeToEdge(getWindow());
 
@@ -212,6 +221,13 @@ public class ProfileWalletCardDialog extends Dialog {
         card = new WalletCardComponent(getContext());
         card.setDiamondOnCard(true);
         card.setProfileCard(fragment.getCurrentAccount(), user, profileCard);
+        if (meridaVisual) {
+            // the card itself says it is visual: the mark after the name and «VISUAL» along the edge
+            final SpannableStringBuilder holder = new SpannableStringBuilder(UserObject.getUserName(user).toUpperCase(java.util.Locale.ROOT));
+            holder.append("  ").append(org.telegram.messenger.merida.MeridaVisual.mark());
+            card.setCardHolder(holder);
+            card.setCardNumber("ВИЗУ АЛ · ВИЗУ АЛ · ВИЗУ АЛ · ВИЗУ АЛ");
+        }
         card.setCardOnClickListener(v -> {
             if (isSelf && !dismissing) {
                 WalletActivity.openWalletQRAlert(getContext(), fragment.getCurrentAccount(), fragment.getResourceProvider());
@@ -273,7 +289,9 @@ public class ProfileWalletCardDialog extends Dialog {
         publicNote.setLineSpacing(dp(18) - publicNote.getPaint().getFontMetricsInt(null), 1f);
         updateNoteColor();
         publicNote.setAlpha(0);
-        if (isSelf) {
+        if (meridaVisual) {
+            publicNote.setText(new SpannableStringBuilder(getString(R.string.MeridaVWalletNote)).append(' ').append(org.telegram.messenger.merida.MeridaVisual.mark()));
+        } else if (isSelf) {
             publicNote.setText(getString(R.string.WalletPublicBalanceNote));
         } else if (user != null) {
             final String name = UserObject.getFirstName(user);
@@ -305,6 +323,7 @@ public class ProfileWalletCardDialog extends Dialog {
     }
 
     private boolean showButton() {
+        if (meridaVisual) return false;
         return showSendMoney || showHowItWorks || isSelf;
     }
 

@@ -29,7 +29,7 @@ import org.telegram.utils.settings.MeridaSettings;
  */
 public final class MeridaVisual {
 
-    private static final int MARK_COLOR = 0xFFFF9500;
+    public static final int MARK_COLOR = 0xFFFF9500;
 
     private MeridaVisual() {
     }

@@ -526,6 +526,7 @@
     <string name="MeridaHighRefresh">Высокая частота экрана</string>
     <string name="MeridaSubHighRefresh">Самая быстрая частота экрана телефона (90 / 120 Гц)</string>
     <string name="MeridaInfoHighRefresh">Многие телефоны дают 120 Гц только приложениям из своего списка, поэтому без этого MeridaGram может работать на 60 Гц. Расходует чуть больше заряда.</string>
+    <string name="MeridaVWalletNote">Визуальный баланс: виден только на этом телефоне, в блокчейне TON его нет.</string>
     <string name="MeridaVisualGiftNote">Визуальный подарок: виден только на этом телефоне, в Telegram его нет.</string>
     <string name="MeridaVisualGiftTitle">Визуальный подарок</string>
     <string name="MeridaVisualWear">Надеть</string>

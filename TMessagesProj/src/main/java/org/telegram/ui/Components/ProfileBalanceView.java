@@ -29,6 +29,25 @@ public class ProfileBalanceView extends ProfileMusicView {
     private final Paint chevronPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path chevron = new Path();
     private float ejectProgress;
+    /** MeridaGram «Visual»: an orange «VISUAL» pill after the amount (the balance is only on this phone). */
+    private boolean visualMark;
+    private Text markText;
+    private final Paint markPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final android.graphics.RectF markRect = new android.graphics.RectF();
+
+    public void setVisualMark(boolean visual) {
+        if (visualMark == visual) return;
+        visualMark = visual;
+        if (visual && markText == null) {
+            markText = new Text(getString(R.string.MeridaVisualMark).toUpperCase(), 8, AndroidUtilities.bold());
+        }
+        requestLayout();
+        invalidate();
+    }
+
+    private float markWidth() {
+        return visualMark && markText != null ? dp(4) + markText.getWidth() + dp(8) : 0;
+    }
     private final DecimalFormat balanceFormat = new DecimalFormat("#,##0.#########", new DecimalFormatSymbols(Locale.US));
 
     public ProfileBalanceView(Context context, Theme.ResourcesProvider resourcesProvider) {
@@ -68,7 +87,7 @@ public class ProfileBalanceView extends ProfileMusicView {
         // Prefer the numeric balance when a translation or a large amount needs more room.
         label.ellipsize(Math.max(0, available - amount.getWidth()));
         amount.ellipsize(Math.max(0, available - label.getWidth()));
-        return label.getWidth() + dp(4 + 13 + 2 + 8) + amount.getWidth();
+        return label.getWidth() + dp(4 + 13 + 2 + 8) + amount.getWidth() + markWidth();
     }
 
     @Override
@@ -84,7 +103,16 @@ public class ProfileBalanceView extends ProfileMusicView {
         icon.draw(canvas);
         canvas.translate(size + dp(2), 0);
         amount.draw(canvas, 0, cy, textColor, alpha);
-        canvas.translate(amount.getWidth() + dpf2(4.8f), cy);
+        if (visualMark && markText != null) {
+            canvas.translate(amount.getWidth() + dp(4), 0);
+            markRect.set(0, cy - dp(7), markText.getWidth() + dp(8), cy + dp(7));
+            markPaint.setColor(Theme.multAlpha(org.telegram.messenger.merida.MeridaVisual.MARK_COLOR, alpha));
+            canvas.drawRoundRect(markRect, dp(7), dp(7), markPaint);
+            markText.draw(canvas, dp(4), cy, 0xFFFFFFFF, alpha);
+            canvas.translate(markText.getWidth() + dp(8) + dpf2(4.8f), cy);
+        } else {
+            canvas.translate(amount.getWidth() + dpf2(4.8f), cy);
+        }
         chevronPaint.setColor(Theme.multAlpha(textColor, 0.85f * alpha));
         canvas.drawPath(chevron, chevronPaint);
     }

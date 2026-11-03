@@ -3882,6 +3882,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (userInfo != null && userInfo.wallet_card != null && getParentActivity() != null) {
                     showDialog(new ProfileWalletCardDialog(this, balanceView,
                             getMessagesController().getUser(userId), userInfo.wallet_card));
+                } else if (getParentActivity() != null && meridaVisualCard() != null) {
+                    // MeridaGram «Visual»: Telegram's GRAM card from the visual balance (marked, only on this phone)
+                    showDialog(new ProfileWalletCardDialog(this, balanceView,
+                            getMessagesController().getUser(userId), meridaVisualCard(), true));
                 }
             });
             if (avatarsBlurView != null) {
@@ -10647,7 +10651,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         channelBalanceRow = -1;
         balanceDividerRow = -1;
         hasMusic = false;
-        hasBalance = userId != 0 && userInfo != null && userInfo.wallet_card != null
+        hasBalance = userId != 0 && userInfo != null && (userInfo.wallet_card != null || meridaVisualCard() != null)
                 && (imageUpdater == null || myProfile);
 
         unblockRow = -1;
@@ -11153,7 +11157,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
             musicView.setVisibility(hasMusic ? View.VISIBLE : View.GONE);
             if (hasBalance) {
-                balanceView.setBalance(userInfo.wallet_card.balance);
+                final boolean visual = userInfo.wallet_card == null;
+                balanceView.setBalance(visual ? meridaVisualCard().balance : userInfo.wallet_card.balance);
+                balanceView.setVisualMark(visual);
             }
             balanceView.setVisibility(hasBalance ? View.VISIBLE : View.GONE);
             musicView.invalidate();
@@ -11192,6 +11198,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             );
         }
         return verifiedCrossfadeDrawable[a];
+    }
+
+    /** MeridaGram «Visual»: the GRAM card of your own profile from the visual balance; null if none. */
+    private org.telegram.tgnet.tl.TL_wallet.card meridaVisualCard() {
+        if (userId == 0 || userId != getUserConfig().getClientUserId()) return null;
+        return org.telegram.messenger.merida.MeridaVisualWallet.card();
     }
 
     private final Drawable[] meridaVisualPremium = new Drawable[2];
