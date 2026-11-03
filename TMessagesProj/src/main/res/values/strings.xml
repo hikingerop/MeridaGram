@@ -11897,6 +11897,13 @@
     <string name="MeridaVStarReactions">Visual stars on posts</string>
     <string name="MeridaSubVStarReactions">The ⭐ reaction under posts takes the visual balance: only on this phone, marked VISUAL, nothing is sent</string>
     <string name="MeridaVStarsSentTitle">Visual stars — only on this phone</string>
+    <string name="MeridaVVerifyMenu">Visual verification</string>
+    <string name="MeridaVVerifyTitle">Verification by an organization</string>
+    <string name="MeridaVVerifySub">Major or Hold under your username, like Telegram\'s: only on this phone, marked VISUAL</string>
+    <string name="MeridaVVerifyNone">No verification</string>
+    <string name="MeridaVVerifiedAccount">Account verified by the organization «%1$s».</string>
+    <string name="MeridaVVerifiedGroup">Group verified by the organization «%1$s».</string>
+    <string name="MeridaVVerifiedChannel">Channel verified by the organization «%1$s».</string>
     <string name="MeridaVisualGiftNote">Visual gift: only this phone shows it, Telegram does not have it.</string>
     <string name="MeridaVisualGiftTitle">Visual gift</string>
     <string name="MeridaVisualWear">Wear</string>

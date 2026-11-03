@@ -530,6 +530,13 @@
     <string name="MeridaVStarReactions">Визуальные звёзды на постах</string>
     <string name="MeridaSubVStarReactions">Реакция ⭐ под постами берёт визуальный баланс: только на этом телефоне, с меткой ВИЗУАЛ, ничего не отправляется</string>
     <string name="MeridaVStarsSentTitle">Визуальные звёзды — только на этом телефоне</string>
+    <string name="MeridaVVerifyMenu">Визуальная верификация</string>
+    <string name="MeridaVVerifyTitle">Верификация организацией</string>
+    <string name="MeridaVVerifySub">Major или Hold под юзернеймом, как в Telegram: только на этом телефоне, с меткой ВИЗУАЛ</string>
+    <string name="MeridaVVerifyNone">Без верификации</string>
+    <string name="MeridaVVerifiedAccount">Аккаунт верифицирован организацией «%1$s».</string>
+    <string name="MeridaVVerifiedGroup">Группа верифицирована организацией «%1$s».</string>
+    <string name="MeridaVVerifiedChannel">Канал верифицирован организацией «%1$s».</string>
     <string name="MeridaVisualGiftNote">Визуальный подарок: виден только на этом телефоне, в Telegram его нет.</string>
     <string name="MeridaVisualGiftTitle">Визуальный подарок</string>
     <string name="MeridaVisualWear">Надеть</string>

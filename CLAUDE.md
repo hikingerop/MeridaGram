@@ -184,6 +184,11 @@ featuredStickers_addButton с водяным знаком + статус SwapAni
 meridaVisual НЕ шлёт sendPaidReaction — списывает visualStars и хранит сумму в `merida/MeridaVisualReactions` (по посту);
 ReactionsLayoutInBubble прибавляет её к ⭐ и рисует оранжевую пилюлю ВИЗУАЛ на реакции; BalanceCloud — визуальный
 баланс с меткой, без «Купить звёзды»; окно покупки настоящих звёзд не открывается.
+Визуальная верификация организацией (Major / Hold) — `merida/MeridaVisualVerify.java`: значок и название берутся у ботов
+@major / @hold (resolve → loadFullUser → bot_info.verifier_settings), хранятся по диалогу; свой профиль — Визуал →
+«Верификация организацией», группы/каналы — «⋮» → «Визуальная верификация» (пока Визуал включён). ProfileActivity:
+значок слева от имени + пилюля ВИЗУАЛ (MeridaVisual.withMark), строка «… верифицирован организацией «X».» в infoSectionRow
+с водяным знаком ВИЗУАЛ поверх текста. Ничего не отправляется.
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).

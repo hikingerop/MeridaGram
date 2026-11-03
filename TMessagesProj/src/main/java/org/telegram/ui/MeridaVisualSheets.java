@@ -891,6 +891,37 @@ final class MeridaVisualSheets {
      * The window shown when you tap your visual username or +888 number in your profile, laid out like Telegram's
      * «collectible username / number» window, with the orange VISUAL mark and your name watermarked.
      */
+    /**
+     * «Verification by an organization» for your profile (dialogId = your id) or a group / channel: none, Major
+     * or Hold. Only on this phone, with the VISUAL mark; the icon and name come from the organization's bot.
+     */
+    static void askVerification(BaseFragment fragment, long dialogId, Runnable done) {
+        final Context context = fragment.getParentActivity();
+        if (context == null) return;
+        final int account = fragment.getCurrentAccount();
+        final String current = org.telegram.messenger.merida.MeridaVisualVerify.get(dialogId);
+        final String[] orgs = org.telegram.messenger.merida.MeridaVisualVerify.ORGS;
+        final CharSequence[] items = new CharSequence[orgs.length + 1];
+        items[0] = (current == null ? "✓ " : "") + s(R.string.MeridaVVerifyNone);
+        for (int i = 0; i < orgs.length; i++) {
+            final String company = org.telegram.messenger.merida.MeridaVisualVerify.company(orgs[i]);
+            final String label = (company != null ? company : Character.toUpperCase(orgs[i].charAt(0)) + orgs[i].substring(1)) + "  (@" + orgs[i] + ")";
+            items[i + 1] = (orgs[i].equals(current) ? "✓ " : "") + label;
+        }
+        final org.telegram.ui.ActionBar.AlertDialog.Builder b = new org.telegram.ui.ActionBar.AlertDialog.Builder(context);
+        b.setTitle(s(R.string.MeridaVVerifyTitle));
+        b.setItems(items, (d, which) -> {
+            org.telegram.messenger.merida.MeridaVisualVerify.set(account, dialogId, which == 0 ? null : orgs[which - 1]);
+            if (done != null) {
+                done.run();
+                // the organization's icon and name may still be loading from its bot
+                AndroidUtilities.runOnUIThread(done, 1500);
+            }
+        });
+        b.setNegativeButton(s(R.string.Cancel), null);
+        b.show();
+    }
+
     static void showCollectible(BaseFragment fragment, boolean phone, String name) {
         final Context context = fragment.getParentActivity();
         if (context == null || name == null) {

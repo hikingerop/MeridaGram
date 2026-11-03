@@ -205,6 +205,8 @@ public class MeridaVisualActivity extends BaseFragment {
             reactions[0].setChecked(MeridaSettings.visualStarReactions.get());
         });
         extra.addView(reactions[0]);
+        extra.addView(MeridaVisualUi.row(context, R.drawable.menu_verification, s(R.string.MeridaVVerifyTitle), s(R.string.MeridaVVerifySub), true,
+                v -> { if (needOn()) MeridaVisualSheets.askVerification(this, getUserConfig().getClientUserId(), this::rebuild); }));
         addCard(extra);
 
         content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVExtra)));

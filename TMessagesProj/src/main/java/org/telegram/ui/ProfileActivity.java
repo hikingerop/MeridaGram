@@ -622,6 +622,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final static int enable_no_forwards = 46;
     private final static int disable_no_forwards = 47;
     private final static int send_money = 48;
+    private final static int merida_visual_verify = 4801;
 
     private Rect rect = new Rect();
 
@@ -2795,6 +2796,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     openDiscussion();
                 } else if (id == gift_premium) {
                     onGiftPermiumClicked();
+                } else if (id == merida_visual_verify) {
+                    org.telegram.ui.MeridaVisualSheets.askVerification(ProfileActivity.this, -chatId, () -> {
+                        updateProfileData(true);
+                        if (listAdapter != null) listAdapter.notifyDataSetChanged();
+                    });
                 } else if (id == send_money) {
                     presentFragment(new WalletSendEnterAmount(getMessagesController().getUser(userId)).setAllowOpenChat());
                 } else if (id == channel_stories) {
@@ -11663,9 +11669,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextView[a].setRightDrawable(null);
                     }
                 }
+                final long meridaVerifyIcon = user.self && user.bot_verification_icon == 0 ? org.telegram.messenger.merida.MeridaVisualVerify.iconFor(currentAccount, user.id) : 0;
                 if (leftIcon == null && currentEncryptedChat == null && user.bot_verification_icon != 0) {
                     nameTextView[a].setLeftDrawableOutside(true);
                     leftIcon = getBotVerificationDrawable(user.bot_verification_icon, false, a);
+                } else if (leftIcon == null && currentEncryptedChat == null && meridaVerifyIcon != 0) {
+                    // MeridaGram «Visual»: the chosen organization's icon, with the VISUAL pill (only on this phone)
+                    nameTextView[a].setLeftDrawableOutside(true);
+                    leftIcon = org.telegram.messenger.merida.MeridaVisual.withMark(getBotVerificationDrawable(meridaVerifyIcon, false, a));
                 } else {
                     nameTextView[a].setLeftDrawableOutside(false);
                 }
@@ -11991,9 +12002,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         nameTextView[a].setRightDrawable(null);
                     }
                 }
+                final long meridaChatVerifyIcon = chat.bot_verification_icon == 0 ? org.telegram.messenger.merida.MeridaVisualVerify.iconFor(currentAccount, -chat.id) : 0;
                 if (chat.bot_verification_icon != 0) {
                     nameTextView[a].setLeftDrawableOutside(true);
                     nameTextView[a].setLeftDrawable(getBotVerificationDrawable(chat.bot_verification_icon, false, a));
+                } else if (meridaChatVerifyIcon != 0) {
+                    // MeridaGram «Visual»: the chosen organization's icon, with the VISUAL pill (only on this phone)
+                    nameTextView[a].setLeftDrawableOutside(true);
+                    nameTextView[a].setLeftDrawable(org.telegram.messenger.merida.MeridaVisual.withMark(getBotVerificationDrawable(meridaChatVerifyIcon, false, a)));
                 } else {
                     nameTextView[a].setLeftDrawable(null);
                 }
@@ -12382,6 +12398,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             if (topicId == 0 && ChatObject.canChangeChatInfo(chat)) {
                 createAutoDeleteItem(context);
+            }
+            if (topicId == 0 && org.telegram.messenger.merida.MeridaVisual.on()) {
+                // MeridaGram «Visual»: quick access — verification by an organization, only on this phone
+                otherItem.addSubItem(merida_visual_verify, R.drawable.menu_verification, getString(R.string.MeridaVVerifyMenu));
             }
             if (ChatObject.isChannel(chat)) {
                 if (isTopic) {
@@ -14194,6 +14214,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         final long did = getDialogId();
                         TLObject obj = getMessagesController().getUserOrChat(did);
                         TL_bots.BotVerification bot_verification = userInfo != null ? userInfo.bot_verification : chatInfo != null ? chatInfo.bot_verification : null;
+                        // MeridaGram «Visual»: the chosen organization's verification, only on this phone
+                        boolean meridaVerify = false;
+                        if (bot_verification == null && (did == getUserConfig().getClientUserId() || did < 0)) {
+                            bot_verification = org.telegram.messenger.merida.MeridaVisualVerify.verificationFor(currentAccount, did);
+                            meridaVerify = bot_verification != null;
+                        }
                         Long bot_manager_id = userInfo != null && TLObject.hasFlag(userInfo.flags2, TLObject.FLAG_25) ? userInfo.bot_manager_id : null;
                         if (botAppRow >= 0 || bot_verification != null || bot_manager_id != null) {
                             cell.setFixedSize(0);
@@ -14213,7 +14239,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                 sb.append("x");
                                 sb.setSpan(new AnimatedEmojiSpan(bot_verification.icon, cell.getTextView().getPaint().getFontMetricsInt()), sb.length() - 1, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                 sb.append(" ");
-                                SpannableString description = new SpannableString(MessageObject.formatTextWithEntities(bot_verification.description));
+                                SpannableString description = new SpannableString(meridaVerify
+                                        ? org.telegram.messenger.merida.MeridaVisualVerify.descriptionFor(did, bot_verification)
+                                        : MessageObject.formatTextWithEntities(bot_verification.description));
                                 try {
                                     AndroidUtilities.addLinksSafe(description, Linkify.WEB_URLS, false, false);
                                     URLSpan[] spans = description.getSpans(0, description.length(), URLSpan.class);
