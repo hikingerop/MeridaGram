@@ -114,7 +114,10 @@ final class MeridaVisualUpgradeSheet {
         ImageView close, more;
         LinearLayout buttons, upgradePage, infoPage;
         ButtonWithCounterView button;
+        TextView nextLink;
         FireworksOverlay fireworks;
+        /** The possible looks change every ~1.7 s on the «Upgrade gift» page, like Telegram's. */
+        static final int CYCLE_MS = 1700;
 
         TL_stars.starGiftAttributeModel model;
         TL_stars.starGiftAttributeBackdrop backdrop;
@@ -228,12 +231,6 @@ final class MeridaVisualUpgradeSheet {
             table.addRow(s(R.string.Gift2Quantity), LocaleController.formatPluralStringComma("Gift2QuantityIssued1", total)
                     + LocaleController.formatPluralStringComma("Gift2QuantityIssued2", total));
             infoPage.addView(table, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-            final TextView note = new TextView(context);
-            note.setText(s(R.string.MeridaVisualGiftNote));
-            note.setTextColor(0xFF6D6D72);
-            note.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-            note.setGravity(Gravity.CENTER);
-            infoPage.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
             root.addView(infoPage);
 
             button = new ButtonWithCounterView(context, fragment.getResourceProvider()).setRound();
@@ -242,13 +239,22 @@ final class MeridaVisualUpgradeSheet {
                     : s(R.string.MeridaVUpgrade), false);
             button.setOnClickListener(v -> onButton());
             root.addView(button, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 14, 12, 14, 14));
+            // like Telegram after an upgrade: «Upgrade Next Gift» under the button, when there is one
+            nextLink = new TextView(context);
+            nextLink.setTextColor(MeridaVisualUi.BLUE);
+            nextLink.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            nextLink.setGravity(Gravity.CENTER);
+            nextLink.setPadding(0, AndroidUtilities.dp(4), 0, AndroidUtilities.dp(10));
+            nextLink.setVisibility(View.GONE);
+            ((LinearLayout.LayoutParams) button.getLayoutParams()).bottomMargin = AndroidUtilities.dp(8);
+            root.addView(nextLink, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 6));
 
             // first look: «Upgrade gift» with the possible models changing
             final SpannableStringBuilder t = new SpannableStringBuilder(s(R.string.Gift2UpgradeTitle)).append(' ').append(MeridaVisual.mark());
             title.setText(t);
             subtitle.setText(s(R.string.Gift2UpgradeText));
             nextPreview(false);
-            AndroidUtilities.runOnUIThread(this::cycle, 2200);
+            AndroidUtilities.runOnUIThread(this::cycle, CYCLE_MS);
 
             // the window is as tall as its content (the confetti layer must not stretch it to the whole screen)
             sheet.setCustomView(MeridaVisualUi.withOverlay(context, root, fireworks));
@@ -287,7 +293,7 @@ final class MeridaVisualUpgradeSheet {
         void cycle() {
             if (sheet == null || !sheet.isShowing() || rolling || done) return;
             nextPreview(true);
-            AndroidUtilities.runOnUIThread(this::cycle, 2200);
+            AndroidUtilities.runOnUIThread(this::cycle, CYCLE_MS);
         }
 
         void onButton() {
@@ -399,6 +405,17 @@ final class MeridaVisualUpgradeSheet {
             });
             buttons.animate().alpha(1f).setDuration(200).start();
             button.setText(s(R.string.OK), true);
+            final String nextKey = nextUpgradable();
+            if (nextKey != null) {
+                nextLink.setText(AndroidUtilities.replaceArrows(s(R.string.Gift2UpgradeNext) + " >", false, AndroidUtilities.dp(1), AndroidUtilities.dp(1)));
+                nextLink.setAlpha(0f);
+                nextLink.setVisibility(View.VISIBLE);
+                nextLink.animate().alpha(1f).setDuration(220).start();
+                nextLink.setOnClickListener(v -> {
+                    sheet.dismiss();
+                    AndroidUtilities.runOnUIThread(() -> MeridaVisualUpgradeSheet.show(fragment, nextKey, onChanged), 250);
+                });
+            }
 
             fireworks.start(true);
             final String product = (gift.title != null ? gift.title : "NFT") + " #" + LocaleController.formatNumber(number, ',');
@@ -408,6 +425,15 @@ final class MeridaVisualUpgradeSheet {
                         .show();
             } catch (Throwable ignore) {
             }
+        }
+
+        /** Another ordinary visual gift that can still be upgraded, or null. */
+        String nextUpgradable() {
+            for (TL_stars.SavedStarGift g : MeridaVisualGifts.savedGifts()) {
+                final String k = MeridaVisualGifts.keyOf(g);
+                if (k != null && !k.equals(key) && g.gift != null && canUpgrade(g.gift)) return k;
+            }
+            return null;
         }
 
         void addHeaderButton(int icon, CharSequence text) {

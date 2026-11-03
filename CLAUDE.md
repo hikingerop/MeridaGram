@@ -145,7 +145,9 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    коллекции (StarsController подмешивает MeridaVisualGifts.forCraft в список forCrafting; prepareForCraft даёт свой id
    и 25%) или подарки в продаже (оплата визуальными звёздами при крафте); выбор — ResaleGiftsFragment.SelectGiftSheet
    .setMeridaVisual(true) (настоящие подарки не берёт, ничего не покупает); результат локально, модель из
-   getStarGiftUpgradeAttributes (filterAttributes crafting), «Шанс успеха»/«Всегда успешно» из настроек. Дальше: 5) улучшение — смена превью каждые 1.5–2 с, тайминги рулетки.
+   getStarGiftUpgradeAttributes (filterAttributes crafting), «Шанс успеха»/«Всегда успешно» из настроек. 5) сделано — улучшение: превью каждые 1.7 с, «Улучшить следующий»,
+   без лишней серой строки; рулетка — это перенос Telegram Roller (порядок остановки фон → узор → модель), не трогали.
+   Не сделано из ТЗ: чекбокс «С моим именем» (у визуального подарка ему нечего менять).
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).
