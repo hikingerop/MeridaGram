@@ -1260,12 +1260,14 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             if (first || patternChanged) background.setPattern(pattern, patternChanged);
             if (first) {
                 setDocument(modelImage[currentImage], model.document, collection);
+                playOnce(modelImage[currentImage]);
             } else if (modelChanged) {
                 // cross-fade: the old model fades and shrinks, the new one grows in
                 final BackupImageView old = modelImage[currentImage];
                 currentImage = 1 - currentImage;
                 final BackupImageView now = modelImage[currentImage];
                 setDocument(now, model.document, collection);
+                playOnce(now);
                 old.animate().cancel();
                 now.animate().cancel();
                 old.animate().alpha(0f).scaleX(0.8f).scaleY(0.8f).setDuration(220).start();
@@ -1274,6 +1276,10 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 now.setScaleY(0.8f);
                 now.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(380)
                         .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_BACK).start();
+            }
+            if (!first && !modelChanged && (backdropChanged || patternChanged)) {
+                // like Chimera: a new backdrop or pattern makes the model play its animation once more
+                replay(modelImage[currentImage]);
             }
             lastModel = model;
             lastBackdrop = backdrop;
@@ -1304,6 +1310,20 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 chipRarity[i].setVisibility(rn == null ? GONE : VISIBLE);
             }
             invalidate();
+        }
+    }
+
+    /** The header model plays its animation once and rests on the last frame, like Chimera. */
+    private static void playOnce(BackupImageView image) {
+        image.getImageReceiver().setAutoRepeat(2);
+    }
+
+    /** Plays the header model's animation again from the start (a choice of backdrop / pattern). */
+    private static void replay(BackupImageView image) {
+        final org.telegram.ui.Components.RLottieDrawable lottie = image.getImageReceiver().getLottieAnimation();
+        if (lottie != null) {
+            lottie.setCurrentFrame(0, false);
+            lottie.restart(true);
         }
     }
 

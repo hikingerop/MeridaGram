@@ -107,6 +107,7 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    прокрутка поднимает окно вверх, нажатие выше окна / «назад» — окно уезжает вниз, каталог на том же месте; шапка 284 dp
    с круглым верхом (HeaderBackground — фон плавно перетекает, узор меняется плавно), модель сменяется растворением,
    рамка выбора плавно появляется (AnimatedFloat), выбор без перестройки списка (refreshSelection).
+   Модель в шапке играет анимацию один раз (setAutoRepeat 2) и при смене фона/узора проигрывает её заново (replay), как у Chimera.
    Модели NFT в наших окнах (BottomSheet) — setLayerNum(4 | 6656) / GiftCell.setImageLayer(7), как у Telegram: иначе
    открытие окна (stopAllHeavyOperations 512) душит «тяжёлую» анимацию и она идёт ~15 кадров/с, рывками.
    Окна подарка: setApplyTopPadding(false) + шапка со скруглением 12 dp (цвет до самого верха, как у Telegram);
