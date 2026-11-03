@@ -174,6 +174,9 @@ NFT вокруг аватарки (Telegram ProfileGiftsView, закреплён
 Кнопки после улучшения — Передать/Носить(⇄Убрать)/Продать, «⋮» — меню (закрепить/скрыть/передать/удалить).
 Страница «Улучшить» — темп Telegram (rotateAttributes): следующий вид через 2.5 с после смены 320 мс, мягкое растворение,
 модель играет по кругу и продолжает с того же места (setProgress). Рулетка — 1:1 Telegram Roller (сверено 03.11).
+Строка «Владелец» в окнах NFT — как TableView.addRowUserWithEmojiStatus: одна строка текста (AvatarSpan 24 + имя цветом
+featuredStickers_addButton с водяным знаком + статус SwapAnimatedEmojiDrawable с искрами), addRowUnpadded — высота как у
+остальных строк. Низ окна по замеру со скриншотов Chimera: отступ над ОК 16 dp, под ОК 3 dp.
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).

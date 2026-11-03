@@ -239,7 +239,7 @@ public final class MeridaVisualGiftSheet {
             sheet.dismiss();
         };
         final boolean[] wornChanged = anyChanged;
-        final LinearLayout[] ownerRow = new LinearLayout[1];
+        final FrameLayout[] ownerRow = new FrameLayout[1];
         final boolean upgradable = key != null && MeridaVisualUpgradeSheet.canUpgrade(gift);
         if (unique && key != null) {
             // like Telegram's gift window: Transfer / Wear / Sell
@@ -308,11 +308,11 @@ public final class MeridaVisualGiftSheet {
         // ---- table
         final LinearLayout body = new LinearLayout(context);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(12));
+        body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(3));
         final TableView table = new TableView(context, fragment.getResourceProvider());
         final long newOwner = key != null ? org.telegram.messenger.merida.MeridaVisualChat.transferredTo(key) : 0;
-        ownerRow[0] = (LinearLayout) ownerView(context, account, newOwner);
-        table.addRow(s(R.string.Gift2Owner), ownerRow[0]);
+        ownerRow[0] = (FrameLayout) ownerView(context, account, newOwner);
+        table.addRowUnpadded(s(R.string.Gift2Owner), ownerRow[0]);
         // like Telegram: tapping the owner opens their profile
         ownerRow[0].setOnClickListener(v -> {
             final long ownerId = newOwner != 0 ? newOwner : UserConfig.getInstance(account).getClientUserId();
@@ -370,7 +370,7 @@ public final class MeridaVisualGiftSheet {
                 MeridaVisualUpgradeSheet.show(fragment, key, onChanged);
             }
         });
-        body.addView(ok, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 0, 12, 0, 0));
+        body.addView(ok, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 0, 16, 0, 0));
         root.addView(body);
 
         final String slug = MeridaVisualGifts.slugOf(saved);
@@ -790,42 +790,55 @@ public final class MeridaVisualGiftSheet {
 
     /** ownerId ≠ 0: after a visual «transfer» — that person, still with «VISUAL» over the name. */
     static View ownerView(Context context, int account, long ownerId) {
-        final LinearLayout row = new LinearLayout(context);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
+        final FrameLayout row = new FrameLayout(context);
         fillOwner(row, context, account, ownerId);
         return row;
     }
 
-    /** Avatar, name with «VISUAL» over it, and the status you wear (when it is you). */
-    static void fillOwner(LinearLayout row, Context context, int account, long ownerId) {
+    /**
+     * Exactly Telegram's owner row (TableView.addRowUserWithEmojiStatus): one line of text — a 24 dp avatar inside
+     * the text, the name in the button colour (here with «VISUAL» written over it) and the worn gift as a status
+     * with sparkles — so the row is as tall as the others. Add it with addRowUnpadded.
+     */
+    static void fillOwner(FrameLayout row, Context context, int account, long ownerId) {
         if (row == null) return;
         row.removeAllViews();
-        final TLRPC.User me = ownerId > 0 ? MessagesController.getInstance(account).getUser(ownerId) : UserConfig.getInstance(account).getCurrentUser();
-        final BackupImageView avatar = new BackupImageView(context);
-        avatar.setRoundRadius(AndroidUtilities.dp(12));
-        if (me != null) {
-            final AvatarDrawable ad = new AvatarDrawable();
-            ad.setInfo(account, me);
-            avatar.setForUserOrChat(me, ad);
-        }
-        row.addView(avatar, LayoutHelper.createLinear(24, 24, 0, 0, 8, 0));
-        final TextView name = new TextView(context);
-        final String n = me != null ? UserObject.getUserName(me) : "";
-        name.setText(MeridaVisual.watermark(n.isEmpty() ? "—" : n));
-        name.setTextColor(MeridaVisualUi.BLUE);
-        name.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        name.setSingleLine(true);
-        name.setEllipsize(TextUtils.TruncateAt.END);
-        row.addView(name, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
-        // like Telegram: the gift you wear as a status, right after your name
+        final TLRPC.User user = ownerId > 0 ? MessagesController.getInstance(account).getUser(ownerId) : UserConfig.getInstance(account).getCurrentUser();
+        final org.telegram.ui.Components.LinkSpanDrawable.LinksSimpleTextView text = new org.telegram.ui.Components.LinkSpanDrawable.LinksSimpleTextView(context, null);
+        text.setPadding(AndroidUtilities.dp(12.66f), AndroidUtilities.dp(9.33f), AndroidUtilities.dp(12.66f), AndroidUtilities.dp(9.33f));
+        final int color = Theme.getColor(Theme.key_featuredStickers_addButton);
+        text.setTextColor(color);
+        text.setTextSize(14);
+        final AvatarSpan avatar = new AvatarSpan(text, account, 24);
+        if (user != null) avatar.setUser(user);
+        final String name = user != null ? UserObject.getUserName(user) : "";
+        final SpannableStringBuilder ssb = new SpannableStringBuilder("x  ");
+        ssb.setSpan(avatar, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ssb.append(MeridaVisual.watermark(name.isEmpty() ? "—" : name, color));
+        text.setText(ssb);
+        // like Telegram: the gift you wear as a status after your name, glittering
         final TLRPC.Document worn = ownerId > 0 ? null : MeridaVisualGifts.wornModel();
         if (worn != null) {
-            final BackupImageView status = new BackupImageView(context);
-            status.setLayerNum(4 | 6656);
-            status.setImage(ImageLocation.getForDocument(worn), "40_40", (android.graphics.drawable.Drawable) null, worn);
-            status.getImageReceiver().setAutoRepeat(1);
-            row.addView(status, LayoutHelper.createLinear(20, 20, 0f, Gravity.CENTER_VERTICAL, 4, 0, 0, 0));
+            final org.telegram.ui.Components.AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable status =
+                    new org.telegram.ui.Components.AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(text, AndroidUtilities.dp(20), org.telegram.ui.Components.AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
+            status.set(worn, org.telegram.ui.Components.AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD, false);
+            status.setParticles(true, false);
+            status.setColor(color);
+            status.offset(AndroidUtilities.dp(12), 0);
+            text.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    status.attach();
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    status.detach();
+                }
+            });
+            if (text.isAttachedToWindow()) status.attach();
+            text.setRightDrawable(status);
         }
+        row.addView(text, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
     }
 }

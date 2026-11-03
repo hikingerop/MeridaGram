@@ -220,7 +220,7 @@ final class MeridaVisualUpgradeSheet {
             infoPage.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(14), AndroidUtilities.dp(14), 0);
             infoPage.setVisibility(View.GONE);
             final TableView table = new TableView(context, fragment.getResourceProvider());
-            table.addRow(s(R.string.Gift2Owner), MeridaVisualGiftSheet.ownerView(context, fragment.getCurrentAccount()));
+            table.addRowUnpadded(s(R.string.Gift2Owner), MeridaVisualGiftSheet.ownerView(context, fragment.getCurrentAccount()));
             roller.modelText = new MeridaGiftRoll.TextRoll(context, fragment.getResourceProvider());
             roller.patternText = new MeridaGiftRoll.TextRoll(context, fragment.getResourceProvider());
             roller.backdropText = new MeridaGiftRoll.TextRoll(context, fragment.getResourceProvider());
