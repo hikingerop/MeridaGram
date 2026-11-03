@@ -34,6 +34,40 @@ public final class MeridaVisualGifts {
     /** Gift objects made by this class, so the profile list can tell them from real ones. */
     private static final Set<TL_stars.SavedStarGift> made = Collections.newSetFromMap(new WeakHashMap<>());
     private static final WeakHashMap<TL_stars.SavedStarGift, String> keys = new WeakHashMap<>();
+    /** The gift object of a visual gift → its key (for crafting, where Telegram's sheets hand back the bare gift). */
+    private static final WeakHashMap<TL_stars.StarGift, String> giftKeys = new WeakHashMap<>();
+
+    public static String keyOfGift(TL_stars.StarGift gift) {
+        synchronized (made) {
+            return gift == null ? null : giftKeys.get(gift);
+        }
+    }
+
+    /**
+     * Ready for Telegram's craft window: its own id (visual NFTs of one collection share the collection's id,
+     * and the window tells gifts apart by id) and Telegram's 25% chance when it has none.
+     */
+    public static void prepareForCraft(TL_stars.StarGift gift, String key) {
+        if (gift == null || key == null) return;
+        gift.id = -(Math.abs((long) key.hashCode()) + 1);
+        if (gift.craft_chance_permille <= 0) gift.craft_chance_permille = 250;
+        synchronized (made) {
+            giftKeys.put(gift, key);
+        }
+    }
+
+    /** Your visual NFTs of this collection, for the «Your gifts» part of the craft picker. */
+    public static ArrayList<TL_stars.SavedStarGift> forCraft(long giftId) {
+        final ArrayList<TL_stars.SavedStarGift> out = new ArrayList<>();
+        for (TL_stars.SavedStarGift s : savedGifts()) {
+            if (!(s.gift instanceof TL_stars.TL_starGiftUnique) || s.gift.gift_id != giftId) continue;
+            final String key = keyOf(s);
+            if (key == null || MeridaVisualChat.transferredTo(key) != 0) continue;
+            prepareForCraft(s.gift, key);
+            out.add(s);
+        }
+        return out;
+    }
 
     /** The storage key of a visual gift shown in the profile, or null. */
     public static String keyOf(TL_stars.SavedStarGift gift) {

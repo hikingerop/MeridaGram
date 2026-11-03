@@ -175,7 +175,7 @@ public final class MeridaVisualGiftSheet {
             org.telegram.ui.Components.ScaleStateListAnimator.apply(craftView);
             craftView.setOnClickListener(v -> {
                 sheet.dismiss();
-                new MeridaMyGiftsSheet(fragment).showCraft(key);
+                MeridaVisualCraftSheet.show(fragment, key, (TL_stars.TL_starGiftUnique) gift, onChanged);
             });
             header.addView(craftView, LayoutHelper.createFrame(42, 42, Gravity.TOP | Gravity.RIGHT, 0, 5, 5 + 42, 0));
         }
@@ -421,9 +421,16 @@ public final class MeridaVisualGiftSheet {
                 fireworks.start(true);
                 final String product = gift.title + (unique ? " #" + LocaleController.formatNumber(((TL_stars.TL_starGiftUnique) gift).num, ',') : "");
                 try {
-                    org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), null)
-                            .createSimpleBulletin(R.raw.gift_upgrade, s(R.string.Gift2UpgradedTitle), AndroidUtilities.replaceTags(LocaleController.formatString(R.string.Gift2UpgradedText, product)))
-                            .show();
+                    if (gift.crafted) {
+                        // after a (visual) craft: «You crafted a new gift!»
+                        org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), null)
+                                .createSimpleBulletin(R.raw.gift_upgrade, s(R.string.ActionUniqueGiftCrafted), product)
+                                .show();
+                    } else {
+                        org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), null)
+                                .createSimpleBulletin(R.raw.gift_upgrade, s(R.string.Gift2UpgradedTitle), AndroidUtilities.replaceTags(LocaleController.formatString(R.string.Gift2UpgradedText, product)))
+                                .show();
+                    }
                 } catch (Throwable ignore) {
                 }
             }, 250);

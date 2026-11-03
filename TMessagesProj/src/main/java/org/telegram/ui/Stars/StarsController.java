@@ -3754,6 +3754,12 @@ public class StarsController {
                         final ArrayList<TL_stars.SavedStarGift> visual = org.telegram.messenger.merida.MeridaVisualGifts.savedGifts();
                         gifts.addAll(0, visual);
                         totalCount += visual.size();
+                    } else if (first && craftingGiftId != 0 && org.telegram.messenger.merida.MeridaVisual.on()
+                            && (dialogId == 0 || dialogId == UserConfig.getInstance(currentAccount).getClientUserId())) {
+                        // MeridaGram «Visual»: your visual NFTs of this collection can be put into the (local) craft
+                        final ArrayList<TL_stars.SavedStarGift> visual = org.telegram.messenger.merida.MeridaVisualGifts.forCraft(craftingGiftId);
+                        gifts.addAll(0, visual);
+                        totalCount += visual.size();
                     } else if (first && craftingGiftId == 0 && isCollection && collectionId != 0
                             && (dialogId == 0 || dialogId == UserConfig.getInstance(currentAccount).getClientUserId())) {
                         // visual gifts you put into this collection (long-press → «Add to collection»), only on this phone

@@ -10459,6 +10459,15 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
             return count;
         }
 
+        /** MeridaGram «Visual»: the gifts now in the slots (for the local craft of visual NFTs). */
+        public ArrayList<TL_stars.StarGift> meridaSelectedGifts() {
+            final ArrayList<TL_stars.StarGift> list = new ArrayList<>();
+            for (int i = 0; i < gifts.length; ++i) {
+                if (gifts[i] != null && gifts[i].getGift() != null) list.add(gifts[i].getGift());
+            }
+            return list;
+        }
+
         public int getGiftsSuccessChance() {
             int chance = 0;
             for (int i = 0; i < gifts.length; ++i) {

@@ -2056,6 +2056,19 @@ public class ResaleGiftsFragment extends BaseFragment implements FactorAnimator.
                         return;
                     }
 
+                    if (meridaVisual) {
+                        // MeridaGram «Visual» craft: your visual NFTs, or a gift on sale paid later with visual stars
+                        if (resale ? !org.telegram.ui.MeridaVisualCraftSheet.canPickFromMarket(getContext(), gift) : org.telegram.messenger.merida.MeridaVisualGifts.keyOfGift(gift) == null) {
+                            if (!resale) {
+                                android.widget.Toast.makeText(getContext(), getString(R.string.MeridaVCraftOnlyVisual), android.widget.Toast.LENGTH_LONG).show();
+                            }
+                            return;
+                        }
+                        if (resale) org.telegram.ui.MeridaVisualCraftSheet.pickFromMarket(gift);
+                        onSelect.run(gift);
+                        dismiss();
+                        return;
+                    }
                     if (resale && gift instanceof TL_stars.TL_starGiftUnique) {
                         buyGift((TL_stars.TL_starGiftUnique) item.object);
                         return;
@@ -2183,6 +2196,13 @@ public class ResaleGiftsFragment extends BaseFragment implements FactorAnimator.
             actionView.setScaleY(s);
             actionView.setAlpha(ilerp(s, 0.5f, 1.0f));
             actionView.setTranslationY(ty);
+        }
+
+        private boolean meridaVisual;
+        /** MeridaGram «Visual»: picking for the local craft of visual NFTs — Telegram is not asked, nothing real is bought. */
+        public SelectGiftSheet setMeridaVisual(boolean visual) {
+            this.meridaVisual = visual;
+            return this;
         }
 
         private Utilities.Callback<TL_stars.StarGift> onSelect;
