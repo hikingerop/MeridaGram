@@ -932,12 +932,26 @@ final class MeridaVisualSheets {
         circle.addView(icon, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 
         final String shown = phone ? MeridaVisual.formatNumber888(name) : "@" + name;
-        final android.text.SpannableStringBuilder title = new android.text.SpannableStringBuilder(AndroidUtilities.replaceTags(
-                LocaleController.formatString(phone ? R.string.FragmentPhoneTitle : R.string.FragmentUsernameTitle, shown)));
+        // like Telegram's FragmentUsernameBottomSheet: the username / number in the title is a blue link that copies it
+        final Runnable copyLink = () -> {
+            AndroidUtilities.addToClipboard(phone ? shown : MessagesController.getInstance(fragment.getCurrentAccount()).linkPrefix + "/" + name);
+            if (phone) {
+                org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), null).createCopyBulletin(s(R.string.PhoneCopied)).show();
+            } else {
+                org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), null).createCopyLinkBulletin().show();
+            }
+        };
+        final android.text.SpannableStringBuilder title = new android.text.SpannableStringBuilder(AndroidUtilities.replaceSingleTag(
+                LocaleController.formatString(phone ? R.string.FragmentPhoneTitle : R.string.FragmentUsernameTitle, shown), copyLink));
         title.append(' ').append(MeridaVisual.mark());
         // sizes exactly as Telegram's FragmentUsernameBottomSheet: title 16 sp bold, owner chip 13 sp,
         // description 14 sp, buttons 48 dp
-        final TextView header = label(context, title, 0xFFFFFFFF, 16, true);
+        final org.telegram.ui.Components.LinkSpanDrawable.LinksTextView header = new org.telegram.ui.Components.LinkSpanDrawable.LinksTextView(context);
+        header.setText(title);
+        header.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        header.setLinkTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText2));
+        header.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        header.setTypeface(AndroidUtilities.bold());
         header.setGravity(Gravity.CENTER);
         layout.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 42, 0, 42, 0));
 

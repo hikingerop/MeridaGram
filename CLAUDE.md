@@ -166,6 +166,9 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
 PLACES), фон — надетый NFT; только для своего профиля, когда нет настоящей wallet_card; в userInfo/базу НЕ пишется.
 Пометки: «ВИЗУАЛ» на плашке баланса, после имени на карте, «ВИЗУ АЛ» вдоль края вместо адреса, честная строка над картой
 (MeridaVWalletNote), без кнопок «Открыть кошелёк/Отправить».
+Окно коллекционного ника: заголовок как у Telegram — ник синей ссылкой (replaceSingleTag + LinksTextView), нажатие копирует.
+NFT вокруг аватарки (Telegram ProfileGiftsView, закреплённые): визуальные с своим id (Gift(gift, key)), надетый визуальный
+не дублируется, нажатие — наше окно (meridaKey).
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).

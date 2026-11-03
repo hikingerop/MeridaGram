@@ -171,6 +171,21 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
 
         public int position = -1;
 
+        /** MeridaGram «Visual»: the key of a visual NFT (it opens MeridaGram's own window); null for real gifts. */
+        public String meridaKey;
+
+        /** MeridaGram «Visual»: a visual NFT with its own id (visual NFTs of one collection share the gift's id). */
+        public Gift(TL_stars.TL_starGiftUnique gift, String visualKey) {
+            id = -(Math.abs((long) visualKey.hashCode()) + 1);
+            meridaKey = visualKey;
+            document = gift.getDocument();
+            documentId = document == null ? 0 : document.id;
+            final TL_stars.starGiftAttributeBackdrop backdrop = findAttribute(gift.attributes, TL_stars.starGiftAttributeBackdrop.class);
+            color = backdrop != null ? backdrop.center_color | 0xFF000000 : 0xFF8E8E93;
+            slug = gift.slug;
+            initParticles();
+        }
+
         public Gift(TL_stars.TL_starGiftUnique gift) {
             id = gift.id;
             document = gift.getDocument();
@@ -278,12 +293,19 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
         if (emojiStatus instanceof TLRPC.TL_emojiStatusCollectible) {
             giftIds.add(((TLRPC.TL_emojiStatusCollectible) emojiStatus).collectible_id);
         }
+        // MeridaGram «Visual»: the visual NFT you wear is shown at your name, not around the avatar
+        final String wornVisual = dialogId == org.telegram.messenger.UserConfig.getInstance(currentAccount).getClientUserId()
+                ? org.telegram.utils.settings.MeridaSettings.visualWorn.get() : null;
         list = StarsController.getInstance(currentAccount).getProfileGiftsList(dialogId);
         if (list != null) {
             for (int i = 0; i < list.gifts.size(); i++) {
                 final TL_stars.SavedStarGift savedGift = list.gifts.get(i);
                 if (!savedGift.unsaved && savedGift.pinned_to_top && savedGift.gift instanceof TL_stars.TL_starGiftUnique) {
-                    final Gift gift = new Gift((TL_stars.TL_starGiftUnique) savedGift.gift);
+                    final String visualKey = org.telegram.messenger.merida.MeridaVisualGifts.keyOf(savedGift);
+                    if (visualKey != null && visualKey.equals(wornVisual)) continue;
+                    final Gift gift = visualKey != null
+                            ? new Gift((TL_stars.TL_starGiftUnique) savedGift.gift, visualKey)
+                            : new Gift((TL_stars.TL_starGiftUnique) savedGift.gift);
                     if (!giftIds.contains(gift.id)) {
                         gifts.add(gift);
                         giftIds.add(gift.id);
@@ -507,6 +529,13 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
     }
 
     public void onGiftClick(Gift gift) {
+        if (gift.meridaKey != null) {
+            // MeridaGram «Visual»: a visual NFT opens its own window, not someone else's page
+            final org.telegram.ui.ActionBar.BaseFragment fragment = org.telegram.ui.LaunchActivity.getLastFragment();
+            final TL_stars.SavedStarGift saved = org.telegram.messenger.merida.MeridaVisualGifts.wrap(gift.meridaKey);
+            if (fragment != null && saved != null) org.telegram.ui.MeridaVisualGiftSheet.show(fragment, saved, null);
+            return;
+        }
         Browser.openUrl(getContext(), "https://t.me/nft/" + gift.slug);
     }
 }
