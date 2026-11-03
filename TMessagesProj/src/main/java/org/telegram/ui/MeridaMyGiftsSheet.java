@@ -403,7 +403,9 @@ final class MeridaMyGiftsSheet {
         buttons.setOrientation(LinearLayout.HORIZONTAL);
         buttons.addView(actionButton(context, s(R.string.MeridaVEdit), MeridaVisualUi.BLUE, 0xFF1C2E44, () -> {
             dialog.dismiss();
-            MeridaVisualGiftSheet.show(fragment, it.saved, this::rebuild);
+            final List<TL_stars.SavedStarGift> visible = new ArrayList<>();
+            for (Item other : allItems()) if (matches(other)) visible.add(other.saved);
+            MeridaVisualGiftSheet.show(fragment, it.saved, visible, this::rebuild, false);
         }), LayoutHelper.createLinear(0, 42, 1f, 0, 0, 6, 0));
         buttons.addView(actionButton(context, s(it.hidden ? R.string.MeridaVShow : R.string.MeridaVHide), MeridaVisualUi.BLUE, 0xFF1C2E44, () -> {
             dialog.dismiss();

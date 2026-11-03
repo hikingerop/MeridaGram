@@ -64,9 +64,55 @@ public final class MeridaVisualGiftSheet {
 
     /** celebrate: just upgraded — confetti and «Gift upgraded» over the window. */
     public static void show(BaseFragment fragment, TL_stars.SavedStarGift saved, Runnable onChanged, boolean celebrate) {
+        show(fragment, saved, null, onChanged, celebrate);
+    }
+
+    /**
+     * list: the visual gifts in the order they are shown (the profile or «My gifts»); the window then swipes
+     * left / right between them like Telegram's gift window — the card slides aside, shrinks a little and turns,
+     * the next one comes in from the side.
+     */
+    public static void show(BaseFragment fragment, TL_stars.SavedStarGift saved, java.util.List<TL_stars.SavedStarGift> list, Runnable onChanged, boolean celebrate) {
         if (fragment == null || fragment.getParentActivity() == null || saved == null || saved.gift == null) {
             return;
         }
+        final Context context = fragment.getParentActivity();
+        final BottomSheet sheet = new BottomSheet(context, false);
+        // like Telegram's gift window: the coloured header starts at the sheet's very top, rounded 12 dp
+        sheet.setApplyTopPadding(false);
+        sheet.setBackgroundColor(MeridaVisualUi.SHEET_BG);
+        sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
+        final boolean[] anyChanged = new boolean[1];
+        sheet.setOnDismissListener(d -> {
+            if (anyChanged[0] && onChanged != null) onChanged.run();
+        });
+        final java.util.ArrayList<TL_stars.SavedStarGift> gifts = new java.util.ArrayList<>();
+        if (list != null) {
+            for (TL_stars.SavedStarGift g : list) {
+                if (g != null && g.gift != null && MeridaVisualGifts.isVisual(g)) gifts.add(g);
+            }
+        }
+        int index = -1;
+        final String key = MeridaVisualGifts.keyOf(saved);
+        for (int i = 0; i < gifts.size(); i++) {
+            final TL_stars.SavedStarGift g = gifts.get(i);
+            if (g == saved || key != null && key.equals(MeridaVisualGifts.keyOf(g))) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0) {
+            gifts.clear();
+            gifts.add(saved);
+            index = 0;
+        }
+        final MeridaGiftPager pager = new MeridaGiftPager(context, gifts.size(), index,
+                i -> buildPage(fragment, sheet, gifts.get(i), onChanged, anyChanged, celebrate && gifts.get(i) == saved));
+        sheet.setCustomView(pager);
+        sheet.show();
+    }
+
+    private static View buildPage(BaseFragment fragment, BottomSheet sheet, TL_stars.SavedStarGift saved, Runnable onChanged, boolean[] anyChanged, boolean celebrate) {
         final Context context = fragment.getParentActivity();
         final int account = fragment.getCurrentAccount();
         final String key = MeridaVisualGifts.keyOf(saved);
@@ -76,11 +122,6 @@ public final class MeridaVisualGiftSheet {
         final TL_stars.starGiftAttributePattern pattern = unique ? StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributePattern.class) : null;
         final TL_stars.starGiftAttributeBackdrop backdrop = unique ? StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeBackdrop.class) : null;
 
-        final BottomSheet sheet = new BottomSheet(context, false);
-        // like Telegram's gift window: the coloured header starts at the sheet's very top, rounded 12 dp
-        sheet.setApplyTopPadding(false);
-        sheet.setBackgroundColor(MeridaVisualUi.SHEET_BG);
-        sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
         final LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.VERTICAL);
 
@@ -191,14 +232,11 @@ public final class MeridaVisualGiftSheet {
         root.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
         final Runnable changed = () -> {
+            anyChanged[0] = true;
             sheet.dismiss();
-            if (onChanged != null) onChanged.run();
         };
-        final boolean[] wornChanged = new boolean[1];
+        final boolean[] wornChanged = anyChanged;
         final LinearLayout[] ownerRow = new LinearLayout[1];
-        sheet.setOnDismissListener(d -> {
-            if (wornChanged[0] && onChanged != null) onChanged.run();
-        });
         final boolean upgradable = key != null && MeridaVisualUpgradeSheet.canUpgrade(gift);
         if (unique && key != null) {
             // like Telegram's gift window: Transfer / Wear / Sell
@@ -376,8 +414,7 @@ public final class MeridaVisualGiftSheet {
         scroll.addView(root);
         // the window is as tall as its content, like Telegram's (the confetti layer must not stretch it)
         final org.telegram.ui.Components.FireworksOverlay fireworks = new org.telegram.ui.Components.FireworksOverlay(context);
-        sheet.setCustomView(MeridaVisualUi.withOverlay(context, scroll, fireworks));
-        sheet.show();
+        final View page = MeridaVisualUi.withOverlay(context, scroll, fireworks);
         if (celebrate) {
             // like Telegram after an upgrade: confetti and «Gift upgraded»
             AndroidUtilities.runOnUIThread(() -> {
@@ -391,6 +428,7 @@ public final class MeridaVisualGiftSheet {
                 }
             }, 250);
         }
+        return page;
     }
 
     /**

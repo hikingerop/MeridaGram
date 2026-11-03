@@ -16830,7 +16830,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (collectibleHint != null) {
             collectibleHint.hide();
         }
-        if (status != null && !TextUtils.isEmpty(status.slug)) {
+        // MeridaGram «Visual»: the worn visual NFT gets the same bubble (even without a t.me/nft link)
+        final boolean meridaWorn = status != null && status == org.telegram.messenger.merida.MeridaVisualGifts.wornStatus(currentAccount);
+        if (status != null && (!TextUtils.isEmpty(status.slug) || meridaWorn)) {
             collectibleHintVisible = null;
             collectibleHint = new HintView2(getContext(), HintView2.DIRECTION_BOTTOM);
             collectibleHintBackgroundColor = Theme.blendOver(status.center_color | 0xFF000000, Theme.multAlpha(status.pattern_color | 0xFF000000, .5f));
@@ -16848,6 +16850,13 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             collectibleHint.show();
             final String slug = status.slug;
             collectibleHint.setOnClickListener(v -> {
+                if (meridaWorn) {
+                    // a visual NFT opens its own window, not someone else's page
+                    final String wornKey = org.telegram.utils.settings.MeridaSettings.visualWorn.get();
+                    final TL_stars.SavedStarGift wornGift = wornKey != null ? org.telegram.messenger.merida.MeridaVisualGifts.wrap(wornKey) : null;
+                    if (wornGift != null) org.telegram.ui.MeridaVisualGiftSheet.show(this, wornGift, null);
+                    return;
+                }
                 Browser.openUrl(getContext(), "https://" + getMessagesController().linkPrefix + "/nft/" + slug);
             });
             if (extraHeight < dp(82)) {
@@ -16855,7 +16864,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 collectibleHint.setAlpha(0.0f);
             }
             updateCollectibleHint();
-            AndroidUtilities.runOnUIThread(collectibleHint::hide, 6 * 1000);
+            AndroidUtilities.runOnUIThread(collectibleHint::hide, meridaWorn ? 3000 : 6 * 1000);
         }
     }
 

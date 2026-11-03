@@ -760,6 +760,8 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
             gift = giftsList.get(index);
         }
         if (gift instanceof TL_stars.SavedStarGift) {
+            // MeridaGram: visual gifts have their own window; Telegram's must not show them (its buttons ask the server)
+            if (org.telegram.messenger.merida.MeridaVisualGifts.isVisual((TL_stars.SavedStarGift) gift)) return null;
             return (TL_stars.SavedStarGift) gift;
         }
         return null;
@@ -799,6 +801,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
             gift = giftsList.get(index);
         }
         if (gift == null) return;
+        if (gift instanceof TL_stars.SavedStarGift && org.telegram.messenger.merida.MeridaVisualGifts.isVisual((TL_stars.SavedStarGift) gift)) return;
         if ((r ? right : left) != null) {
             if (gift instanceof TL_stars.SavedStarGift && eq((r ? right : left).savedStarGift, (TL_stars.SavedStarGift) gift)) {
                 return;

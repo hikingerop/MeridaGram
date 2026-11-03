@@ -660,7 +660,8 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
             if (list == null) return;
             if (item.object instanceof TL_stars.SavedStarGift && org.telegram.messenger.merida.MeridaVisualGifts.isVisual((TL_stars.SavedStarGift) item.object)) {
                 // a visual gift opens MeridaGram's own info window: owner you (watermarked), no «Buy»
-                org.telegram.ui.MeridaVisualGiftSheet.show(parent.fragment, (TL_stars.SavedStarGift) item.object, () -> list.invalidate(true));
+                // swipes between the visual gifts of this tab, like Telegram's gift window
+                org.telegram.ui.MeridaVisualGiftSheet.show(parent.fragment, (TL_stars.SavedStarGift) item.object, list.gifts, () -> list.invalidate(true), false);
                 return;
             }
             if (item.object instanceof TL_stars.SavedStarGift) {
