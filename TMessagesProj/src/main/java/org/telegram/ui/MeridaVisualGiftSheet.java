@@ -3,6 +3,7 @@ package org.telegram.ui;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.RectF;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -121,6 +122,22 @@ public final class MeridaVisualGiftSheet {
         }
         more.setBackground(Theme.createSelectorDrawable(0x20FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
         header.addView(more, LayoutHelper.createFrame(42, 42, Gravity.TOP | Gravity.RIGHT, 0, 5, 5, 0));
+        if (unique && key != null && org.telegram.messenger.merida.MeridaVisualChat.transferredTo(key) == 0) {
+            // like Telegram's gift window: the anvil next to «⋮» opens crafting with this gift
+            final ImageView craftView = new ImageView(context);
+            craftView.setImageResource(R.drawable.filled_forge);
+            craftView.setScaleType(ImageView.ScaleType.CENTER);
+            if (backdrop == null) {
+                craftView.setColorFilter(new PorterDuffColorFilter(0xFF8E8E93, PorterDuff.Mode.SRC_IN));
+            }
+            craftView.setBackground(Theme.createSelectorDrawable(0x20FFFFFF, Theme.RIPPLE_MASK_CIRCLE_20DP));
+            org.telegram.ui.Components.ScaleStateListAnimator.apply(craftView);
+            craftView.setOnClickListener(v -> {
+                sheet.dismiss();
+                new MeridaMyGiftsSheet(fragment).showCraft(key);
+            });
+            header.addView(craftView, LayoutHelper.createFrame(42, 42, Gravity.TOP | Gravity.RIGHT, 0, 5, 5 + 42, 0));
+        }
 
         final LinearLayout info = new LinearLayout(context);
         info.setOrientation(LinearLayout.VERTICAL);
@@ -177,6 +194,11 @@ public final class MeridaVisualGiftSheet {
             sheet.dismiss();
             if (onChanged != null) onChanged.run();
         };
+        final boolean[] wornChanged = new boolean[1];
+        final LinearLayout[] ownerRow = new LinearLayout[1];
+        sheet.setOnDismissListener(d -> {
+            if (wornChanged[0] && onChanged != null) onChanged.run();
+        });
         final boolean upgradable = key != null && MeridaVisualUpgradeSheet.canUpgrade(gift);
         if (unique && key != null) {
             // like Telegram's gift window: Transfer / Wear / Sell
@@ -184,11 +206,31 @@ public final class MeridaVisualGiftSheet {
                 sheet.dismiss();
                 transfer(fragment, key, (TL_stars.TL_starGiftUnique) gift);
             });
-            final boolean worn = key.equals(MeridaSettings.visualWorn.get());
-            addHeaderButton(buttons, worn ? R.drawable.filled_crown_off : R.drawable.filled_crown_on, s(worn ? R.string.Gift2ActionWearOff : R.string.Gift2ActionWear), () -> {
-                MeridaSettings.visualWorn.set(worn ? null : key);
-                notifyStatus(account);
-                changed.run();
+            final boolean wornNow = key.equals(MeridaSettings.visualWorn.get());
+            final FrameLayout[] wearButton = new FrameLayout[1];
+            wearButton[0] = addHeaderButton(buttons, wornNow ? R.drawable.filled_crown_off : R.drawable.filled_crown_on, s(wornNow ? R.string.Gift2ActionWearOff : R.string.Gift2ActionWear), () -> {
+                final String product = gift.title + " #" + LocaleController.formatNumber(((TL_stars.TL_starGiftUnique) gift).num, ',');
+                final Runnable apply = () -> {
+                    final boolean worn = key.equals(MeridaSettings.visualWorn.get());
+                    MeridaSettings.visualWorn.set(worn ? null : key);
+                    notifyStatus(account);
+                    wornChanged[0] = true;
+                    // like Telegram: the button flips to «Remove», the owner row shows the status, a hint pops up
+                    setHeaderButton(wearButton[0], worn ? R.drawable.filled_crown_on : R.drawable.filled_crown_off, s(worn ? R.string.Gift2ActionWear : R.string.Gift2ActionWearOff));
+                    fillOwner(ownerRow[0], context, account, 0);
+                    try {
+                        org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), fragment.getResourceProvider())
+                                .createSimpleBulletin(worn ? R.raw.error : R.raw.contact_check, AndroidUtilities.replaceTags(LocaleController.formatString(worn ? R.string.Gift2ActionWearOffDone : R.string.Gift2ActionWearDone, product)))
+                                .show();
+                    } catch (Throwable ignore) {
+                    }
+                };
+                if (key.equals(MeridaSettings.visualWorn.get())) {
+                    apply.run();
+                } else {
+                    // Telegram's «Wear …» preview first: your profile header in the NFT's colours, the benefits, «Wear»
+                    showWear(fragment, (TL_stars.TL_starGiftUnique) gift, apply);
+                }
             });
             if (salePrice > 0) {
                 addHeaderButton(buttons, R.drawable.filled_gift_sell_off, s(R.string.MeridaVUnlist), () -> {
@@ -228,7 +270,8 @@ public final class MeridaVisualGiftSheet {
         body.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(12));
         final TableView table = new TableView(context, fragment.getResourceProvider());
         final long newOwner = key != null ? org.telegram.messenger.merida.MeridaVisualChat.transferredTo(key) : 0;
-        table.addRow(s(R.string.Gift2Owner), ownerView(context, account, newOwner));
+        ownerRow[0] = (LinearLayout) ownerView(context, account, newOwner);
+        table.addRow(s(R.string.Gift2Owner), ownerRow[0]);
         final long addedAt = key != null ? MeridaVisualGifts.addedAt(key) : 0;
         if (!unique && addedAt > 0) {
             table.addRow(s(R.string.MeridaVDate), LocaleController.formatDateTime(addedAt / 1000, true));
@@ -275,12 +318,6 @@ public final class MeridaVisualGiftSheet {
             });
             body.addView(footer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 4, 2, 4, 0));
         }
-        final TextView note = new TextView(context);
-        note.setText(s(R.string.MeridaVisualGiftNote));
-        note.setTextColor(0xFF6D6D72);
-        note.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
-        note.setGravity(Gravity.CENTER);
-        body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 4, 4, 4, 0));
         final org.telegram.ui.Stories.recorder.ButtonWithCounterView ok = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, fragment.getResourceProvider()).setRound();
         ok.setText(upgradable ? "⬆ " + s(R.string.MeridaVUpgrade) : s(R.string.OK), false);
         ok.setOnClickListener(v -> {
@@ -444,12 +481,163 @@ public final class MeridaVisualGiftSheet {
         picker.show();
     }
 
+    /**
+     * Telegram's «Wear …» preview: your profile header painted with the NFT's backdrop and pattern around the
+     * avatar, your name with the gift glittering after it (with the VISUAL mark), «Wear X #N for these benefits»,
+     * three benefits and a blue «Wear» button. Only this phone shows it.
+     */
+    static void showWear(BaseFragment fragment, TL_stars.TL_starGiftUnique gift, Runnable onWear) {
+        final Context context = fragment.getParentActivity();
+        if (context == null) return;
+        final int account = fragment.getCurrentAccount();
+        final TL_stars.starGiftAttributeModel model = StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeModel.class);
+        final TL_stars.starGiftAttributePattern pattern = StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributePattern.class);
+        final TL_stars.starGiftAttributeBackdrop backdrop = StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeBackdrop.class);
+        final TLRPC.User me = UserConfig.getInstance(account).getCurrentUser();
+
+        final BottomSheet sheet = new BottomSheet(context, false);
+        sheet.setApplyTopPadding(false);
+        sheet.setBackgroundColor(MeridaVisualUi.SHEET_BG);
+        sheet.fixNavigationBar(MeridaVisualUi.SHEET_BG);
+        final LinearLayout root = new LinearLayout(context);
+        root.setOrientation(LinearLayout.VERTICAL);
+
+        // ---- the profile preview: avatar 100 dp in the pattern, name + the glittering gift, «online»
+        final RectF particlesBounds = new RectF();
+        final org.telegram.ui.Stars.StarsReactionsSheet.Particles particles =
+                new org.telegram.ui.Stars.StarsReactionsSheet.Particles(org.telegram.ui.Stars.StarsReactionsSheet.Particles.TYPE_RADIAL, 12);
+        final View[] statusRef = new View[1];
+        final FrameLayout header = new FrameLayout(context) {
+            @Override
+            protected void dispatchDraw(@androidx.annotation.NonNull android.graphics.Canvas canvas) {
+                super.dispatchDraw(canvas);
+                final View st = statusRef[0];
+                if (st != null && st.getWidth() > 0) {
+                    float x = st.getLeft(), y = st.getTop();
+                    for (View p = (View) st.getParent(); p != null && p != this; p = (View) p.getParent()) {
+                        x += p.getLeft();
+                        y += p.getTop();
+                    }
+                    final float pad = AndroidUtilities.dp(6);
+                    particlesBounds.set(x - pad, y - pad, x + st.getWidth() + pad, y + st.getHeight() + pad);
+                    particles.setBounds(particlesBounds);
+                    particles.process();
+                    particles.draw(canvas, 0xFFFFFFFF);
+                    invalidate();
+                }
+            }
+        };
+        header.setOutlineProvider(new android.view.ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, android.graphics.Outline outline) {
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight() + AndroidUtilities.dp(12), AndroidUtilities.dp(12));
+            }
+        });
+        header.setClipToOutline(true);
+        if (backdrop != null) {
+            final MeridaGiftRoll.HeaderBackground bg = new MeridaGiftRoll.HeaderBackground(header, 28 + 50);
+            bg.setBackdrop(backdrop, false);
+            bg.setPattern(pattern, false);
+            header.setBackground(bg);
+        } else {
+            header.setBackgroundColor(0xFF2A2A2E);
+        }
+        final BackupImageView avatar = new BackupImageView(context);
+        avatar.setRoundRadius(AndroidUtilities.dp(50));
+        if (me != null) {
+            final AvatarDrawable ad = new AvatarDrawable();
+            ad.setInfo(account, me);
+            avatar.setForUserOrChat(me, ad);
+        }
+        header.addView(avatar, LayoutHelper.createFrame(100, 100, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 28, 0, 0));
+
+        final LinearLayout nameRow = new LinearLayout(context);
+        nameRow.setOrientation(LinearLayout.HORIZONTAL);
+        nameRow.setGravity(Gravity.CENTER);
+        final TextView name = new TextView(context);
+        name.setText(me != null ? UserObject.getUserName(me) : "");
+        name.setTextColor(0xFFFFFFFF);
+        name.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        name.setTypeface(AndroidUtilities.bold());
+        name.setSingleLine(true);
+        name.setEllipsize(TextUtils.TruncateAt.END);
+        nameRow.addView(name, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
+        if (model != null && model.document != null) {
+            final BackupImageView status = new BackupImageView(context);
+            status.setLayerNum(4 | 6656);
+            status.setImage(ImageLocation.getForDocument(model.document), "66_66", (android.graphics.drawable.Drawable) null, gift);
+            status.getImageReceiver().setAutoRepeat(1);
+            nameRow.addView(status, LayoutHelper.createLinear(28, 28, Gravity.CENTER_VERTICAL, 6, 0, 0, 0));
+            statusRef[0] = status;
+        }
+        final TextView mark = new TextView(context);
+        mark.setText(MeridaVisual.mark());
+        mark.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        nameRow.addView(mark, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 6, 0, 0, 0));
+        header.addView(nameRow, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 24, 28 + 100 + 12, 24, 0));
+
+        final TextView online = new TextView(context);
+        online.setText(s(R.string.Online));
+        online.setTextColor(backdrop != null ? backdrop.text_color | 0xFF000000 : 0xFF8E8E93);
+        online.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        online.setGravity(Gravity.CENTER);
+        header.addView(online, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 24, 28 + 100 + 12 + 34, 24, 20));
+
+        final ImageView close = new ImageView(context);
+        close.setImageResource(R.drawable.msg_close);
+        close.setScaleType(ImageView.ScaleType.CENTER);
+        close.setColorFilter(new PorterDuffColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN));
+        close.setBackground(Theme.createCircleDrawable(AndroidUtilities.dp(28), 0x24FFFFFF));
+        org.telegram.ui.Components.ScaleStateListAnimator.apply(close);
+        close.setOnClickListener(v -> sheet.dismiss());
+        header.addView(close, LayoutHelper.createFrame(28, 28, Gravity.TOP | Gravity.RIGHT, 0, 12, 12, 0));
+        root.addView(header, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        // ---- «Wear X #N» / «and get these benefits» / three benefits / «Wear»
+        final String product = gift.title + " #" + LocaleController.formatNumber(gift.num, ',');
+        final TextView title = new TextView(context);
+        title.setText(LocaleController.formatString(R.string.Gift2WearTitle, product));
+        title.setTextColor(0xFFFFFFFF);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        title.setTypeface(AndroidUtilities.bold());
+        title.setGravity(Gravity.CENTER);
+        root.addView(title, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 20, 20, 20, 0));
+        final TextView subtitle = new TextView(context);
+        subtitle.setText(s(R.string.Gift2WearSubtitle));
+        subtitle.setTextColor(0xFFFFFFFF);
+        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        subtitle.setGravity(Gravity.CENTER);
+        root.addView(subtitle, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 20, 6, 20, 20));
+        final int[][] features = {
+                {R.drawable.menu_feature_unique, R.string.Gift2WearFeature1Title, R.string.Gift2WearFeature1Text},
+                {R.drawable.menu_feature_cover, R.string.Gift2WearFeature2Title, R.string.Gift2WearFeature2Text},
+                {R.drawable.menu_verification, R.string.Gift2WearFeature3Title, R.string.Gift2WearFeature3Text},
+        };
+        for (int[] f : features) {
+            final org.telegram.ui.bots.AffiliateProgramFragment.FeatureCell cell = new org.telegram.ui.bots.AffiliateProgramFragment.FeatureCell(context, fragment.getResourceProvider());
+            cell.set(f[0], s(f[1]), s(f[2]));
+            root.addView(cell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 4, 0, 4, 0));
+        }
+        final org.telegram.ui.Stories.recorder.ButtonWithCounterView wear = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, fragment.getResourceProvider()).setRound();
+        wear.setText(s(R.string.Gift2ActionWear), false);
+        wear.setOnClickListener(v -> {
+            sheet.dismiss();
+            if (onWear != null) AndroidUtilities.runOnUIThread(onWear, 180);
+        });
+        root.addView(wear, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 0, 14, 12, 14, 12));
+
+        final ScrollView scroll = new ScrollView(context);
+        scroll.addView(root);
+        sheet.setCustomView(scroll);
+        sheet.show();
+    }
+
     private static void notifyStatus(int account) {
         NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_EMOJI_STATUS);
     }
 
     /** A header button like Telegram's: 56 dp, icon 24 dp at the top, 12 sp bold text, filled with the backdrop colour. */
-    private static void addHeaderButton(LinearLayout buttons, int icon, CharSequence text, Runnable click) {
+    private static FrameLayout addHeaderButton(LinearLayout buttons, int icon, CharSequence text, Runnable click) {
         final Context context = buttons.getContext();
         final FrameLayout b = new FrameLayout(context);
         final int color = buttons.getTag() instanceof Integer ? (Integer) buttons.getTag() : 0x10FFFFFF;
@@ -471,6 +659,14 @@ public final class MeridaVisualGiftSheet {
         b.setOnClickListener(v -> click.run());
         org.telegram.ui.Components.ScaleStateListAnimator.apply(b, .075f, 1.5f);
         buttons.addView(b, LayoutHelper.createLinear(0, 56, 1f, Gravity.FILL, 0, 0, buttons.getChildCount() < 2 ? 11 : 0, 0));
+        return b;
+    }
+
+    /** Changes a header button's icon and text in place (e.g. «Wear» ⇄ «Remove»). */
+    private static void setHeaderButton(FrameLayout b, int icon, CharSequence text) {
+        if (b == null || b.getChildCount() < 2) return;
+        ((ImageView) b.getChildAt(0)).setImageResource(icon);
+        ((TextView) b.getChildAt(1)).setText(text);
     }
 
     /** «Owner»: your avatar and name with «VISUAL» written over the name. */
@@ -483,6 +679,14 @@ public final class MeridaVisualGiftSheet {
         final LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
+        fillOwner(row, context, account, ownerId);
+        return row;
+    }
+
+    /** Avatar, name with «VISUAL» over it, and the status you wear (when it is you). */
+    static void fillOwner(LinearLayout row, Context context, int account, long ownerId) {
+        if (row == null) return;
+        row.removeAllViews();
         final TLRPC.User me = ownerId > 0 ? MessagesController.getInstance(account).getUser(ownerId) : UserConfig.getInstance(account).getCurrentUser();
         final BackupImageView avatar = new BackupImageView(context);
         avatar.setRoundRadius(AndroidUtilities.dp(12));
@@ -498,7 +702,16 @@ public final class MeridaVisualGiftSheet {
         name.setTextColor(MeridaVisualUi.BLUE);
         name.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         name.setSingleLine(true);
-        row.addView(name, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
-        return row;
+        name.setEllipsize(TextUtils.TruncateAt.END);
+        row.addView(name, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
+        // like Telegram: the gift you wear as a status, right after your name
+        final TLRPC.Document worn = ownerId > 0 ? null : MeridaVisualGifts.wornModel();
+        if (worn != null) {
+            final BackupImageView status = new BackupImageView(context);
+            status.setLayerNum(4 | 6656);
+            status.setImage(ImageLocation.getForDocument(worn), "40_40", (android.graphics.drawable.Drawable) null, worn);
+            status.getImageReceiver().setAutoRepeat(1);
+            row.addView(status, LayoutHelper.createLinear(20, 20, 0f, Gravity.CENTER_VERTICAL, 4, 0, 0, 0));
+        }
     }
 }

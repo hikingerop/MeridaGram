@@ -283,24 +283,43 @@ public final class MeridaVisual {
             if (fm != null) {
                 paint.getFontMetricsInt(fm);
             }
-            return (int) Math.ceil(paint.measureText(text, start, end));
+            return (int) Math.ceil(spanWidth(paint, text, start, end));
+        }
+
+        /** A very short name is widened so the whole «VISUAL» fits over it (and is not cut by the view). */
+        private float spanWidth(Paint paint, CharSequence text, int start, int end) {
+            markPaint.setTypeface(AndroidUtilities.bold());
+            markPaint.setLetterSpacing(.04f);
+            markPaint.setTextSize(paint.getTextSize() * 0.46f);
+            return Math.max(paint.measureText(text, start, end), markPaint.measureText(mark));
         }
 
         @Override
         public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, @NonNull Paint paint) {
-            canvas.drawText(text, start, end, x, y, paint);
-            final float width = paint.measureText(text, start, end);
-            markPaint.setTextSize(paint.getTextSize() * 0.7f);
+            final float textWidth = paint.measureText(text, start, end);
+            final float width = spanWidth(paint, text, start, end);
+            canvas.drawText(text, start, end, x + (width - textWidth) / 2f, y, paint);
+            // the whole word «VISUAL» is always readable: it fits the name (not smaller than ~half the
+            // text size), is centred on it and repeats only when the name is long enough
             markPaint.setTypeface(AndroidUtilities.bold());
+            markPaint.setLetterSpacing(.04f);
+            markPaint.setTextSize(paint.getTextSize() * 0.66f);
+            float mw = markPaint.measureText(mark);
+            if (mw > width) {
+                markPaint.setTextSize(Math.max(paint.getTextSize() * 0.46f, markPaint.getTextSize() * width / mw));
+                mw = markPaint.measureText(mark);
+            }
             markPaint.setColor(MARK_COLOR);
-            markPaint.setAlpha(225 * paint.getAlpha() / 255);
-            final float step = markPaint.measureText(mark) + paint.getTextSize() * 0.5f;
+            markPaint.setAlpha(190 * paint.getAlpha() / 255);
+            final float gap = paint.getTextSize() * 0.9f;
+            final int count = Math.max(1, (int) ((width + gap) / (mw + gap)));
+            final float total = count * mw + (count - 1) * gap;
             final Paint.FontMetrics fm = markPaint.getFontMetrics();
             final float cy = (top + bottom) / 2f;
             canvas.save();
-            canvas.clipRect(x, top, x + width, bottom);
-            canvas.rotate(-8, x + width / 2, cy);
-            for (float mx = x - step / 3; mx < x + width; mx += step) {
+            canvas.rotate(-6, x + width / 2, cy);
+            float mx = x + (width - total) / 2f;
+            for (int i = 0; i < count; i++, mx += mw + gap) {
                 canvas.drawText(mark, mx, cy - (fm.ascent + fm.descent) / 2, markPaint);
             }
             canvas.restore();

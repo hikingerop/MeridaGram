@@ -867,12 +867,14 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         CornerRibbon(Context context) {
             super(context);
             text.setColor(0xFFFFFFFF);
-            text.setTextSize(AndroidUtilities.dp(11));
+            text.setTextSize(AndroidUtilities.dp(9.5f));
             text.setTypeface(AndroidUtilities.bold());
+            text.setLetterSpacing(.03f);
         }
 
         void set(String label, int color) {
-            this.label = label;
+            // «SOLD», «RARE» in capitals, like Chimera's corner ribbons
+            this.label = label == null ? "" : label.toUpperCase();
             this.color = color;
             invalidate();
         }
@@ -890,6 +892,10 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             final float bandH = AndroidUtilities.dp(20);
             final float cy = w / 2f - AndroidUtilities.dp(10);
             canvas.drawRect(-w, cy - bandH / 2f, 2 * w, cy + bandH / 2f, paint);
+            final float maxW = w * 1.25f;
+            text.setTextScaleX(1f);
+            final float full = text.measureText(label);
+            if (full > maxW) text.setTextScaleX(maxW / full);
             final float tw = text.measureText(label);
             final Paint.FontMetrics fm = text.getFontMetrics();
             canvas.drawText(label, w / 2f - tw / 2f, cy - (fm.ascent + fm.descent) / 2f, text);
@@ -912,6 +918,10 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         final RectF rect = new RectF();
         boolean selected;
         int borderColor;
+        /** Limited gifts in the catalogs: a gold frame with a light running along it. */
+        boolean shimmer;
+        private android.graphics.LinearGradient shimmerGradient;
+        private final android.graphics.Matrix shimmerMatrix = new android.graphics.Matrix();
         /** What this tile shows (a model / backdrop / pattern / collection), to know if it is the chosen one. */
         Object bound;
         /** The selection frame fades and settles in like Chimera's instead of jumping. */
@@ -1000,6 +1010,24 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         @Override
         protected void onDraw(@NonNull Canvas canvas) {
             super.onDraw(canvas);
+            if (shimmer && !selected) {
+                final int band = AndroidUtilities.dp(70);
+                if (shimmerGradient == null) {
+                    shimmerGradient = new android.graphics.LinearGradient(0, 0, band, 0,
+                            new int[]{GOLD, 0xFFFFF4CC, GOLD}, new float[]{0f, .5f, 1f}, android.graphics.Shader.TileMode.CLAMP);
+                }
+                final float t = (android.os.SystemClock.elapsedRealtime() % 2600) / 2600f;
+                shimmerMatrix.setRotate(25);
+                shimmerMatrix.postTranslate(-band - getHeight() * .5f + t * (getWidth() + getHeight() + band * 2), 0);
+                shimmerGradient.setLocalMatrix(shimmerMatrix);
+                final float inset = AndroidUtilities.dp(1.25f);
+                rect.set(inset, inset, getWidth() - inset, getHeight() - inset);
+                border.setColor(0xFFFFFFFF);
+                border.setShader(shimmerGradient);
+                canvas.drawRoundRect(rect, AndroidUtilities.dp(16), AndroidUtilities.dp(16), border);
+                border.setShader(null);
+                invalidate();
+            }
             final float a = selectedAnim.set(selected);
             if (a > 0) {
                 final float inset = AndroidUtilities.dp(1.25f) + AndroidUtilities.dp(5) * (1f - a);
@@ -1022,6 +1050,7 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             rarityTop.setVisibility(GONE);
             ribbon.set("", 0);
             selected = false;
+            shimmer = false;
         }
 
         void bindCatalog(TL_stars.StarGift g) {
@@ -1035,7 +1064,9 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             } else {
                 price.setText(LocaleController.getString(R.string.MeridaVView));
             }
-            selected = g.require_premium;
+            // limited gifts: a running gold frame (like Chimera's catalog)
+            selected = false;
+            shimmer = g.limited || g.require_premium;
             borderColor = GOLD;
             bindTo(g);
             if (mode == MODE_GIFTS) {

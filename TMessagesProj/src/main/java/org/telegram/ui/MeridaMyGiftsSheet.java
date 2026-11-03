@@ -73,8 +73,14 @@ final class MeridaMyGiftsSheet {
     }
 
     void showCraft() {
+        showCraft(null);
+    }
+
+    /** Crafting with this gift already chosen (the anvil in the gift window). */
+    void showCraft(String withKey) {
         craftMode = true;
         selecting = true;
+        if (withKey != null) selected.add(withKey);
         show();
     }
 
@@ -120,7 +126,7 @@ final class MeridaMyGiftsSheet {
         chips = new LinearLayout(context);
         chips.setOrientation(LinearLayout.HORIZONTAL);
         hs.addView(chips);
-        sh.body.addView(hs, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 38, 0, 14, 0, 0));
+        sh.body.addView(hs, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 32, 0, 12, 0, 0));
 
         selectionBar = new LinearLayout(context);
         selectionBar.setOrientation(LinearLayout.HORIZONTAL);
@@ -274,14 +280,26 @@ final class MeridaMyGiftsSheet {
     }
 
     private void addChip(Context context, String text, boolean active, boolean enabled, Runnable click) {
-        final TextView chip = MeridaVisualSheets.label(context, text, active ? MeridaVisualUi.BLUE : enabled ? 0xFFFFFFFF : 0xFF5C5C5E, 17, false);
+        // compact chips (32 dp, 13 sp) so «All / In profile / Hidden / On sale» fit in one row
+        final TextView chip = MeridaVisualSheets.label(context, text, active ? MeridaVisualUi.BLUE : enabled ? 0xFFFFFFFF : 0xFF5C5C5E, 13, false);
         chip.setGravity(Gravity.CENTER);
-        chip.setPadding(AndroidUtilities.dp(18), 0, AndroidUtilities.dp(18), 0);
-        chip.setBackground(MeridaVisualUi.round(active ? 0xFF1C2E44 : enabled ? 0xFF000000 : 0xFF1A1A1A, 23));
+        chip.setSingleLine(true);
+        chip.setPadding(AndroidUtilities.dp(11), 0, AndroidUtilities.dp(11), 0);
+        chip.setBackground(MeridaVisualUi.round(active ? 0xFF1C2E44 : enabled ? 0xFF000000 : 0xFF1A1A1A, 16));
         if (enabled) {
-            chip.setOnClickListener(v -> click.run());
+            chip.setOnClickListener(v -> {
+                // the grid fades and shrinks a little, then the new filter fades in
+                grid.animate().cancel();
+                grid.animate().alpha(0f).scaleX(.96f).scaleY(.96f).setDuration(110).withEndAction(() -> {
+                    click.run();
+                    grid.setScaleX(.96f);
+                    grid.setScaleY(.96f);
+                    grid.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180)
+                            .setInterpolator(org.telegram.ui.Components.CubicBezierInterpolator.EASE_OUT_QUINT).start();
+                }).start();
+            });
         }
-        chips.addView(chip, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 38, 0, 0, 10, 0));
+        chips.addView(chip, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 32, 0, 0, 6, 0));
     }
 
     private void addAction(Context context, String text, Runnable click) {
@@ -493,15 +511,12 @@ final class MeridaMyGiftsSheet {
         }
         final AlertDialog.Builder b = new AlertDialog.Builder(fragment.getParentActivity());
         b.setTitle(s(R.string.MeridaVAddGift));
-        b.setItems(new CharSequence[]{s(R.string.MeridaVAddNft), s(R.string.MeridaVAddOrdinary), s(R.string.MeridaVisualGiftAdd)}, (d, which) -> {
+        b.setItems(new CharSequence[]{s(R.string.MeridaVAddNft), s(R.string.MeridaVAddOrdinary)}, (d, which) -> {
+            sh.sheet.dismiss();
             if (which == 0) {
-                sh.sheet.dismiss();
                 fragment.presentFragment(new MeridaNftConstructorActivity());
-            } else if (which == 1) {
-                sh.sheet.dismiss();
-                fragment.presentFragment(new MeridaNftConstructorActivity(MeridaNftConstructorActivity.MODE_GIFTS));
             } else {
-                MeridaVisualSheets.askGiftLink(fragment, this::rebuild);
+                fragment.presentFragment(new MeridaNftConstructorActivity(MeridaNftConstructorActivity.MODE_GIFTS));
             }
         });
         b.setNegativeButton(s(R.string.Cancel), null);
