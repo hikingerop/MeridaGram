@@ -153,7 +153,7 @@ public final class MeridaVisualGiftSheet {
         if (doc != null) {
             final TLRPC.PhotoSize thumb = FileLoader.getClosestPhotoSizeWithSize(doc.thumbs, AndroidUtilities.dp(160));
             image.setImage(ImageLocation.getForDocument(doc), "160_160", ImageLocation.getForDocument(thumb, doc), "160_160", null, gift);
-            image.getImageReceiver().setAutoRepeat(0); // like Telegram: plays once (only the worn NFT at your name loops)
+            image.getImageReceiver().setAutoRepeat(1); // like Telegram's gift window: the model keeps playing (cards in the profile and chats play once)
         }
         header.addView(image, LayoutHelper.createFrame(160, 160, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 8, 0, 0));
 

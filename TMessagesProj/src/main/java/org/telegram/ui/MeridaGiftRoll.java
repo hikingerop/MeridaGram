@@ -298,13 +298,13 @@ final class MeridaGiftRoll {
             return d != null && d.isRunning();
         }
 
-        /** The landed model plays its animation once more (like Telegram after an upgrade). */
+        /** The landed model starts its animation from the beginning and keeps playing (like Telegram's gift window). */
         void replayFinish() {
             for (Sticker s : new Sticker[]{a, b, c}) {
                 if (s == null) continue;
                 final boolean finish = (s == a && aF) || (s == b && bF) || (s == c && cF);
                 if (!finish) continue;
-                s.receiver.setAutoRepeat(0);
+                s.receiver.setAutoRepeat(1); // like Telegram's gift window: the new NFT keeps playing
                 final org.telegram.ui.Components.RLottieDrawable d = s.receiver.getLottieAnimation();
                 if (d != null) {
                     d.setCurrentFrame(0, false);
