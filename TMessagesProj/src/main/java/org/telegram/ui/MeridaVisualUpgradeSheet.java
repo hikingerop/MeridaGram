@@ -332,9 +332,10 @@ final class MeridaVisualUpgradeSheet {
             subtitle.setTextColor(resultBackdrop.text_color | 0xFF000000);
             close.animate().alpha(0f).setDuration(200).withEndAction(() -> close.setVisibility(View.GONE)).start();
             more.animate().alpha(1f).setDuration(200).start();
+            // the NFT window's own buttons (like Telegram after an upgrade): Transfer / Wear / Sell
+            addHeaderButton(R.drawable.filled_gift_transfer, s(R.string.Gift2ActionTransfer));
             addHeaderButton(R.drawable.filled_crown_on, s(R.string.Gift2ActionWear));
-            addHeaderButton(R.drawable.menu_hide_gift, s(R.string.MeridaVHide));
-            addHeaderButton(R.drawable.msg_delete, s(R.string.MeridaVisualRemoveGift));
+            addHeaderButton(R.drawable.filled_gift_sell_on, s(R.string.MeridaVSell));
             buttons.setVisibility(View.VISIBLE);
             buttons.animate().alpha(0.5f).setDuration(250).start();
             ((LinearLayout.LayoutParams) header.getLayoutParams()).height = AndroidUtilities.dp(320); // Telegram: 184 + title + subtitle + 15 + 56 + 18
@@ -388,22 +389,43 @@ final class MeridaVisualUpgradeSheet {
             done = true;
             rolling = false;
             buttons.removeAllViews();
-            addHeaderButton(R.drawable.filled_crown_on, s(R.string.Gift2ActionWear), () -> {
-                MeridaSettings.visualWorn.set(key);
-                NotificationCenter.getInstance(fragment.getCurrentAccount()).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_EMOJI_STATUS);
+            final String product = (gift.title != null ? gift.title : "NFT") + " #" + LocaleController.formatNumber(number, ',');
+            // like the NFT window: Transfer / Wear (⇄ Remove) / Sell, and «⋮» with the rest
+            addHeaderButton(R.drawable.filled_gift_transfer, s(R.string.Gift2ActionTransfer), () -> {
+                final TL_stars.TL_starGiftUnique unique = MeridaVisualGifts.load(key);
+                if (unique == null) return;
                 sheet.dismiss();
+                MeridaVisualGiftSheet.transfer(fragment, key, unique);
             });
-            addHeaderButton(R.drawable.menu_hide_gift, s(R.string.MeridaVHide), () -> {
-                MeridaVisualGifts.setHidden(key, true);
-                sheet.dismiss();
-                if (onChanged != null) onChanged.run();
+            final FrameLayout[] wear = new FrameLayout[1];
+            wear[0] = addHeaderButton(R.drawable.filled_crown_on, s(R.string.Gift2ActionWear), () -> {
+                final TL_stars.TL_starGiftUnique unique = MeridaVisualGifts.load(key);
+                if (unique == null) return;
+                final Runnable apply = () -> {
+                    final boolean worn = key.equals(MeridaSettings.visualWorn.get());
+                    MeridaSettings.visualWorn.set(worn ? null : key);
+                    NotificationCenter.getInstance(fragment.getCurrentAccount()).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_EMOJI_STATUS);
+                    ((ImageView) wear[0].getChildAt(0)).setImageResource(worn ? R.drawable.filled_crown_on : R.drawable.filled_crown_off);
+                    ((TextView) wear[0].getChildAt(1)).setText(s(worn ? R.string.Gift2ActionWear : R.string.Gift2ActionWearOff));
+                    hint(AndroidUtilities.replaceTags(LocaleController.formatString(worn ? R.string.Gift2ActionWearOffDone : R.string.Gift2ActionWearDone, product)));
+                };
+                if (key.equals(MeridaSettings.visualWorn.get())) {
+                    apply.run();
+                } else {
+                    MeridaVisualGiftSheet.showWear(fragment, unique, apply);
+                }
             });
-            addHeaderButton(R.drawable.msg_delete, s(R.string.MeridaVisualRemoveGift), () -> {
-                MeridaVisualGifts.remove(key);
-                sheet.dismiss();
-                if (onChanged != null) onChanged.run();
-            });
+            addHeaderButton(R.drawable.filled_gift_sell_on, s(R.string.MeridaVSell), () ->
+                    StarsIntroActivity.showGiftResellPriceSheet(context, fragment.getCurrentAccount(), null, null, (salePrice, finish) -> {
+                        MeridaVisualGifts.setSale(key, salePrice);
+                        if (finish != null) finish.run();
+                        if (onChanged != null) onChanged.run();
+                        hint(LocaleController.formatString(R.string.MeridaVListedForSale, product));
+                    }, fragment.getResourceProvider()));
+            more.setOnClickListener(v -> showMenu(product));
             buttons.animate().alpha(1f).setDuration(200).start();
+            // the new NFT plays its animation once more after it lands (and the window keeps drawing it)
+            stickers.replayFinish();
             button.setText(s(R.string.OK), true);
             final String nextKey = nextUpgradable();
             if (nextKey != null) {
@@ -418,7 +440,6 @@ final class MeridaVisualUpgradeSheet {
             }
 
             fireworks.start(true);
-            final String product = (gift.title != null ? gift.title : "NFT") + " #" + LocaleController.formatNumber(number, ',');
             try {
                 org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), null)
                         .createSimpleBulletin(R.raw.gift_upgrade, s(R.string.Gift2UpgradedTitle), AndroidUtilities.replaceTags(LocaleController.formatString(R.string.Gift2UpgradedText, product)))
@@ -436,12 +457,56 @@ final class MeridaVisualUpgradeSheet {
             return null;
         }
 
+        void hint(CharSequence text) {
+            try {
+                org.telegram.ui.Components.BulletinFactory.of(sheet.getContainer(), fragment.getResourceProvider())
+                        .createSimpleBulletin(R.raw.contact_check, text).show();
+            } catch (Throwable ignore) {
+            }
+        }
+
+        /** «⋮» after the upgrade: pin, hide, transfer, remove — like the NFT window's menu (only on this phone). */
+        void showMenu(String product) {
+            final boolean pinned = MeridaVisualGifts.isPinned(key);
+            final boolean hidden = MeridaVisualGifts.isHidden(key);
+            org.telegram.ui.Components.ItemOptions.makeOptions(sheet.getContainer(), fragment.getResourceProvider(), more)
+                    .add(pinned ? R.drawable.msg_unpin : R.drawable.msg_pin, s(pinned ? R.string.Gift2Unpin : R.string.Gift2Pin), () -> {
+                        MeridaVisualGifts.setPinned(key, !pinned);
+                        if (onChanged != null) onChanged.run();
+                        hint(s(pinned ? R.string.Gift2Unpinned : R.string.Gift2PinnedTitle));
+                    })
+                    .add(hidden ? R.drawable.menu_show_on_profile : R.drawable.menu_hide_from_profile, s(hidden ? R.string.Gift2ShowOnProfile : R.string.Gift2HideFromProfile), () -> {
+                        MeridaVisualGifts.setHidden(key, !hidden);
+                        if (onChanged != null) onChanged.run();
+                    })
+                    .add(R.drawable.menu_transfer, s(R.string.Gift2TransferOption), () -> {
+                        final TL_stars.TL_starGiftUnique unique = MeridaVisualGifts.load(key);
+                        if (unique == null) return;
+                        sheet.dismiss();
+                        MeridaVisualGiftSheet.transfer(fragment, key, unique);
+                    })
+                    .add(R.drawable.msg_delete, s(R.string.MeridaVisualRemoveGift), true, () -> {
+                        MeridaVisualGifts.remove(key);
+                        if (key.equals(MeridaSettings.visualWorn.get())) {
+                            MeridaSettings.visualWorn.set(null);
+                            NotificationCenter.getInstance(fragment.getCurrentAccount()).postNotificationName(NotificationCenter.updateInterfaces, MessagesController.UPDATE_MASK_EMOJI_STATUS);
+                        }
+                        sheet.dismiss();
+                        if (onChanged != null) onChanged.run();
+                    })
+                    .setDrawScrim(false)
+                    .setOnTopOfScrim()
+                    .setDimAlpha(0)
+                    .translate(0, -AndroidUtilities.dp(2))
+                    .show();
+        }
+
         void addHeaderButton(int icon, CharSequence text) {
             addHeaderButton(icon, text, null);
         }
 
         /** Like Telegram's header buttons: 56 dp, icon at the top, 12 sp bold, filled with the result backdrop's colour. */
-        void addHeaderButton(int icon, CharSequence text, Runnable click) {
+        FrameLayout addHeaderButton(int icon, CharSequence text, Runnable click) {
             final FrameLayout b = new FrameLayout(context);
             final int color = resultBackdrop != null
                     ? androidx.core.graphics.ColorUtils.blendARGB(resultBackdrop.edge_color | 0xFF000000, resultBackdrop.pattern_color | 0xFF000000, .25f) : 0x29000000;
@@ -464,6 +529,7 @@ final class MeridaVisualUpgradeSheet {
                 b.setOnClickListener(v -> click.run());
             }
             buttons.addView(b, LayoutHelper.createLinear(0, 56, 1f, Gravity.FILL, 0, 0, buttons.getChildCount() < 2 ? 11 : 0, 0));
+            return b;
         }
     }
 }

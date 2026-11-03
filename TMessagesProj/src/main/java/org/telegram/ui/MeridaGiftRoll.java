@@ -287,6 +287,31 @@ final class MeridaGiftRoll {
             draw(canvas, a, aT, aF);
             draw(canvas, b, bT, bF);
             draw(canvas, c, cT, cF);
+            // the stickers are drawn by hand: when one plays on its own (after the roll), its frames ask to
+            // redraw a rectangle that is no longer theirs — so keep drawing while an animation runs
+            if (playing(a) || playing(b) || playing(c)) invalidate();
+        }
+
+        private static boolean playing(Sticker s) {
+            if (s == null) return false;
+            final org.telegram.ui.Components.RLottieDrawable d = s.receiver.getLottieAnimation();
+            return d != null && d.isRunning();
+        }
+
+        /** The landed model plays its animation once more (like Telegram after an upgrade). */
+        void replayFinish() {
+            for (Sticker s : new Sticker[]{a, b, c}) {
+                if (s == null) continue;
+                final boolean finish = (s == a && aF) || (s == b && bF) || (s == c && cF);
+                if (!finish) continue;
+                s.receiver.setAutoRepeat(0);
+                final org.telegram.ui.Components.RLottieDrawable d = s.receiver.getLottieAnimation();
+                if (d != null) {
+                    d.setCurrentFrame(0, false);
+                    d.start();
+                }
+            }
+            invalidate();
         }
 
         private void draw(Canvas canvas, Sticker sticker, float t, boolean isFinish) {
