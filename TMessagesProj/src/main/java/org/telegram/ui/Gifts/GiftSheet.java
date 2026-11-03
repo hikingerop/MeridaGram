@@ -1903,7 +1903,9 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
                 priceView.setPadding(dp(8), 0, dp(10), 0);
                 priceView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
                 ColoredImageSpan[] spans = new ColoredImageSpan[1];
-                if (userGift.gift.resale_ton_only && DialogObject.getPeerDialogId(userGift.gift.owner_id) == UserConfig.getInstance(currentAccount).getClientUserId()) {
+                // MeridaGram «Visual»: your visual NFT on sale for GRAM shows the GRAM price too (its owner_id is the real owner's)
+                if (userGift.gift.resale_ton_only && (DialogObject.getPeerDialogId(userGift.gift.owner_id) == UserConfig.getInstance(currentAccount).getClientUserId()
+                        || org.telegram.messenger.merida.MeridaVisualGifts.isVisual(userGift))) {
                     priceView.setText(StarsIntroActivity.whiteGram(true, StarsIntroActivity.replaceStars(true, "XTR " + StarsIntroActivity.formatStarsAmount(userGift.gift.getResellAmount(AmountUtils.Currency.TON).toTl(), 1, ','), .95f, spans)));
                 } else {
                     priceView.setText(StarsIntroActivity.replaceStars("XTR " + LocaleController.formatNumber(userGift.gift.getResellStars(), ','), .95f, spans));

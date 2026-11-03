@@ -202,15 +202,18 @@ public final class MeridaVisualGiftSheet {
         final TextView subtitle = new TextView(context);
         final long salePrice = key != null ? MeridaVisualGifts.salePrice(key) : 0;
         if (salePrice > 0) {
-            // like Telegram: «On sale for ⭐ N» (or «💎 N» when only GRAM is accepted) in a pill under the name
+            // exactly Telegram's pill (StarGiftSheet.resellPriceView): «On sale for» + Telegram's own star or GRAM
+            // icon and the amount, 13 sp bold, on the backdrop's button colour, rounded 12 dp
             final long tonNanos = MeridaVisualGifts.saleTonNanos(key);
             final String amountText = tonNanos > 0
-                    ? org.telegram.messenger.utils.tlutils.AmountUtils.Amount.fromNano(tonNanos, org.telegram.messenger.utils.tlutils.AmountUtils.Currency.TON).asFormatString()
+                    ? org.telegram.ui.Stars.StarsIntroActivity.formatStarsAmount(org.telegram.messenger.utils.tlutils.AmountUtils.Amount.fromNano(tonNanos, org.telegram.messenger.utils.tlutils.AmountUtils.Currency.TON).toTl(), 1, ',').toString()
                     : LocaleController.formatNumber(salePrice, ',');
-            final String onSale = LocaleController.formatString(R.string.MeridaVOnSaleFor, amountText);
-            subtitle.setText(org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(tonNanos > 0, tonNanos > 0 ? onSale.replace("⭐️", "💎").replace("⭐", "💎") : onSale, .8f));
+            subtitle.setText(LocaleController.formatSpannable(R.string.GiftOnSale,
+                    org.telegram.ui.Stars.StarsIntroActivity.replaceStars(tonNanos > 0, "⭐️ " + amountText, 0.9f)));
             subtitle.setPadding(AndroidUtilities.dp(8), 0, AndroidUtilities.dp(8), 0);
-            subtitle.setBackground(MeridaVisualUi.round(0x33000000, 10));
+            subtitle.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(12), backdrop != null
+                    ? androidx.core.graphics.ColorUtils.blendARGB(backdrop.edge_color | 0xFF000000, backdrop.pattern_color | 0xFF000000, .25f)
+                    : 0x33000000));
             subtitle.setTypeface(AndroidUtilities.bold());
             subtitle.setTextColor(0xFFFFFFFF);
             subtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
