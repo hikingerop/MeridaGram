@@ -1980,7 +1980,7 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
         }
 
         private void updateRibbonText() {
-            if (userGift != null && org.telegram.messenger.merida.MeridaVisualGifts.isVisual(userGift)) {
+            if (false && userGift != null && org.telegram.messenger.merida.MeridaVisualGifts.isVisual(userGift)) {
                 // MeridaGram «Visual»: this gift is not really yours, and the ribbon says so; like Telegram, the
                 // animation plays once (only the NFT worn next to your name loops)
                 imageView.getImageReceiver().setAutoRepeat(0);
