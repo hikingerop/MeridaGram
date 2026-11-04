@@ -101,7 +101,7 @@ public class StarRatingView extends View {
 
         canvas.restore();
 
-        if (meridaVisual && visibility > 0) {
+        if (false && meridaVisual && visibility > 0) {
             // MeridaGram «Visual»: a rating that is not real carries the mark under the badge
             meridaPaint.setTextSize(dp(6.5f));
             meridaPaint.setTypeface(org.telegram.messenger.AndroidUtilities.bold());
