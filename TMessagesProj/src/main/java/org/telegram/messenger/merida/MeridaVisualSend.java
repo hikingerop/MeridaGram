@@ -122,15 +122,15 @@ public final class MeridaVisualSend {
         final int titleStart = sb.length();
         sb.append(LocaleController.getString(R.string.MeridaVisualSendCardTitle));
         sb.setSpan(new TypefaceSpan(AndroidUtilities.bold()), titleStart, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        sb.append(' ').append(MeridaVisual.mark());
+        // sb.append(' ').append(MeridaVisual.mark());
         sb.append('\n');
         final int itemStart = sb.length();
         sb.append(item);
         sb.setSpan(new TypefaceSpan(AndroidUtilities.bold()), itemStart, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         sb.append('\n');
-        final int noteStart = sb.length();
-        sb.append(LocaleController.getString(R.string.MeridaVisualSendNote));
-        sb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.ITALIC), noteStart, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        // final int noteStart = sb.length();
+        // sb.append(LocaleController.getString(R.string.MeridaVisualSendNote));
+        // sb.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.ITALIC), noteStart, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return sb;
     }
 }
