@@ -84,9 +84,7 @@ public final class MeridaVisual {
 
     /** The orange «VISUAL» pill that goes next to every visual number. */
     public static CharSequence mark() {
-        final SpannableString s = new SpannableString(LocaleController.getString(R.string.MeridaVisualMark));
-        s.setSpan(new MarkSpan(), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        return s;
+        return "";
     }
 
     /** «759 000 [VISUAL]» */
@@ -285,7 +283,7 @@ public final class MeridaVisual {
      * cropped to show the text without the mark.
      */
     public static CharSequence watermark(CharSequence text) {
-        return watermark(text, 0);
+        return text;
     }
 
     /**
@@ -293,9 +291,7 @@ public final class MeridaVisual {
      * a replacement span, so e.g. a visual username is blue like one bought on Fragment only this way).
      */
     public static CharSequence watermark(CharSequence text, int textColor) {
-        final SpannableString s = new SpannableString(text);
-        s.setSpan(new WatermarkSpan(textColor), 0, s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        return s;
+        return text;
     }
 
     private static final class WatermarkSpan extends ReplacementSpan {
@@ -361,7 +357,7 @@ public final class MeridaVisual {
 
     /** An icon (the Premium star) with the «VISUAL» pill drawn right after it. */
     public static Drawable withMark(Drawable icon) {
-        return new MarkedDrawable(icon);
+        return icon;
     }
 
     private static final class MarkedDrawable extends Drawable implements Drawable.Callback {
