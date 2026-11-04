@@ -377,7 +377,7 @@ final class MeridaMyGiftsSheet {
         final long sale = MeridaVisualGifts.salePrice(it.key);
         if (sale > 0) titleRow.addView(tag(context, s(R.string.MeridaVSaleTag), 0xFF4CAF50), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
         if (it.hidden) titleRow.addView(tag(context, s(R.string.MeridaVHiddenTag), 0xFF8E8E93), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
-        titleRow.addView(tag(context, s(R.string.MeridaVisualMark), 0xFFF5A623), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
+        // titleRow.addView(tag(context, s(R.string.MeridaVisualMark), 0xFFF5A623), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
         right.addView(titleRow);
 
         final LinearLayout table = new LinearLayout(context);
