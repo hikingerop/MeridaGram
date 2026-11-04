@@ -187,7 +187,7 @@ public class StarGiftUniqueActionLayout {
             }
             setGiftImage(imageReceiver, model.document, 110);
         }
-        if (messageObject.meridaVisualCard) {
+        if (false && messageObject.meridaVisualCard) {
             // MeridaGram «Visual»: the corner ribbon says VISUAL, in the mark's orange
             burned = false;
             ribbon.setColor(0xFFFF9500);
