@@ -25,14 +25,26 @@ public final class MeridaVisualWallet {
             {20, 74, 22, 6},
     };
 
+    /** The built card, kept until the gifts, the balance or the worn NFT change (the profile asks on every refresh). */
+    private static TL_wallet.card cardCache;
+    private static long cardVersion = -1;
+    private static long cardGrams = -1;
+    private static String cardWorn;
+
     /** The visual card for your profile, or null when Visual is off or there is no visual GRAM. */
     public static TL_wallet.card card() {
         if (!MeridaVisual.gramsOn()) {
             return null;
         }
+        final long grams = MeridaSettings.visualGrams.get();
+        final String worn = MeridaSettings.visualWorn.get();
+        final long v = MeridaVisualGifts.version();
+        if (cardCache != null && cardVersion == v && cardGrams == grams && java.util.Objects.equals(cardWorn, worn)) {
+            return cardCache;
+        }
         final TL_wallet.card card = new TL_wallet.card();
         card.address = "";
-        card.balance = MeridaSettings.visualGrams.get() * 1_000_000_000L;
+        card.balance = grams * 1_000_000_000L;
         final ArrayList<TL_stars.SavedStarGift> gifts = MeridaVisualGifts.savedGifts();
         int placed = 0;
         for (TL_stars.SavedStarGift saved : gifts) {
@@ -53,11 +65,14 @@ public final class MeridaVisualWallet {
             placed++;
         }
         // the NFT you wear gives the card its colours (when Telegram allows that collection as a card style)
-        final String worn = MeridaSettings.visualWorn.get();
         if (worn != null) {
             final TL_stars.TL_starGiftUnique gift = MeridaVisualGifts.load(worn);
             if (gift != null) card.bg_nft_item = item(worn, gift);
         }
+        cardCache = card;
+        cardVersion = v;
+        cardGrams = grams;
+        cardWorn = worn;
         return card;
     }
 

@@ -16,6 +16,7 @@ import org.telegram.tgnet.tl.TL_stars;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -36,6 +37,37 @@ public final class MeridaVisualGifts {
     private static final WeakHashMap<TL_stars.SavedStarGift, String> keys = new WeakHashMap<>();
     /** The gift object of a visual gift → its key (for crafting, where Telegram's sheets hand back the bare gift). */
     private static final WeakHashMap<TL_stars.StarGift, String> giftKeys = new WeakHashMap<>();
+
+    /**
+     * Parsed gifts kept in memory: the profile re-reads them on every refresh (several times), and reading and
+     * parsing every gift from storage each time froze the whole screen, stopping the NFT animations. The cache is
+     * dropped for a key when that gift changes, and rebuilt on the next read.
+     */
+    private static final HashMap<String, TL_stars.StarGift> giftCache = new HashMap<>();
+    /** Bumped on every change to the stored gifts, so caches built from them (worn NFT, GRAM card) rebuild. */
+    private static long version;
+
+    /** The current storage version: caches compare it to know whether their data is still fresh. */
+    public static long version() {
+        synchronized (giftCache) {
+            return version;
+        }
+    }
+
+    /** A gift changed: drop its cached copy and mark the storage as changed. */
+    private static void forget(String key) {
+        synchronized (giftCache) {
+            giftCache.remove(key);
+            version++;
+        }
+    }
+
+    /** The gifts' state changed (hidden, pinned, collection, sale price): mark the storage as changed. */
+    private static void changed() {
+        synchronized (giftCache) {
+            version++;
+        }
+    }
 
     public static String keyOfGift(TL_stars.StarGift gift) {
         synchronized (made) {
@@ -76,18 +108,35 @@ public final class MeridaVisualGifts {
         }
     }
 
+    private static String wornModelKey;
+    private static org.telegram.tgnet.TLRPC.Document wornModelCache;
+    private static long wornModelVersion;
+
     /** The model of the NFT worn as your visual status, or null. */
     public static org.telegram.tgnet.TLRPC.Document wornModel() {
         if (!MeridaVisual.on()) {
             return null;
         }
         final String key = org.telegram.utils.settings.MeridaSettings.visualWorn.get();
-        final TL_stars.TL_starGiftUnique gift = key == null ? null : load(key);
+        if (key == null) {
+            return null;
+        }
+        // the profile asks for this on every refresh: parse the gift once and keep it until it changes
+        if (key.equals(wornModelKey) && wornModelCache != null && wornModelVersion == version()) {
+            return wornModelCache;
+        }
+        final TL_stars.TL_starGiftUnique gift = load(key);
         if (gift == null) {
             return null;
         }
         final TL_stars.starGiftAttributeModel model = org.telegram.ui.Stars.StarsController.findAttribute(gift.attributes, TL_stars.starGiftAttributeModel.class);
-        return model == null ? null : model.document;
+        if (model == null || model.document == null) {
+            return null;
+        }
+        wornModelKey = key;
+        wornModelCache = model.document;
+        wornModelVersion = version();
+        return model.document;
     }
 
     private MeridaVisualGifts() {
@@ -95,6 +144,7 @@ public final class MeridaVisualGifts {
 
     private static String wornStatusKey;
     private static TLRPC.TL_emojiStatusCollectible wornStatus;
+    private static long wornStatusVersion;
 
     /**
      * The worn visual NFT as a «collectible status» for your own profile on this phone, so the profile header takes
@@ -108,7 +158,7 @@ public final class MeridaVisualGifts {
         if (key == null) {
             return null;
         }
-        if (key.equals(wornStatusKey) && wornStatus != null) {
+        if (key.equals(wornStatusKey) && wornStatus != null && wornStatusVersion == version()) {
             return wornStatus;
         }
         final TL_stars.TL_starGiftUnique gift = load(key);
@@ -144,6 +194,7 @@ public final class MeridaVisualGifts {
         }
         wornStatusKey = key;
         wornStatus = status;
+        wornStatusVersion = version();
         return status;
     }
 
@@ -203,6 +254,15 @@ public final class MeridaVisualGifts {
 
     /** Any stored visual gift: an NFT (key = its slug) or an ordinary gift bought visually (key = «g<id>-<time>»). */
     public static TL_stars.StarGift loadAny(String key) {
+        if (key == null) {
+            return null;
+        }
+        synchronized (giftCache) {
+            final TL_stars.StarGift cached = giftCache.get(key);
+            if (cached != null) {
+                return cached;
+            }
+        }
         final String stored = prefs().getString("gift_" + key, null);
         if (stored == null) {
             return null;
@@ -211,6 +271,11 @@ public final class MeridaVisualGifts {
             final SerializedData data = new SerializedData(Base64.decode(stored, Base64.NO_WRAP));
             final TL_stars.StarGift gift = TL_stars.StarGift.TLdeserialize(data, data.readInt32(false), false);
             data.cleanup();
+            if (gift != null) {
+                synchronized (giftCache) {
+                    giftCache.put(key, gift);
+                }
+            }
             return gift;
         } catch (Throwable e) {
             FileLog.e(e);
@@ -229,10 +294,13 @@ public final class MeridaVisualGifts {
             slugs.remove(key);
             slugs.add(0, key);
             while (slugs.size() > MAX_GIFTS) {
-                prefs().edit().remove("gift_" + slugs.remove(slugs.size() - 1)).apply();
+                final String evicted = slugs.remove(slugs.size() - 1);
+                forget(evicted);
+                prefs().edit().remove("gift_" + evicted).apply();
             }
             prefs().edit().putString("gift_" + key, encoded).apply();
             saveSlugs(slugs);
+            forget(key);
             return true;
         } catch (Throwable e) {
             FileLog.e(e);
@@ -326,6 +394,7 @@ public final class MeridaVisualGifts {
         slugs.remove(slug);
         saveSlugs(slugs);
         prefs().edit().remove("gift_" + slug).remove("hidden_" + slug).remove("sale_" + slug).remove("saleton_" + slug).remove("pinned_" + slug).remove("coll_" + slug).apply();
+        forget(slug);
     }
 
     /** Visual «on sale» price in stars (0 — not on sale); shown on the card and in the gift window only here. */
@@ -340,6 +409,7 @@ public final class MeridaVisualGifts {
             } else {
                 prefs().edit().remove("sale_" + key).apply();
             }
+            changed();
         }
     }
 
@@ -393,6 +463,7 @@ public final class MeridaVisualGifts {
         if (key == null) return;
         if (price == null || price.isZero()) {
             prefs().edit().remove("sale_" + key).remove("saleton_" + key).apply();
+            changed();
             return;
         }
         final org.telegram.messenger.utils.tlutils.AmountUtils.Currency ton = org.telegram.messenger.utils.tlutils.AmountUtils.Currency.TON;
@@ -404,6 +475,7 @@ public final class MeridaVisualGifts {
             e.remove("saleton_" + key);
         }
         e.apply();
+        changed();
     }
 
     /** A hidden visual gift stays in «My gifts» but is not shown in your profile. */
@@ -414,6 +486,7 @@ public final class MeridaVisualGifts {
     public static void setHidden(String key, boolean hidden) {
         if (key != null) {
             prefs().edit().putBoolean("hidden_" + key, hidden).apply();
+            changed();
         }
     }
 
@@ -447,6 +520,7 @@ public final class MeridaVisualGifts {
             } else {
                 prefs().edit().remove("pinned_" + key).apply();
             }
+            changed();
         }
     }
 
@@ -473,6 +547,7 @@ public final class MeridaVisualGifts {
         } else {
             prefs().edit().putString("coll_" + key, android.text.TextUtils.join(",", ids)).apply();
         }
+        changed();
     }
 
     /** The visual gifts as profile gift entries: pinned first, then newest first. */
