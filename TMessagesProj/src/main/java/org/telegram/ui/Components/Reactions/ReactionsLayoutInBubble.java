@@ -1245,7 +1245,7 @@ public class ReactionsLayoutInBubble {
                     meridaMarkText.setColor(0xFFFFFFFF);
                     meridaMarkBg = new Paint(Paint.ANTI_ALIAS_FLAG);
                     meridaMarkBg.setColor(org.telegram.messenger.merida.MeridaVisual.MARK_COLOR);
-                    meridaMarkLabel = LocaleController.getString(R.string.MeridaVisualMark).toUpperCase();
+                    meridaMarkLabel = null;
                 }
                 final float tw = meridaMarkText.measureText(meridaMarkLabel);
                 final float pw = tw + dp(6), ph = dp(10);
