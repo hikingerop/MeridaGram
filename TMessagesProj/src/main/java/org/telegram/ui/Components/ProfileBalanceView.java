@@ -103,7 +103,7 @@ public class ProfileBalanceView extends ProfileMusicView {
         icon.draw(canvas);
         canvas.translate(size + dp(2), 0);
         amount.draw(canvas, 0, cy, textColor, alpha);
-        if (visualMark && markText != null) {
+        if (false && visualMark && markText != null) { {
             canvas.translate(amount.getWidth() + dp(4), 0);
             markRect.set(0, cy - dp(7), markText.getWidth() + dp(8), cy + dp(7));
             markPaint.setColor(Theme.multAlpha(org.telegram.messenger.merida.MeridaVisual.MARK_COLOR, alpha));
