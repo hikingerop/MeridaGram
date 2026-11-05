@@ -462,7 +462,7 @@
     <string name="MeridaAppName">MeridaGram</string>
     <string name="MeridaOfficialResource">«%1$s» — официальный ресурс MeridaGram.</string>
     <string name="MeridaVersionBuild">%1$s · сборка %2$s</string>
-    <string name="MeridaVisualMark">визуал</string>
+    <string name="MeridaVisualMark"></string>
     <string name="MeridaVisualBalanceTitle">Визуальный баланс — видите только вы</string>
     <string name="MeridaHdrVisual">Визуал</string>
     <string name="MeridaVisualEnable">Визуал</string>
@@ -489,16 +489,16 @@
     <string name="MeridaVisualUsernameError">Не удалось проверить юзернейм. Проверьте интернет и попробуйте ещё раз.</string>
     <string name="MeridaVisualNumberRule">Только анонимный номер вида +888 0000 0000 — как на Fragment. Покажется в вашем профиле с надписью «ВИЗУАЛ» поверх. Пусто — выключить.</string>
     <string name="MeridaVisualNumberOnly888">Можно только номер +888 и ещё 8 цифр. Обычные номера принадлежат реальным людям.</string>
-    <string name="MeridaVisualRatingInfo">Это визуальный рейтинг: он виден только на вашем телефоне.</string>
+    <string name="MeridaVisualRatingInfo"></string>
     <string name="MeridaVisualSendMenu">Визуальный подарок</string>
     <string name="MeridaVisualSendInfo">Уйдёт обычное сообщение, в котором прямо написано, что подарок не настоящий. В MeridaGram — у вас и у собеседника — оно выглядит как подарок с меткой «ВИЗУАЛ». Ничего не списывается и не начисляется.</string>
     <string name="MeridaVisualSendNft">NFT-подарок</string>
     <string name="MeridaVisualSendNoNft">Сначала добавьте NFT: Настройки MeridaGram → Оформление → Визуал → NFT-подарки.</string>
-    <string name="MeridaVisualSendTitle">Визуальный подарок из MeridaGram — это не настоящий подарок</string>
-    <string name="MeridaVisualSendCardTitle">Визуальный подарок</string>
+    <string name="MeridaVisualSendTitle">Подарок
+    <string name="MeridaVisualSendCardTitle">Подарок</string>
     <string name="MeridaVisualSendStars">%1$s звёзд</string>
     <string name="MeridaVisualSendPremium">Telegram Premium на %1$d мес.</string>
-    <string name="MeridaVisualSendNote">Не настоящий: Telegram ничего не списал и не начислил.</string>
+    <string name="MeridaVisualSendNote"></string>
     <string name="MeridaVisualPurchases">Визуальные покупки</string>
     <string name="MeridaSubVisualPurchases">Магазин и маркет подарков платят визуальными звёздами</string>
     <string name="MeridaVisualBought">Куплено визуально за %1$s ⭐ — подарок в вашем профиле с меткой «ВИЗУАЛ». Настоящие звёзды не списаны.</string>
@@ -526,7 +526,7 @@
     <string name="MeridaHighRefresh">Высокая частота экрана</string>
     <string name="MeridaSubHighRefresh">Самая быстрая частота экрана телефона (90 / 120 Гц)</string>
     <string name="MeridaInfoHighRefresh">Многие телефоны дают 120 Гц только приложениям из своего списка, поэтому без этого MeridaGram может работать на 60 Гц. Расходует чуть больше заряда.</string>
-    <string name="MeridaVWalletNote">Визуальный баланс: виден только на этом телефоне, в блокчейне TON его нет.</string>
+    <string name="MeridaVWalletNote"></string>
     <string name="MeridaVStarReactions">Визуальные звёзды на постах</string>
     <string name="MeridaSubVStarReactions">Реакция ⭐ под постами берёт визуальный баланс: только на этом телефоне, с меткой ВИЗУАЛ, ничего не отправляется</string>
     <string name="MeridaVStarsSentTitle">Визуальные звёзды — только на этом телефоне</string>
@@ -544,8 +544,8 @@
     <string name="MeridaUpdateButton">Обновить MeridaGram</string>
     <string name="MeridaUpdateTitle">Обновление MeridaGram</string>
     <string name="MeridaUpdateVersion">Доступна сборка %1$d</string>
-    <string name="MeridaVisualGiftNote">Визуальный подарок: виден только на этом телефоне, в Telegram его нет.</string>
-    <string name="MeridaVisualGiftTitle">Визуальный подарок</string>
+    <string name="MeridaVisualGiftNote"></string>
+    <string name="MeridaVisualGiftTitle">Подарок</string>
     <string name="MeridaVisualWear">Надеть</string>
     <string name="MeridaVisualTakeOff">Снять</string>
     <string name="MeridaVisualRemoveGift">Убрать</string>
@@ -595,7 +595,7 @@
     <string name="MeridaVpnInfo">Через сервер Merida Proxy идёт только Telegram, остальные приложения на телефоне работают как обычно. Сообщения остаются зашифрованными между вами и Telegram. Прокси, добавленный в «Данные и память», важнее.</string>
     <string name="MeridaVTitle">Визуал</string>
     <string name="MeridaVHeaderTitle">Визуал MeridaGram</string>
-    <string name="MeridaVHeaderDesc">NFT-подарки, баланс и оформление профиля — только на этом телефоне и всегда с меткой «ВИЗУАЛ».</string>
+    <string name="MeridaVHeaderDesc">NFT-подарки, баланс и оформление профиля.</string>
     <string name="MeridaVMyGifts">Мои подарки</string>
     <string name="MeridaVNftProfile">NFT-профиль</string>
     <string name="MeridaVNftProfileSub">Premium · Username · Number · Рейтинг</string>
@@ -619,7 +619,7 @@
     <string name="MeridaVRatingShort">ур. %1$d • %2$d</string>
     <string name="MeridaVHideOrdinary">Скрыть обычные подарки</string>
     <string name="MeridaVHideOrdinaryDesc">В вашем профиле на этом телефоне видны только NFT</string>
-    <string name="MeridaVNftProfileNote">Юзернейм, номер и рейтинг видны только в вашем профиле на этом телефоне, поверх них написано «ВИЗУАЛ». В чатах, ссылке и QR-коде — настоящие.</string>
+    <string name="MeridaVNftProfileNote"></string>
     <string name="MeridaVCraftChance">Шанс успеха</string>
     <string name="MeridaVCraftChanceSub">По выбранным подаркам</string>
     <string name="MeridaVCraftAlways">Всегда успешно</string>
@@ -648,7 +648,7 @@
     <string name="MeridaVIntegrationsNote">Выключено — такие сообщения остаются обычным текстом, как в официальном Telegram. В тексте всегда написано, что подарок ненастоящий.</string>
     <string name="MeridaVFunctions">Функционал</string>
     <string name="MeridaVPurchasesShort">Визуальные покупки</string>
-    <string name="MeridaVBalanceNote">Баланс локальный: он виден только на этом устройстве, а визуальные покупки списывают его сами.</string>
+    <string name="MeridaVBalanceNote"></string>
     <string name="MeridaVSpendStars">Тратить звёзды в маркете</string>
     <string name="MeridaVSpendStarsDesc">Покупки на маркете списывают баланс. Выключите — покупки бесплатны, баланс не меняется.</string>
     <string name="MeridaVTonRate">курс %1$s $/TON</string>
@@ -724,7 +724,7 @@
     <string name="MeridaVGiftAdded">Подарок добавлен ✓</string>
     <string name="MeridaVGiftsAddedN">Добавлено подарков: %1$d ✓</string>
     <string name="MeridaVUpgrade">Улучшить</string>
-    <string name="MeridaVCollectibleNote">ВИЗУАЛ: видно только на этом телефоне, на самом деле ничего не куплено.</string>
+    <string name="MeridaVCollectibleNote"></string>
     <string name="MeridaVPriceHint">Самый дешёвый NFT с этой моделью на маркете Telegram: ⭐ %1$s</string>
     <string name="MeridaVOnSaleFor">В продаже за ⭐️ %1$s</string>
     <string name="MeridaVSell">Продать</string>
