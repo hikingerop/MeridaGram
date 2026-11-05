@@ -318,7 +318,7 @@ final class MeridaVisualSheets {
         sh.body.addView(balanceCard(fragment, context, "", gramsValue, "GRAM", gramsUsd, new int[]{1, 10, 100}, grams, update),
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));
         final TextView note = label(context, s(R.string.MeridaVBalanceNote), 0xFF8E8E93, 12, false);
-        sh.body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 2, 14, 2, 8));
+        // sh.body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 2, 14, 2, 8));
 
         final MeridaVisualUi.Row[] spendRow = new MeridaVisualUi.Row[1];
         spendRow[0] = MeridaVisualUi.switchRow(context, 0, s(R.string.MeridaVSpendStars), s(R.string.MeridaVSpendStarsDesc), spend[0], false, v -> {
@@ -1020,7 +1020,7 @@ final class MeridaVisualSheets {
         layout.addView(description, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 8));
         final TextView note = label(context, s(R.string.MeridaVCollectibleNote), 0xFF8E8E93, 12, false);
         note.setGravity(Gravity.CENTER);
-        layout.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 19));
+    //     layout.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 19));
 
         final org.telegram.ui.Stories.recorder.ButtonWithCounterView more = new org.telegram.ui.Stories.recorder.ButtonWithCounterView(context, null).setRound();
         more.setText(s(R.string.FragmentUsernameOpen), false);
