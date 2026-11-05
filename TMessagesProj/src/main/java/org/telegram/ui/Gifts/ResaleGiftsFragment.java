@@ -1122,6 +1122,13 @@ public class ResaleGiftsFragment extends BaseFragment implements FactorAnimator.
                     if (onUpdate != null) {
                         onUpdate.run(first);
                     }
+                } else {
+                    // an error must not leave the list «loading» for ever
+                    loading = false;
+                    endReached = true;
+                    if (onUpdate != null) {
+                        onUpdate.run(TextUtils.isEmpty(req.offset));
+                    }
                 }
             }));
         }
@@ -1608,11 +1615,21 @@ public class ResaleGiftsFragment extends BaseFragment implements FactorAnimator.
             private final StarsController.GiftsList list;
             private final ResaleGiftsList resaleList;
             public State(int currentAccount, long gift_id) {
+                this(currentAccount, gift_id, false);
+            }
+            /**
+             * MeridaGram «Visual»: for the local craft «Your gifts» are your visual NFTs from this phone (Telegram
+             * refuses to list craft gifts of a collection you do not really own), and the gifts on sale are the
+             * collection's ordinary market list.
+             */
+            public State(int currentAccount, long gift_id, boolean meridaVisual) {
                 this.currentAccount = currentAccount;
                 this.giftId = gift_id;
                 list = new StarsController.GiftsList(currentAccount, 0, false);
                 list.forCrafting(gift_id);
-                resaleList = new ResaleGiftsList(currentAccount, gift_id, this::update).forCraft();
+                if (meridaVisual) list.meridaVisualCraft();
+                resaleList = new ResaleGiftsList(currentAccount, gift_id, this::update);
+                if (!meridaVisual) resaleList.forCraft();
             }
             private void update(boolean first) {
                 if (currentListener != null) {

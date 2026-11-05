@@ -3714,8 +3714,24 @@ public class StarsController {
             craftingGiftId = gift_id;
         }
 
+        private boolean meridaVisualCraft;
+        /** MeridaGram «Visual»: the craft picker lists only your visual NFTs of the collection, from this phone. */
+        public void meridaVisualCraft() {
+            meridaVisualCraft = true;
+        }
+
         public void load() {
             if (loading || endReached) return;
+            if (meridaVisualCraft && craftingGiftId != 0) {
+                gifts.clear();
+                gifts.addAll(org.telegram.messenger.merida.MeridaVisualGifts.forCraft(craftingGiftId));
+                totalCount = gifts.size();
+                lastOffset = null;
+                loading = false;
+                endReached = true;
+                AndroidUtilities.runOnUIThread(() -> NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.starUserGiftsLoaded, dialogId, GiftsList.this));
+                return;
+            }
 
             boolean first = lastOffset == null;
             loading = true;

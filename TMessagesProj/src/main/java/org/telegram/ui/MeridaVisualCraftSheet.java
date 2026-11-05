@@ -106,7 +106,7 @@ public final class MeridaVisualCraftSheet {
             craft.selectGift(own.gift);
         }
 
-        final ResaleGiftsFragment.SelectGiftSheet.State state = new ResaleGiftsFragment.SelectGiftSheet.State(account, gift.gift_id);
+        final ResaleGiftsFragment.SelectGiftSheet.State state = new ResaleGiftsFragment.SelectGiftSheet.State(account, gift.gift_id, true);
         state.attach();
         final boolean[] changed = new boolean[1];
         final boolean[] crafting = new boolean[1];
