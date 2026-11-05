@@ -831,22 +831,24 @@ public final class MeridaVisualGiftSheet {
         if (worn != null) {
             final org.telegram.ui.Components.AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable status =
                     new org.telegram.ui.Components.AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(text, AndroidUtilities.dp(20), org.telegram.ui.Components.AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
-            status.set(worn, org.telegram.ui.Components.AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD, false);
+            // own looping image: Telegram's emoji drawable shows only the first frame with «animated emoji» off
+            final org.telegram.messenger.merida.MeridaWornDrawable model = new org.telegram.messenger.merida.MeridaWornDrawable(text, worn, AndroidUtilities.dp(20));
+            status.set(model, false);
             status.setParticles(true, false);
             status.setColor(color);
             status.offset(AndroidUtilities.dp(12), 0);
             text.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
                 @Override
                 public void onViewAttachedToWindow(View v) {
-                    status.attach();
+                    model.attach();
                 }
 
                 @Override
                 public void onViewDetachedFromWindow(View v) {
-                    status.detach();
+                    model.detach();
                 }
             });
-            if (text.isAttachedToWindow()) status.attach();
+            if (text.isAttachedToWindow()) model.attach();
             text.setRightDrawable(status);
         }
         row.addView(text, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL));

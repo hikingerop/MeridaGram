@@ -3504,6 +3504,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             protected void onAttachedToWindow() {
                 super.onAttachedToWindow();
                 fragmentViewAttached = true;
+                for (int i = 0; i < meridaWornModel.length; i++) {
+                    if (meridaWornModel[i] != null) {
+                        meridaWornModel[i].attach();
+                    }
+                }
                 for (int i = 0; i < emojiStatusDrawable.length; i++) {
                     if (emojiStatusDrawable[i] != null) {
                         emojiStatusDrawable[i].attach();
@@ -3520,6 +3525,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             protected void onDetachedFromWindow() {
                 super.onDetachedFromWindow();
                 fragmentViewAttached = false;
+                for (int i = 0; i < meridaWornModel.length; i++) {
+                    if (meridaWornModel[i] != null) {
+                        meridaWornModel[i].detach();
+                    }
+                }
                 for (int i = 0; i < emojiStatusDrawable.length; i++) {
                     if (emojiStatusDrawable[i] != null) {
                         emojiStatusDrawable[i].detach();
@@ -11228,6 +11238,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final Drawable[] meridaVisualPremium = new Drawable[2];
     private final Drawable[] meridaWorn = new Drawable[2];
     private final long[] meridaWornId = new long[2];
+    private final org.telegram.messenger.merida.MeridaWornDrawable[] meridaWornModel = new org.telegram.messenger.merida.MeridaWornDrawable[2];
 
     /** MeridaGram «Visual»: the NFT you wear as a visual status, with the «VISUAL» pill; null when none. */
     private Drawable getMeridaWorn(int a) {
@@ -11236,40 +11247,24 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             return null;
         }
         if (meridaWorn[a] == null || meridaWornId[a] != model.id) {
-            // keyboard cache type: the model animates in an endless loop (the emoji-status type stops after two plays)
+            if (meridaWornModel[a] != null) {
+                meridaWornModel[a].detach();
+            }
+            // our own looping image: Telegram's emoji drawables show only the first frame on devices whose
+            // power-saving preset turns «animated emoji» off for accounts without Premium
+            final org.telegram.messenger.merida.MeridaWornDrawable modelDrawable = new org.telegram.messenger.merida.MeridaWornDrawable(nameTextView[a], model, dp(24));
+            if (fragmentViewAttached) {
+                modelDrawable.attach();
+            }
             final AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable status = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView[a], dp(24), AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
-            // attach first, then set (as Telegram does for its status), so play() reaches an attached receiver
-            status.attach();
-            status.set(model, AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD, false);
+            status.set(modelDrawable, false);
             // like Telegram for a worn collectible: the gift twinkles with little sparkles around it
             status.setParticles(true, false);
+            meridaWornModel[a] = modelDrawable;
             meridaWorn[a] = org.telegram.messenger.merida.MeridaVisual.withMark(status);
             meridaWornId[a] = model.id;
         }
-        meridaKeepWornPlaying(meridaWorn[a]);
         return meridaWorn[a];
-    }
-
-    /**
-     * The worn NFT is put on while a sheet is open or closing. An image attached during such an animation marks
-     * itself «paused for a heavy operation» and, when no «resume» follows, stays frozen on one frame. A high layer
-     * (as our sheets use, 4 | 6656) makes it ignore those pauses; a stopped animation is started again.
-     */
-    private static void meridaKeepWornPlaying(Drawable d) {
-        if (!(d instanceof AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable)) return;
-        final Drawable inner = ((AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable) d).getDrawable();
-        if (!(inner instanceof AnimatedEmojiDrawable)) return;
-        final ImageReceiver receiver = ((AnimatedEmojiDrawable) inner).getImageReceiver();
-        if (receiver == null) return;
-        receiver.setLayerNum(4 | 6656);
-        receiver.setAutoRepeat(1);
-        final RLottieDrawable lottie = receiver.getLottieAnimation();
-        if (lottie != null && !lottie.isRunning()) {
-            lottie.start();
-        } else if (lottie == null && receiver.getAnimation() != null) {
-            receiver.getAnimation().start();
-        }
-        receiver.invalidate();
     }
 
     /** MeridaGram «Visual»: a Premium star with the «VISUAL» pill, only on your own profile. */
