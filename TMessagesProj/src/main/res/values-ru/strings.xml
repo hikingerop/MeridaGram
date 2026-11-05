@@ -494,7 +494,7 @@
     <string name="MeridaVisualSendInfo">Уйдёт обычное сообщение, в котором прямо написано, что подарок не настоящий. В MeridaGram — у вас и у собеседника — оно выглядит как подарок с меткой «ВИЗУАЛ». Ничего не списывается и не начисляется.</string>
     <string name="MeridaVisualSendNft">NFT-подарок</string>
     <string name="MeridaVisualSendNoNft">Сначала добавьте NFT: Настройки MeridaGram → Оформление → Визуал → NFT-подарки.</string>
-    <string name="MeridaVisualSendTitle">Подарок
+    <string name="MeridaVisualSendTitle">Подарок</string>
     <string name="MeridaVisualSendCardTitle">Подарок</string>
     <string name="MeridaVisualSendStars">%1$s звёзд</string>
     <string name="MeridaVisualSendPremium">Telegram Premium на %1$d мес.</string>
