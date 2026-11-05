@@ -221,7 +221,7 @@ public class ProfileWalletCardDialog extends Dialog {
         card = new WalletCardComponent(getContext());
         card.setDiamondOnCard(true);
         card.setProfileCard(fragment.getCurrentAccount(), user, profileCard);
-        if (meridaVisual) {
+        if (false && meridaVisual) {
             // the card itself says it is visual: the mark after the name and «VISUAL» along the edge
             final SpannableStringBuilder holder = new SpannableStringBuilder(UserObject.getUserName(user).toUpperCase(java.util.Locale.ROOT));
             holder.append("  ").append(org.telegram.messenger.merida.MeridaVisual.mark());
@@ -289,7 +289,7 @@ public class ProfileWalletCardDialog extends Dialog {
         publicNote.setLineSpacing(dp(18) - publicNote.getPaint().getFontMetricsInt(null), 1f);
         updateNoteColor();
         publicNote.setAlpha(0);
-        if (meridaVisual) {
+        if (false && meridaVisual) {
             publicNote.setText(new SpannableStringBuilder(getString(R.string.MeridaVWalletNote)).append(' ').append(org.telegram.messenger.merida.MeridaVisual.mark()));
         } else if (isSelf) {
             publicNote.setText(getString(R.string.WalletPublicBalanceNote));
