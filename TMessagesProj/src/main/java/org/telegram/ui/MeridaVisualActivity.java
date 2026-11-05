@@ -383,7 +383,7 @@ public class MeridaVisualActivity extends BaseFragment {
         });
         card.addView(hide[0]);
         addCard(card);
-        content.addView(MeridaVisualUi.note(context, s(R.string.MeridaVNftProfileNote)));
+        // content.addView(MeridaVisualUi.note(context, s(R.string.MeridaVNftProfileNote)));
     }
 
     // ---- craft ---------------------------------------------------------------------------------------
