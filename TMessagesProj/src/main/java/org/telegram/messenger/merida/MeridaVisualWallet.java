@@ -1,5 +1,4 @@
 package org.telegram.messenger.merida;
-package org.telegram.messenger.merida;
 
 import android.content.Context;
 import android.util.Base64;
