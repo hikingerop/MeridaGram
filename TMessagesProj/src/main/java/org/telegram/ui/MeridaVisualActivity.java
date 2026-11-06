@@ -186,7 +186,7 @@ public class MeridaVisualActivity extends BaseFragment {
                 v -> presentFragment(new MeridaVisualActivity(PAGE_AUCTION))));
         card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_gear, s(R.string.MeridaVIntegrations), s(R.string.MeridaVIntegrationsSub), true, // false,
                 v -> presentFragment(new MeridaVisualActivity(PAGE_INTEGRATIONS))));
-        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_wallet, "Кошелёк", MeridaSettings.visualGrams.get() > 0 ? ("TON " + MeridaVisual.formatNumber(MeridaSettings.visualGrams.get())) : s(R.string.MeridaVOff), false, v -> presentFragment(new org.telegram.ui.Wallet.WalletActivity())));
+        card.addView(MeridaVisualUi.row(context, R.drawable.merida_v_wallet, "Кошелёк", MeridaSettings.visualGrams.get() > 0 ? ("TON " + MeridaVisual.formatNumber(MeridaSettings.visualGrams.get())) : s(R.string.MeridaVOff), false, v -> presentFragment(org.telegram.messenger.merida.MeridaVisualWallet.createWalletFragment())));
         addCard(card);
 
         content.addView(MeridaVisualUi.header(context, s(R.string.MeridaVCatalogs)));
