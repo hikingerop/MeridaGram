@@ -46,7 +46,8 @@ public class ProfileBalanceView extends ProfileMusicView {
     }
 
     private float markWidth() {
-        return visualMark && markText != null ? dp(4) + markText.getWidth() + dp(8) : 0;
+        // The VISUAL pill is not drawn; reserving its width left an empty tail after the chevron.
+        return 0;
     }
     private final DecimalFormat balanceFormat = new DecimalFormat("#,##0.#########", new DecimalFormatSymbols(Locale.US));
 
