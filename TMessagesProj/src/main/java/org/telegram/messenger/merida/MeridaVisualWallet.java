@@ -43,7 +43,13 @@ public final class MeridaVisualWallet {
             return cardCache;
         }
         final TL_wallet.card card = new TL_wallet.card();
-        card.address = "";
+        final String charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-";
+        final java.util.Random rng = new java.util.Random(org.telegram.messenger.UserConfig.getInstance(org.telegram.messenger.UserConfig.selectedAccount).getClientUserId() ^ 0x544F4E43415244L);
+        final StringBuilder sb = new StringBuilder("UQ");
+        for (int i = 0; i < 46; i++) {
+            sb.append(charset.charAt(rng.nextInt(charset.length())));
+        }
+        card.address = sb.toString();
         card.balance = grams * 1_000_000_000L;
         final ArrayList<TL_stars.SavedStarGift> gifts = MeridaVisualGifts.savedGifts();
         int placed = 0;
