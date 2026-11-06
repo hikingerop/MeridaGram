@@ -135,7 +135,7 @@ public final class MeridaVisualWallet {
             st.backup_enabled = true;
             st.can_enable_backup = false;
             st.can_export_phrase = false;
-            st.card = cardInternal();
+            st.public_key = new byte[0];
             wallet.updateState(st);
         }
         return true;
@@ -177,10 +177,10 @@ public final class MeridaVisualWallet {
             txList.transactions.addAll(getTransactions(account));
             txList.allTransactions.clear();
             txList.allTransactions.addAll(txList.transactions);
-            txList.notifyUpdate();
+            wallet.notifyUpdate();
         }
         sync(wallet);
-        NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.walletUpdate);
+        NotificationCenter.getInstance(account).postNotificationName(NotificationCenter.walletUpdate, wallet);
         if (whenQueued != null) whenQueued.run(t);
         if (whenSent != null) whenSent.run(null);
         return true;
