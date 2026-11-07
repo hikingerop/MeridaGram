@@ -72,7 +72,8 @@ public final class MeridaVisual {
 
     /** «N GRAM» with Telegram's own GRAM/diamond icon (the TON glyph), for balances and prices. */
     public static CharSequence gram(long value) {
-        return org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(true, "TON " + formatNumber(value), .85f);
+        // like Telegram (StarsIntroActivity balance): «⭐» is the place of the icon, ton=true makes it the GRAM one
+        return org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(true, "⭐ " + formatNumber(value), .85f);
     }
 
     /** «⭐ N · GRAM M» line with Telegram's real icons, used for the balance everywhere. */

@@ -3794,9 +3794,10 @@ public class StarsController {
                     lastOffset = rez.next_offset;
                     totalCount = Math.max(0, rez.count - meridaHidden);
                     // MeridaGram «Visual»: your visual NFT gifts first, only in your own profile on this phone
-                    if (first && craftingGiftId == 0 && !isCollection && isInclude_unique() && isInclude_displayed()
+                    if (first && craftingGiftId == 0 && !isCollection && isInclude_unique() && (isInclude_displayed() || isInclude_hidden())
                             && (dialogId == 0 || dialogId == UserConfig.getInstance(currentAccount).getClientUserId())) {
-                        final ArrayList<TL_stars.SavedStarGift> visual = org.telegram.messenger.merida.MeridaVisualGifts.savedGifts();
+                        // like Telegram: hidden ones too (with the crossed eye), following the «Displayed / Hidden» filter
+                        final ArrayList<TL_stars.SavedStarGift> visual = org.telegram.messenger.merida.MeridaVisualGifts.savedGiftsIn(0, isInclude_displayed(), isInclude_hidden());
                         gifts.addAll(0, visual);
                         totalCount += visual.size();
                     } else if (first && craftingGiftId != 0 && org.telegram.messenger.merida.MeridaVisual.on()

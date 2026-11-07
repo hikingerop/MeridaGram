@@ -798,8 +798,10 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
                 o.addIf(link != null, R.drawable.msg_share, getString(R.string.ShareFile), () ->
                     parent.fragment.showDialog(org.telegram.ui.Components.ShareAlert.createShareAlert(getContext(), null, link, false, link, false)));
             }
-            o.add(R.drawable.menu_hide_gift, getString(R.string.Gift2HideGift), () -> {
-                org.telegram.messenger.merida.MeridaVisualGifts.setHidden(key, true);
+            // like Telegram: a hidden gift stays in your profile with the crossed eye; the menu offers «Show»
+            final boolean hiddenNow = org.telegram.messenger.merida.MeridaVisualGifts.isHidden(key);
+            o.add(hiddenNow ? R.drawable.msg_message : R.drawable.menu_hide_gift, getString(hiddenNow ? R.string.Gift2ShowGift : R.string.Gift2HideGift), () -> {
+                org.telegram.messenger.merida.MeridaVisualGifts.setHidden(key, !hiddenNow);
                 changed.run();
             });
             if (unique) {

@@ -313,9 +313,9 @@ final class MeridaVisualSheets {
 
         watchAmount(starsValue, stars, update);
         watchAmount(gramsValue, grams, update);
-        sh.body.addView(balanceCard(fragment, context, "⭐", starsValue, "Stars", starsUsd, new int[]{100, 1000, 10000}, stars, update),
+        sh.body.addView(balanceCard(fragment, context, org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain("⭐", 1.2f), starsValue, "Stars", starsUsd, new int[]{100, 1000, 10000}, stars, update),
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 0));
-        sh.body.addView(balanceCard(fragment, context, "", gramsValue, "GRAM", gramsUsd, new int[]{1, 10, 100}, grams, update),
+        sh.body.addView(balanceCard(fragment, context, org.telegram.ui.Stars.StarsIntroActivity.replaceStarsWithPlain(true, "⭐", 1.2f), gramsValue, "GRAM", gramsUsd, new int[]{1, 10, 100}, grams, update),
                 LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 14, 0, 0));
         final TextView note = label(context, s(R.string.MeridaVBalanceNote), 0xFF7C7C7C, 12, false);
         // sh.body.addView(note, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 2, 14, 2, 8));
@@ -396,7 +396,7 @@ final class MeridaVisualSheets {
         });
     }
 
-    private static View balanceCard(BaseFragment fragment, Context context, String icon, TextView value, String unit, TextView usd, int[] steps, long[] holder, Runnable update) {
+    private static View balanceCard(BaseFragment fragment, Context context, CharSequence icon, TextView value, String unit, TextView usd, int[] steps, long[] holder, Runnable update) {
         final LinearLayout card = blackCard(context);
         final LinearLayout top = new LinearLayout(context);
         top.setOrientation(LinearLayout.HORIZONTAL);

@@ -557,6 +557,14 @@ public final class MeridaVisualGifts {
 
     /** The same for one of your gift collections (collectionId 0 — the whole profile). */
     public static ArrayList<TL_stars.SavedStarGift> savedGiftsIn(int collectionId) {
+        return savedGiftsIn(collectionId, true, false);
+    }
+
+    /**
+     * Like Telegram's own list: shown and/or hidden gifts. A hidden one stays in your profile with the crossed eye
+     * (SavedStarGift.unsaved — GiftSheet.GiftCell draws it), it is not pinned.
+     */
+    public static ArrayList<TL_stars.SavedStarGift> savedGiftsIn(int collectionId, boolean displayed, boolean hidden) {
         final ArrayList<TL_stars.SavedStarGift> result = new ArrayList<>();
         if (!MeridaVisual.on()) {
             return result;
@@ -564,7 +572,8 @@ public final class MeridaVisualGifts {
         final int now = ConnectionsManager.getInstance(UserConfig.selectedAccount).getCurrentTime();
         int pinnedCount = 0;
         for (String slug : slugs()) {
-            if (isHidden(slug)) {
+            final boolean isHiddenGift = isHidden(slug);
+            if (isHiddenGift ? !hidden : !displayed) {
                 continue;
             }
             if (collectionId != 0 && !collectionsOf(slug).contains(collectionId)) {
@@ -580,7 +589,8 @@ public final class MeridaVisualGifts {
             saved.gift = gift;
             saved.date = now;
             saved.name_hidden = false; // no «anonymous sender» icon on the card
-            saved.pinned_to_top = collectionId == 0 && isPinned(slug);
+            saved.unsaved = isHiddenGift;
+            saved.pinned_to_top = collectionId == 0 && !isHiddenGift && isPinned(slug);
             synchronized (made) {
                 made.add(saved);
                 keys.put(saved, slug);
