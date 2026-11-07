@@ -511,6 +511,8 @@
     <string name="MeridaNftConstructorOpen">🛠 Конструктор NFT</string>
     <string name="MeridaNftConstructorHint">Выберите коллекцию, затем модель, фон и узор. Готовый NFT появится в вашем профиле с лентой «ВИЗУАЛ» — только на этом телефоне.</string>
     <string name="MeridaNftConstructorLoading">Загружаю каталог подарков…</string>
+    <string name="MeridaNftFindCollection">Найти коллекцию: название или ссылка на NFT</string>
+    <string name="MeridaNftCollectionNotFound">Такой коллекции NFT нет. Попробуй ссылку вида t.me/nft/PlushPepe-1</string>
     <string name="MeridaNftConstructorNoData">У этой коллекции пока нет вариантов. Выберите другую.</string>
     <string name="MeridaNftConstructorAdd">Добавить в профиль (визуал)</string>
     <string name="MeridaNftConstructorTurnOn">Сначала включите «Визуал»: Настройки MeridaGram → Оформление → Визуал.</string>

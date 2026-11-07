@@ -52,7 +52,7 @@ import java.util.Random;
  * «Models / Backdrops / Patterns» bar. The result goes to your own profile as a visual gift with the
  * «VISUAL» ribbon; nothing is bought or sent.
  */
-public class MeridaNftConstructorActivity extends BaseFragment {
+public class MeridaNftConstructorActivity extends BaseFragment implements org.telegram.messenger.NotificationCenter.NotificationCenterDelegate {
 
     public static final int MODE_NFT = 0;
     public static final int MODE_GIFTS = 1;
@@ -126,6 +126,8 @@ public class MeridaNftConstructorActivity extends BaseFragment {
             public void onItemClick(int id) {
                 if (id == -1) {
                     finishFragment();
+                } else if (id == 1) {
+                    askCollection();
                 }
             }
         });
@@ -174,6 +176,10 @@ public class MeridaNftConstructorActivity extends BaseFragment {
         actionBar.setAddToContainer(false);
         root.addView(actionBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP));
         MeridaVisualUi.roundBackButton(actionBar);
+        if (mode == MODE_NFT) {
+            // collections Telegram's shop no longer lists (Plush Pepe, Durov's Cap…): found by name or NFT link
+            actionBar.createMenu().addItem(1, R.drawable.msg_search);
+        }
 
         buildTabBar(context);
         multiplierButton = new TextView(context);
@@ -243,6 +249,9 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 collections.add(g);
             }
         }
+        if (mode == MODE_NFT) {
+            addExtraCollections();
+        }
         if (mode == MODE_GIFTS) {
             // like Telegram's shop: sold-out gifts after the ones still on sale
             final ArrayList<TL_stars.StarGift> sold = new ArrayList<>();
@@ -278,9 +287,12 @@ public class MeridaNftConstructorActivity extends BaseFragment {
                 }
             }, 1500);
         }
-        appearUntil = back ? 0 : System.currentTimeMillis() + 700;
+        appearUntil = back || keepScroll ? 0 : System.currentTimeMillis() + 700;
         adapter.notifyDataSetChanged();
-        if (back && catalogState != null) {
+        if (mode == MODE_NFT) {
+            resolveKnownCollections();
+        }
+        if ((back || keepScroll) && catalogState != null) {
             listView.getLayoutManager().onRestoreInstanceState(catalogState);
         } else {
             listView.scrollToPosition(0);
@@ -288,6 +300,209 @@ public class MeridaNftConstructorActivity extends BaseFragment {
     }
 
     private android.os.Parcelable catalogState;
+    private boolean keepScroll;
+
+    // ---- collections missing from Telegram's shop list -------------------------------------------------
+
+    /**
+     * payments.getStarGifts lists only what Telegram's shop shows now: old sold-out collections are not there,
+     * though their NFTs exist and are sold on the market. We find them by an NFT (getUniqueStarGift «Name-1»),
+     * take the collection id (gift_id), and keep them here and in prefs.
+     */
+    private static final String[] KNOWN_COLLECTIONS = {
+            "PlushPepe", "DurovsCap", "PreciousPeach", "HeartLocket", "LootBag", "MiniOscar", "IonGem",
+            "AstralShard", "SwissWatch", "PerfumeBottle", "MagicPotion", "ScaredCat", "SignetRing",
+            "GenieLamp", "NekoHelmet", "KissedFrog", "ElectricSkull", "SharpTongue", "VoodooDoll",
+            "EternalRose", "BondedRing", "LowRider", "ToyBear", "VintageCigar", "HeroicHelmet",
+            "DiamondRing", "LoveCandle", "LovePotion", "RecordPlayer", "TopHat", "NailBracelet",
+            "BerryBox", "SakuraFlower", "TrappedHeart", "CrystalBall", "SkullFlower", "MadPumpkin",
+            "HexPot", "EvilEye", "FlyingBroom", "HauntedSword", "WitchHat", "JesterHat", "SpyAgaric",
+            "HypnoLollipop", "SnowGlobe", "SnowMittens", "SantaHat", "JingleBells", "WinterWreath",
+            "StarNotepad", "SleighBell", "GingerCookie", "DeskCalendar", "CandyCane", "HolidayDrink",
+            "PartySparkler", "HomemadeCake", "JellyBunny", "EasterEgg", "SpicedWine", "LunarSnake",
+            "LolPop", "CookieHeart", "TamaGadget", "BunnyMuffin", "EternalCandle", "RestlessJar",
+            "SnoopDogg", "SwagBag", "SnoopCigar", "WestsideSign", "JollyChimp",
+            "MoonPendant", "IceCream", "UFCStrike", "VictoryMedal", "RareBird", "PetSnake",
+            "InstantRamen", "FreshSocks", "CloverPin", "SkyStilettos", "MightyArm", "BigYear",
+    };
+    private static final java.util.HashMap<Long, TL_stars.StarGift> extraCollections = new java.util.HashMap<>();
+    private static final java.util.HashSet<String> triedSlugs = new java.util.HashSet<>();
+
+    private static android.content.SharedPreferences extraPrefs() {
+        return org.telegram.messenger.ApplicationLoader.applicationContext.getSharedPreferences("merida_nft_collections", Context.MODE_PRIVATE);
+    }
+
+    /** A catalog entry for a collection, made from one of its NFTs. */
+    private static TL_stars.StarGift collectionOf(TL_stars.TL_starGiftUnique u) {
+        if (u == null || u.gift_id == 0) {
+            return null;
+        }
+        final TL_stars.TL_starGift g = new TL_stars.TL_starGift();
+        g.id = u.gift_id;
+        g.title = u.title;
+        for (TL_stars.StarGiftAttribute a : u.attributes) {
+            if (a instanceof TL_stars.starGiftAttributeModel) {
+                g.sticker = ((TL_stars.starGiftAttributeModel) a).document;
+                break;
+            }
+        }
+        if (g.sticker == null) {
+            return null;
+        }
+        g.limited = true;
+        g.sold_out = true;
+        g.can_upgrade = true;
+        g.availability_total = u.availability_total;
+        final long value = MeridaVisualGifts.valueInStars(u);
+        if (value > 0) {
+            g.availability_resale = 1;
+            g.resell_min_stars = value;
+        }
+        return g;
+    }
+
+    private boolean inCatalog(long giftId) {
+        for (TL_stars.StarGift g : collections) {
+            if (g.id == giftId) return true;
+        }
+        return false;
+    }
+
+    /** Collections found earlier, and those of your own visual NFTs — added after Telegram's list. */
+    private void addExtraCollections() {
+        for (String key : MeridaVisualGifts.slugs()) {
+            final TL_stars.StarGift g = collectionOf(MeridaVisualGifts.load(key));
+            if (g != null && !extraCollections.containsKey(g.id)) {
+                extraCollections.put(g.id, g);
+            }
+        }
+        for (TL_stars.StarGift g : extraCollections.values()) {
+            if (!inCatalog(g.id)) {
+                collections.add(g);
+            }
+        }
+    }
+
+    private void putExtra(TL_stars.StarGift g) {
+        extraCollections.put(g.id, g);
+        if (collection == null && fragmentView != null && !inCatalog(g.id)) {
+            collections.add(g);
+            adapter.notifyItemInserted(collections.size() - 1);
+            actionBar.setSubtitle(collections.size() + " NFT");
+        }
+    }
+
+    private final java.util.ArrayDeque<String> resolveQueue = new java.util.ArrayDeque<>();
+    private boolean resolving;
+
+    private static String plain(String title) {
+        return title == null ? "" : title.replaceAll("[^A-Za-z0-9]", "").toLowerCase();
+    }
+
+    /** Asks for the known old collections one by one (not all at once — Telegram limits fast requests). */
+    private void resolveKnownCollections() {
+        final java.util.HashSet<String> have = new java.util.HashSet<>();
+        for (TL_stars.StarGift g : collections) {
+            have.add(plain(g.title));
+        }
+        final java.util.LinkedHashSet<String> names = new java.util.LinkedHashSet<>(java.util.Arrays.asList(KNOWN_COLLECTIONS));
+        for (String n : extraPrefs().getString("slugs", "").split("\\n")) {
+            if (!n.isEmpty()) names.add(n);
+        }
+        for (String name : names) {
+            if (have.contains(plain(name))) continue;
+            final String slug = name + "-1";
+            if (triedSlugs.add(slug)) resolveQueue.add(slug);
+        }
+        resolveNext();
+    }
+
+    private void resolveNext() {
+        if (resolving || fragmentView == null) return;
+        final String slug = resolveQueue.poll();
+        if (slug == null) return;
+        resolving = true;
+        resolveCollection(slug, g -> {
+            resolving = false;
+            AndroidUtilities.runOnUIThread(this::resolveNext, 120);
+        });
+    }
+
+    /** Finds the collection by one of its NFTs; done gets null when there is no such NFT. */
+    private void resolveCollection(String slug, java.util.function.Consumer<TL_stars.StarGift> done) {
+        final TL_stars.getUniqueStarGift req = new TL_stars.getUniqueStarGift();
+        req.slug = slug;
+        ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+            TL_stars.StarGift g = null;
+            if (res instanceof TL_stars.TL_payments_uniqueStarGift && ((TL_stars.TL_payments_uniqueStarGift) res).gift instanceof TL_stars.TL_starGiftUnique) {
+                g = collectionOf((TL_stars.TL_starGiftUnique) ((TL_stars.TL_payments_uniqueStarGift) res).gift);
+            }
+            if (g != null) {
+                TL_stars.StarGift shop = null;
+                for (TL_stars.StarGift s : StarsController.getInstance(currentAccount).gifts) {
+                    if (s != null && s.id == g.id) { shop = s; break; }
+                }
+                if (shop == null) {
+                    putExtra(g);
+                } else {
+                    g = shop;
+                }
+            }
+            if (done != null) done.accept(g);
+        }));
+    }
+
+    /** «Plush Pepe», «PlushPepe-15» or «https://t.me/nft/PlushPepe-15» → the collection. */
+    private void askCollection() {
+        MeridaVisualSheets.askText(this, LocaleController.getString(R.string.MeridaNftFindCollection), "", android.text.InputType.TYPE_CLASS_TEXT, text -> {
+            String slug = MeridaVisualGifts.parseSlug(text);
+            if (slug == null) {
+                final String name = text.replaceAll("[^A-Za-z0-9]", "");
+                if (name.isEmpty()) return;
+                slug = name + "-1";
+            }
+            final String found = slug;
+            resolveCollection(found, g -> {
+                if (g == null) {
+                    if (getParentActivity() != null) {
+                        Toast.makeText(getParentActivity(), LocaleController.getString(R.string.MeridaNftCollectionNotFound), Toast.LENGTH_LONG).show();
+                    }
+                    return;
+                }
+                final String name = found.substring(0, found.lastIndexOf('-'));
+                final String saved = extraPrefs().getString("slugs", "");
+                if (!("\n" + saved + "\n").contains("\n" + name + "\n")) {
+                    extraPrefs().edit().putString("slugs", saved.isEmpty() ? name : saved + "\n" + name).apply();
+                }
+                if (collection == null && fragmentView != null) {
+                    openCollection(g);
+                }
+            });
+        });
+    }
+
+    @Override
+    public boolean onFragmentCreate() {
+        org.telegram.messenger.NotificationCenter.getInstance(currentAccount).addObserver(this, org.telegram.messenger.NotificationCenter.starGiftsLoaded);
+        return super.onFragmentCreate();
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        org.telegram.messenger.NotificationCenter.getInstance(currentAccount).removeObserver(this, org.telegram.messenger.NotificationCenter.starGiftsLoaded);
+        super.onFragmentDestroy();
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        // the shop list came from the server (the saved one may be old): show the fresh one, same scroll place
+        if (id == org.telegram.messenger.NotificationCenter.starGiftsLoaded && collection == null && fragmentView != null) {
+            catalogState = listView.getLayoutManager().onSaveInstanceState();
+            keepScroll = true;
+            showCatalog();
+            keepScroll = false;
+        }
+    }
     private ImageView sheetShot;
     private View sheetShade;
     private boolean closing;

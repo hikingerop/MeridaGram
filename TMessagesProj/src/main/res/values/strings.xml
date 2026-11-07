@@ -11878,6 +11878,8 @@
     <string name="MeridaNftConstructorOpen">🛠 NFT constructor</string>
     <string name="MeridaNftConstructorHint">Pick a collection, then a model, backdrop and pattern. The NFT appears in your profile with a «VISUAL» ribbon, only on this phone.</string>
     <string name="MeridaNftConstructorLoading">Loading the gift catalog…</string>
+    <string name="MeridaNftFindCollection">Find a collection: name or NFT link</string>
+    <string name="MeridaNftCollectionNotFound">No such NFT collection. Try a link like t.me/nft/PlushPepe-1</string>
     <string name="MeridaNftConstructorNoData">This collection has no variants yet. Pick another one.</string>
     <string name="MeridaNftConstructorAdd">Add to profile (visual)</string>
     <string name="MeridaNftConstructorTurnOn">Turn on Visual first: MeridaGram Settings → Appearance → Visual.</string>
