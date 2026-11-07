@@ -88,6 +88,8 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    Каталог конструктора NFT: payments.getStarGifts отдаёт только текущий магазин — старых распроданных коллекций (Plush Pepe,
    Durov's Cap…) там нет. Поэтому коллекции добираются по NFT «Name-1» (getUniqueStarGift → gift_id, KNOWN_COLLECTIONS,
    по одной с паузой), из своих визуальных NFT и поиском 🔍 (название или ссылка, запоминается в prefs merida_nft_collections).
+   Модели/фоны/узоры коллекции: рынок (getResaleStarGifts) даёт только то, что сейчас продаётся, поэтому добираем
+   полным списком getStarGiftUpgradeAttributes (loadAllAttributes), дубли по имени отсекаются (hasNamed).
    Своя шкала рейтинга (MeridaVisual.levelStart: +15% на уровень) — не настоящая шкала Telegram.
    «Надеть» красит шапку своего профиля цветом фона и узором NFT (MeridaVisualGifts.wornStatus → ProfileActivity,
    как настоящий collectible-статус, только локально). Окно подарка — как у Telegram (шапка с фоном, Носить/Скрыть/Убрать,

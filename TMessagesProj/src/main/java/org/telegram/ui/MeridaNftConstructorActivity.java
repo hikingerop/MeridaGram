@@ -587,6 +587,25 @@ public class MeridaNftConstructorActivity extends BaseFragment implements org.te
                     }
                 }
             }
+            loadAllAttributes(g);
+        }));
+    }
+
+    /** Collections with no market yet: Telegram's upgrade preview still gives a few real variants. */
+    /**
+     * The market lists only the traits of NFTs on sale right now, so rare ones nobody sells (Midas Pepe…) were missing.
+     * Telegram's full list of the collection's traits (as for an upgrade) adds all the others.
+     */
+    private void loadAllAttributes(TL_stars.StarGift g) {
+        final TL_stars.getStarGiftUpgradeAttributes req = new TL_stars.getStarGiftUpgradeAttributes();
+        req.gift_id = g.id;
+        ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+            if (collection != g || fragmentView == null) {
+                return;
+            }
+            if (res instanceof TL_stars.starGiftUpgradeAttributes) {
+                takeAttributes(((TL_stars.starGiftUpgradeAttributes) res).attributes);
+            }
             if (models.isEmpty() || backdrops.isEmpty() || patterns.isEmpty()) {
                 loadPreviewAttributes(g);
             } else {
@@ -595,7 +614,13 @@ public class MeridaNftConstructorActivity extends BaseFragment implements org.te
         }));
     }
 
-    /** Collections with no market yet: Telegram's upgrade preview still gives a few real variants. */
+    private static boolean hasNamed(ArrayList<? extends TL_stars.StarGiftAttribute> list, TL_stars.StarGiftAttribute a) {
+        for (TL_stars.StarGiftAttribute x : list) {
+            if (x == a || x.name != null && x.name.equals(a.name)) return true;
+        }
+        return false;
+    }
+
     private void loadPreviewAttributes(TL_stars.StarGift g) {
         final TL_stars.getStarGiftUpgradePreview req = new TL_stars.getStarGiftUpgradePreview();
         req.gift_id = g.id;
@@ -617,11 +642,12 @@ public class MeridaNftConstructorActivity extends BaseFragment implements org.te
 
     private void takeAttributes(ArrayList<TL_stars.StarGiftAttribute> list) {
         for (TL_stars.StarGiftAttribute a : list) {
-            if (a instanceof TL_stars.starGiftAttributeModel && !models.contains(a)) {
+            if (a == null) continue;
+            if (a instanceof TL_stars.starGiftAttributeModel && !hasNamed(models, a)) {
                 models.add((TL_stars.starGiftAttributeModel) a);
-            } else if (a instanceof TL_stars.starGiftAttributeBackdrop && !backdrops.contains(a)) {
+            } else if (a instanceof TL_stars.starGiftAttributeBackdrop && !hasNamed(backdrops, a)) {
                 backdrops.add((TL_stars.starGiftAttributeBackdrop) a);
-            } else if (a instanceof TL_stars.starGiftAttributePattern && !patterns.contains(a)) {
+            } else if (a instanceof TL_stars.starGiftAttributePattern && !hasNamed(patterns, a)) {
                 patterns.add((TL_stars.starGiftAttributePattern) a);
             }
         }
