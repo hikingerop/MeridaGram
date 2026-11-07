@@ -292,6 +292,8 @@ public class ApplicationLoader extends Application {
         }
 
         super.onCreate();
+        // MeridaGram: keep the reason of a crash to show it on the next start
+        org.telegram.messenger.merida.MeridaCrash.install(applicationContext);
 
         // AndroidUtilities must be initialized before FileLog
         final String helloWorld = AndroidUtilities.getHelloWorld();

@@ -207,6 +207,8 @@ MeridaUpdaterController.java` берёт последний релиз GitHub `b
 родная полоска MainTabsActivity внизу: «Обновить MeridaGram» → «Загрузка N%» → «Обновить сейчас» (MeridaUpdateLayout,
 окно MeridaUpdateAppAlertDialog — один раз на сборку). Проверка Telegram (help.getAppUpdate) по-прежнему выключена
 (CHECK_UPDATES=false) — иначе предложило бы официальный Telegram. Локальная сборка («dev») не обновляется.
+Отчёт о вылете (`merida/MeridaCrash.java`): свой обработчик пишет стек в files/merida_crash.txt, при следующем запуске
+(LaunchActivity.onResume) окно «MeridaGram вылетел» — Скопировать/Поделиться. Никуда сам не отправляет.
 - Свой ключ подписи создан (JKS, alias `meridagram`, SHA-256 сертификата
   `8B:FC:EC:AC:2C:67:CC:02:32:61:B3:34:30:67:55:5E:EC:1A:4E:2D:26:B0:95:B9:22:6D:48:E1:68:4D:7B:D9`).
   Сборка берёт его из секретов MERIDA_KEYSTORE и MERIDA_KEYSTORE_PASSWORD (шаг «Use own signing key»).

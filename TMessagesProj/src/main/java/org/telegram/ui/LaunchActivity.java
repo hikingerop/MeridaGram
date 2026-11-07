@@ -7092,6 +7092,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         org.telegram.messenger.merida.MeridaRefreshRate.apply(getWindow());
         // MeridaGram: warn if this copy is not signed with the official MeridaGram key
         org.telegram.messenger.merida.MeridaSignature.check();
+        // MeridaGram: if the app crashed last time — the report, to send it
+        org.telegram.messenger.merida.MeridaCrash.showIfAny(this);
         pipActivityHandler.onResume();
         if (onResumeStaticCallback != null) {
             onResumeStaticCallback.run();
