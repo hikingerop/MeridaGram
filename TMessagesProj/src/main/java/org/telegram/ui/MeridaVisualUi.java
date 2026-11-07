@@ -115,13 +115,13 @@ final class MeridaVisualUi {
             this.divider = divider;
             setWillNotDraw(false);
             dividerPaint.setColor(dark() ? 0xFF0C0C0C : Theme.getColor(Theme.key_divider));
-            textLeft = icon != 0 ? 64 : 20;
+            textLeft = icon != 0 ? 71 : 20; // measured on Chimera's screenshots
             if (icon != 0) {
                 final ImageView image = new ImageView(context);
                 image.setImageResource(icon);
                 image.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                 image.setColorFilter(new PorterDuffColorFilter(dark() ? 0xFF7E7E7E : Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.SRC_IN));
-                addView(image, LayoutHelper.createFrame(24, 24, Gravity.LEFT | Gravity.CENTER_VERTICAL, 20, 0, 0, 0));
+                addView(image, LayoutHelper.createFrame(24, 24, Gravity.LEFT | Gravity.CENTER_VERTICAL, 21, 0, 0, 0));
             }
             final LinearLayout texts = new LinearLayout(context);
             texts.setOrientation(LinearLayout.VERTICAL);
