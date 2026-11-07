@@ -775,6 +775,36 @@ public class ProfileGiftsContainer extends FrameLayout implements NotificationCe
             if (unique) {
                 final boolean pinned = org.telegram.messenger.merida.MeridaVisualGifts.isPinned(key);
                 o.add(pinned ? R.drawable.msg_unpin : R.drawable.msg_pin, getString(pinned ? R.string.Gift2Unpin : R.string.Gift2Pin), () -> {
+                    if (!pinned) {
+                        // like Telegram (togglePinned): a hidden gift becomes shown; over the limit (6) the oldest
+                        // pinned visual gift is unpinned and «You can pin up to N gifts» is shown
+                        org.telegram.messenger.merida.MeridaVisualGifts.setHidden(key, false);
+                        final int limit = MessagesController.getInstance(currentAccount).stargiftsPinnedToTopLimit;
+                        final java.util.ArrayList<String> visualPinned = new java.util.ArrayList<>();
+                        for (String k : org.telegram.messenger.merida.MeridaVisualGifts.slugs()) {
+                            if (org.telegram.messenger.merida.MeridaVisualGifts.isPinned(k) && !org.telegram.messenger.merida.MeridaVisualGifts.isHidden(k)) visualPinned.add(k);
+                        }
+                        int realPinned = 0;
+                        if (list != null) {
+                            for (TL_stars.SavedStarGift g : list.gifts) {
+                                if (g.pinned_to_top && org.telegram.messenger.merida.MeridaVisualGifts.keyOf(g) == null) realPinned++;
+                            }
+                        }
+                        if (visualPinned.size() + realPinned + 1 > limit) {
+                            if (visualPinned.isEmpty()) {
+                                BulletinFactory.of(parent.fragment).createSimpleBulletin(R.raw.chats_infotip, LocaleController.formatPluralStringComma("GiftsPinLimit", limit)).show();
+                                return;
+                            }
+                            while (!visualPinned.isEmpty() && visualPinned.size() + realPinned + 1 > limit) {
+                                org.telegram.messenger.merida.MeridaVisualGifts.setPinned(visualPinned.remove(visualPinned.size() - 1), false);
+                            }
+                            org.telegram.messenger.merida.MeridaVisualGifts.setPinned(key, true);
+                            BulletinFactory.of(parent.fragment).createSimpleBulletin(R.raw.chats_infotip, LocaleController.formatPluralStringComma("GiftsPinLimit", limit)).show();
+                            changed.run();
+                            listView.scrollToPosition(0);
+                            return;
+                        }
+                    }
                     org.telegram.messenger.merida.MeridaVisualGifts.setPinned(key, !pinned);
                     if (pinned) {
                         BulletinFactory.of(parent.fragment).createSimpleBulletin(R.raw.ic_unpin, getString(R.string.Gift2Unpinned)).show();
