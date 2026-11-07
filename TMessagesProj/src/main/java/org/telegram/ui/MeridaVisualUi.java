@@ -24,8 +24,8 @@ import org.telegram.ui.Components.Switch;
  */
 final class MeridaVisualUi {
 
-    static final int BLUE = 0xFF3E9BFF;
-    static final int SHEET_BG = 0xFF212121;
+    static final int BLUE = 0xFF229AF0; // Chimera's buttons
+    static final int SHEET_BG = 0xFF1E1E1E;
     static final int SHEET_CARD = 0xFF000000;
 
     private MeridaVisualUi() {
@@ -40,19 +40,19 @@ final class MeridaVisualUi {
     }
 
     static int cardBg() {
-        return dark() ? 0xFF1C1C1E : Theme.getColor(Theme.key_windowBackgroundWhite);
+        return dark() ? 0xFF181818 : Theme.getColor(Theme.key_windowBackgroundWhite);
     }
 
     static int text() {
-        return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText);
+        return dark() ? 0xFFFFFFFF : Theme.getColor(Theme.key_windowBackgroundWhiteBlackText);
     }
 
     static int gray() {
-        return Theme.getColor(Theme.key_windowBackgroundWhiteGrayText);
+        return dark() ? 0xFF7C7C7C : Theme.getColor(Theme.key_windowBackgroundWhiteGrayText);
     }
 
     static int blueHeader() {
-        return Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
+        return dark() ? 0xFF76B5EB : Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader);
     }
 
     static GradientDrawable round(int color, float radiusDp) {
@@ -114,13 +114,13 @@ final class MeridaVisualUi {
             super(context);
             this.divider = divider;
             setWillNotDraw(false);
-            dividerPaint.setColor(dark() ? 0xFF2C2C2E : Theme.getColor(Theme.key_divider));
+            dividerPaint.setColor(dark() ? 0xFF0C0C0C : Theme.getColor(Theme.key_divider));
             textLeft = icon != 0 ? 64 : 20;
             if (icon != 0) {
                 final ImageView image = new ImageView(context);
                 image.setImageResource(icon);
                 image.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                image.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.SRC_IN));
+                image.setColorFilter(new PorterDuffColorFilter(dark() ? 0xFF7E7E7E : Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.SRC_IN));
                 addView(image, LayoutHelper.createFrame(24, 24, Gravity.LEFT | Gravity.CENTER_VERTICAL, 20, 0, 0, 0));
             }
             final LinearLayout texts = new LinearLayout(context);
@@ -172,7 +172,7 @@ final class MeridaVisualUi {
         protected void onDraw(android.graphics.Canvas canvas) {
             super.onDraw(canvas);
             if (divider) {
-                canvas.drawRect(AndroidUtilities.dp(textLeft), getHeight() - 1, getWidth(), getHeight(), dividerPaint);
+                canvas.drawRect(AndroidUtilities.dp(textLeft), getHeight() - Math.max(1, AndroidUtilities.dp(0.7f)), getWidth(), getHeight(), dividerPaint);
             }
         }
     }
@@ -185,7 +185,7 @@ final class MeridaVisualUi {
         tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
         tv.setTextColor(filled ? 0xFFFFFFFF : BLUE);
         tv.setPadding(AndroidUtilities.dp(18), 0, AndroidUtilities.dp(18), 0);
-        tv.setBackground(round(filled ? BLUE : 0x1F3E9BFF, 26));
+        tv.setBackground(round(filled ? BLUE : 0x1F229AF0, 26));
         return tv;
     }
 
@@ -261,7 +261,7 @@ final class MeridaVisualUi {
             if (back == null) return;
             final GradientDrawable circle = new GradientDrawable();
             circle.setShape(GradientDrawable.OVAL);
-            circle.setColor(dark() ? 0xFF1C1C1E : 0x14000000);
+            circle.setColor(dark() ? 0xFF141414 : 0x14000000);
             circle.setSize(AndroidUtilities.dp(40), AndroidUtilities.dp(40));
             final android.graphics.drawable.LayerDrawable layer = new android.graphics.drawable.LayerDrawable(new android.graphics.drawable.Drawable[]{circle});
             layer.setLayerGravity(0, Gravity.CENTER);

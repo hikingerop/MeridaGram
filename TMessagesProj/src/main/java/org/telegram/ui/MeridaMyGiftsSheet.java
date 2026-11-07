@@ -104,7 +104,7 @@ final class MeridaMyGiftsSheet {
 
         final EditText search = new EditText(context);
         search.setHint(s(R.string.MeridaVSearchHint));
-        search.setHintTextColor(0xFF8E8E93);
+        search.setHintTextColor(0xFF7C7C7C);
         search.setTextColor(0xFFFFFFFF);
         search.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14.5f);
         search.setSingleLine(true);
@@ -212,13 +212,13 @@ final class MeridaMyGiftsSheet {
 
         summary.removeAllViews();
         summary.addView(MeridaVisualSheets.label(context, all.size() + " " + MeridaVisualUi.plural(all.size(), "подарок", "подарка", "подарков"), 0xFFFFFFFF, 20, true));
-        summary.addView(MeridaVisualSheets.label(context, nft + " NFT · " + LocaleController.formatString(R.string.MeridaVOrdinaryCount, all.size() - nft), 0xFF8E8E93, 13.5f, false));
+        summary.addView(MeridaVisualSheets.label(context, nft + " NFT · " + LocaleController.formatString(R.string.MeridaVOrdinaryCount, all.size() - nft), 0xFF7C7C7C, 13.5f, false));
         final LinearLayout stats = new LinearLayout(context);
         stats.setOrientation(LinearLayout.HORIZONTAL);
         stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVInProfileN, inProfile), MeridaVisualUi.BLUE, 13.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
-        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVHiddenN, hidden), 0xFF8E8E93, 13.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
+        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVHiddenN, hidden), 0xFF7C7C7C, 13.5f, false), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 0, 20, 0));
         final int onSale = MeridaVisualGifts.onSaleCount();
-        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVOnSaleN, onSale), 0xFF8E8E93, 13.5f, false));
+        stats.addView(MeridaVisualSheets.label(context, LocaleController.formatString(R.string.MeridaVOnSaleN, onSale), 0xFF7C7C7C, 13.5f, false));
         summary.addView(stats, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, 0, 10, 0, 0));
 
         chips.removeAllViews();
@@ -243,7 +243,7 @@ final class MeridaMyGiftsSheet {
         selectionBar.setVisibility(selecting ? View.VISIBLE : View.GONE);
         if (selecting) {
             if (craftMode) {
-                final TextView hint = MeridaVisualSheets.label(context, s(R.string.MeridaVCraftPick), 0xFF8E8E93, 12, false);
+                final TextView hint = MeridaVisualSheets.label(context, s(R.string.MeridaVCraftPick), 0xFF7C7C7C, 12, false);
                 hint.setGravity(Gravity.CENTER_VERTICAL);
                 selectionBar.addView(hint, LayoutHelper.createLinear(0, LayoutHelper.MATCH_PARENT, 1f));
             } else {
@@ -273,7 +273,7 @@ final class MeridaMyGiftsSheet {
             }
         }
         if (col == 0) {
-            final TextView empty = MeridaVisualSheets.label(context, s(R.string.MeridaVNoGifts), 0xFF8E8E93, 12.5f, false);
+            final TextView empty = MeridaVisualSheets.label(context, s(R.string.MeridaVNoGifts), 0xFF7C7C7C, 12.5f, false);
             empty.setGravity(Gravity.CENTER);
             grid.addView(empty, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 120));
         }
@@ -376,7 +376,7 @@ final class MeridaMyGiftsSheet {
         titleRow.addView(MeridaVisualSheets.label(context, name, 0xFFFFFFFF, 16, true), LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
         final long sale = MeridaVisualGifts.salePrice(it.key);
         if (sale > 0) titleRow.addView(tag(context, s(R.string.MeridaVSaleTag), 0xFF4CAF50), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
-        if (it.hidden) titleRow.addView(tag(context, s(R.string.MeridaVHiddenTag), 0xFF8E8E93), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
+        if (it.hidden) titleRow.addView(tag(context, s(R.string.MeridaVHiddenTag), 0xFF7C7C7C), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
         // titleRow.addView(tag(context, s(R.string.MeridaVisualMark), 0xFFF5A623), LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 26, 6, 0, 0, 0));
         right.addView(titleRow);
 
@@ -450,7 +450,7 @@ final class MeridaMyGiftsSheet {
         final Context context = table.getContext();
         final LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        row.addView(MeridaVisualSheets.label(context, label, 0xFF8E8E93, 13, false), LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
+        row.addView(MeridaVisualSheets.label(context, label, 0xFF7C7C7C, 13, false), LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1f));
         final TextView v = MeridaVisualSheets.label(context, value, 0xFFFFFFFF, 13, false);
         v.setGravity(Gravity.RIGHT);
         v.setSingleLine(true);

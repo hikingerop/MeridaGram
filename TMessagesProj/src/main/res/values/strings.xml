@@ -11854,8 +11854,8 @@
     <string name="MeridaVisualUsernameTaken">This username belongs to another account and cannot be used.</string>
     <string name="MeridaVisualUsernameInvalid">Not a valid username: 4–32 characters, Latin letters, digits and _, starting with a letter.</string>
     <string name="MeridaVisualUsernameError">Could not check the username. Check your connection and try again.</string>
-    <string name="MeridaVisualNumberRule">Only an anonymous number like +888 0000 0000, as on Fragment. Shown in your profile with «VISUAL» written over it. Empty turns it off.</string>
-    <string name="MeridaVisualNumberOnly888">Only +888 and 8 more digits. Ordinary numbers belong to real people.</string>
+    <string name="MeridaVisualNumberRule">Only an anonymous +888 number — like +888 8 884 or +888 0000 0000, as on Fragment. Shown in your profile with «VISUAL» written over it. Empty turns it off.</string>
+    <string name="MeridaVisualNumberOnly888">Only +888 followed by 1 to 8 digits. Ordinary numbers belong to real people.</string>
     <string name="MeridaVisualRatingInfo">This is a visual rating: only your phone shows it.</string>
     <string name="MeridaVisualSendMenu">Visual gift</string>
     <string name="MeridaVisualSendInfo">An ordinary message is sent that says plainly the gift is not real. In MeridaGram, yours and theirs, it looks like a gift with a «VISUAL» mark. Nothing is charged or credited.</string>
@@ -12034,7 +12034,7 @@
     <string name="MeridaVSavedNumbers">Saved numbers</string>
     <string name="MeridaVLikeFragment">Like on Fragment</string>
     <string name="MeridaVBought">bought %1$s</string>
-    <string name="MeridaVNumberExample">Number (for example +888 0413 6929)</string>
+    <string name="MeridaVNumberExample">Number (for example +888 8 884 or +888 0413 6929)</string>
     <string name="MeridaVNumberPrice">Price in TON (optional)</string>
     <string name="MeridaVRatingTitle">Profile rating</string>
     <string name="MeridaVRatingSub">level %1$d · %2$s points</string>

@@ -90,6 +90,9 @@ TMessagesProj (minSdk 24), рантайм `src/main/python/merida_plugins.py`, J
    по одной с паузой), из своих визуальных NFT и поиском 🔍 (название или ссылка, запоминается в prefs merida_nft_collections).
    Модели/фоны/узоры коллекции: рынок (getResaleStarGifts) даёт только то, что сейчас продаётся, поэтому добираем
    полным списком getStarGiftUpgradeAttributes (loadAllAttributes), дубли по имени отсекаются (hasNamed).
+   Номер +888: от 1 до 8 цифр после 888 (isAnonymousNumber), пишется официальным PhoneFormat Telegram («+888 8 884»).
+   Цвета экранов Визуала — по скринам Chimera (MeridaVisualUi, тёмная тема): фон #000, карточки #181818, заголовки #76B5EB,
+   подписи #7C7C7C, значки #7E7E7E, разделитель #0C0C0C, окна снизу #1E1E1E, кнопки #229AF0, «назад» на #141414.
    Своя шкала рейтинга (MeridaVisual.levelStart: +15% на уровень) — не настоящая шкала Telegram.
    «Надеть» красит шапку своего профиля цветом фона и узором NFT (MeridaVisualGifts.wornStatus → ProfileActivity,
    как настоящий collectible-статус, только локально). Окно подарка — как у Telegram (шапка с фоном, Носить/Скрыть/Убрать,

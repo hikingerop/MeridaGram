@@ -167,13 +167,22 @@ public final class MeridaVisual {
         return on() && MeridaSettings.visualRatingShow.get() && MeridaSettings.visualRating.get() > 0;
     }
 
-    /** Only anonymous Fragment numbers: 888 and 8 more digits. Real phone numbers belong to real people. */
+    /**
+     * Only anonymous Fragment numbers: 888 and 1–8 more digits («+888 8 884», «+888 0413 6929»).
+     * Real phone numbers belong to real people.
+     */
     public static boolean isAnonymousNumber(String digits) {
-        return digits != null && digits.matches("888\\d{8}");
+        return digits != null && digits.matches("888\\d{1,8}");
     }
 
+    /** Written the way Telegram writes it (its own PhoneFormat: «+888 8 884», «+888 0000 0000»). */
     public static String formatNumber888(String digits) {
-        return "+888 " + digits.substring(3, 7) + " " + digits.substring(7);
+        try {
+            final String f = org.telegram.PhoneFormat.PhoneFormat.getInstance().format("+" + digits);
+            if (f != null && f.startsWith("+888")) return f;
+        } catch (Throwable ignore) {
+        }
+        return digits.length() == 11 ? "+888 " + digits.substring(3, 7) + " " + digits.substring(7) : "+" + digits;
     }
 
     public static boolean isValidUsername(String username) {

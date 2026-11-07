@@ -487,8 +487,8 @@
     <string name="MeridaVisualUsernameTaken">Этот юзернейм принадлежит другому аккаунту — его взять нельзя.</string>
     <string name="MeridaVisualUsernameInvalid">Такого юзернейма не бывает: 4–32 символа, латинские буквы, цифры и _, начинается с буквы.</string>
     <string name="MeridaVisualUsernameError">Не удалось проверить юзернейм. Проверьте интернет и попробуйте ещё раз.</string>
-    <string name="MeridaVisualNumberRule">Только анонимный номер вида +888 0000 0000 — как на Fragment. Покажется в вашем профиле с надписью «ВИЗУАЛ» поверх. Пусто — выключить.</string>
-    <string name="MeridaVisualNumberOnly888">Можно только номер +888 и ещё 8 цифр. Обычные номера принадлежат реальным людям.</string>
+    <string name="MeridaVisualNumberRule">Только анонимный номер +888 — например +888 8 884 или +888 0000 0000, как на Fragment. Покажется в вашем профиле с надписью «ВИЗУАЛ» поверх. Пусто — выключить.</string>
+    <string name="MeridaVisualNumberOnly888">Можно только номер +888 и после него от 1 до 8 цифр. Обычные номера принадлежат реальным людям.</string>
     <string name="MeridaVisualRatingInfo"></string>
     <string name="MeridaVisualSendMenu">Визуальный подарок</string>
     <string name="MeridaVisualSendInfo">Уйдёт обычное сообщение, в котором прямо написано, что подарок не настоящий. В MeridaGram — у вас и у собеседника — оно выглядит как подарок с меткой «ВИЗУАЛ». Ничего не списывается и не начисляется.</string>
@@ -667,7 +667,7 @@
     <string name="MeridaVSavedNumbers">Сохранённые номера</string>
     <string name="MeridaVLikeFragment">Как на Fragment</string>
     <string name="MeridaVBought">куплен %1$s</string>
-    <string name="MeridaVNumberExample">Номер (например +888 0413 6929)</string>
+    <string name="MeridaVNumberExample">Номер (например +888 8 884 или +888 0413 6929)</string>
     <string name="MeridaVNumberPrice">Цена в TON (необязательно)</string>
     <string name="MeridaVRatingTitle">Рейтинг профиля</string>
     <string name="MeridaVRatingSub">уровень %1$d · %2$s очков</string>
